@@ -1,0 +1,757 @@
+Aquí tienes el texto para guardarlo como documentación del diseño de login y seguridad en BD.
+
+```txt
+======================================================
+DOCUMENTACIÓN - LOGIN Y SEGURIDAD EN BASE DE DATOS
+PROYECTO: NominaCes
+======================================================
+
+OBJETIVO
+------------------------------------------------------
+El módulo de login y seguridad de NominaCes está diseñado para controlar:
+
+- Acceso de usuarios al sistema.
+- Roles y permisos por módulo/página.
+- Sesiones seguras con cookie httpOnly.
+- Relación entre sesión NominaCes y token Fortia.
+- Bloqueo por intentos fallidos.
+- Reset de contraseña mediante código temporal.
+- Bitácoras para poder reconstruir cambios e historial.
+
+La base de datos no solo guarda usuarios activos, también conserva auditoría de cambios importantes para poder revisar quién hizo qué, cuándo y sobre qué usuario/rol/permiso.
+
+
+======================================================
+1. REGLAS GENERALES DEL LOGIN
+======================================================
+
+El login se realiza con:
+
+- username
+- contraseña
+
+Ejemplo:
+
+- username: wsolis
+- contraseña: Nomina@2026
+
+El username es único y no distingue mayúsculas/minúsculas.
+
+Ejemplo:
+
+Si existe el usuario:
+
+- Wsolis
+
+También se considera el mismo que:
+
+- wsolis
+- WSOLIS
+
+Para eso se guarda un campo normalizado:
+
+- username_normalized
+
+El usuario es independiente de empleados. En esta primera etapa no se relaciona directamente con employee_id.
+
+
+======================================================
+2. CONTRASEÑAS
+======================================================
+
+Las contraseñas nunca se guardan en texto claro.
+
+Se guardan usando bcrypt en el campo:
+
+- password_hash
+
+Reglas mínimas de contraseña:
+
+- Mínimo 8 caracteres.
+- Al menos 1 mayúscula.
+- Al menos 1 minúscula.
+- Al menos 1 número.
+- Al menos 1 símbolo.
+
+Ejemplo válido:
+
+- Nomina@2026
+
+La contraseña no caduca automáticamente.
+
+Solo cambia cuando:
+
+- Se crea la primera contraseña del usuario.
+- El administrador resetea la contraseña.
+- Más adelante, si se agrega opción de cambio desde perfil.
+
+
+======================================================
+3. ROLES Y PERMISOS
+======================================================
+
+Cada usuario tiene un solo rol.
+
+Regla:
+
+- 1 usuario = 1 rol
+- 1 rol = muchos permisos
+
+Los roles se guardan en:
+
+- app_role
+
+Los permisos disponibles se guardan en:
+
+- app_permission
+
+La relación entre rol y permisos se guarda en:
+
+- app_role_permission
+
+Los permisos también existen en un archivo central del backend:
+
+- src/modules/auth/auth.permissions.ts
+
+Esto permite que el mantenimiento sea sencillo.
+
+Cuando se agregue una nueva página, módulo o acción protegida, se agrega el permiso en ese archivo y luego se registra en base de datos.
+
+Permisos iniciales:
+
+- USERS_VIEW
+- USERS_CREATE
+- USERS_EDIT
+
+- ROLES_VIEW
+- ROLES_CREATE
+- ROLES_EDIT
+
+- CATALOGS_VIEW
+- CATALOGS_EDIT
+
+- HEADCOUNT_VIEW
+- HEADCOUNT_EXPORT
+- HEADCOUNT_TEMPLATE_ADMIN
+
+- PAYROLL_UPLOAD
+- PAYROLL_VIEW
+
+- ISN_VIEW
+- ISN_CONFIG
+- ISN_SIMULATE
+
+El rol inicial ADMINISTRADOR tiene todos los permisos disponibles.
+
+
+======================================================
+4. TABLA app_role
+======================================================
+
+Tabla que guarda los roles del sistema.
+
+Campos principales:
+
+- id
+- role_key
+- role_name
+- description
+- is_active
+- created_at
+- updated_at
+
+Ejemplo:
+
+- role_key: ADMINISTRADOR
+- role_name: Administrador
+
+Los roles no se eliminan físicamente. Se desactivan usando:
+
+- is_active = false
+
+Esto permite conservar historial y evitar romper usuarios que hayan tenido ese rol.
+
+
+======================================================
+5. TABLA app_permission
+======================================================
+
+Tabla que guarda el catálogo de permisos disponibles.
+
+Campos principales:
+
+- permission_key
+- permission_name
+- module_key
+- description
+- is_active
+- created_at
+
+Ejemplo:
+
+- permission_key: HEADCOUNT_VIEW
+- permission_name: Ver Head Count
+- module_key: HEADCOUNT
+
+Los permisos se usan para proteger rutas del backend y páginas/botones del frontend.
+
+
+======================================================
+6. TABLA app_role_permission
+======================================================
+
+Tabla que guarda qué permisos tiene cada rol actualmente.
+
+Campos principales:
+
+- role_id
+- permission_key
+- granted_at
+- granted_by_user_id
+
+Ejemplo:
+
+Rol ADMINISTRADOR tiene:
+
+- USERS_VIEW
+- USERS_CREATE
+- USERS_EDIT
+- HEADCOUNT_VIEW
+- HEADCOUNT_EXPORT
+- ISN_CONFIG
+
+Esta tabla representa el estado vigente de permisos.
+
+El histórico de cambios se guarda aparte en:
+
+- app_role_permission_audit
+
+
+======================================================
+7. TABLA app_user
+======================================================
+
+Tabla principal de usuarios.
+
+Campos principales:
+
+- id
+- username
+- username_normalized
+- password_hash
+- full_name
+- role_id
+- is_active
+- is_locked
+- failed_login_attempts
+- last_failed_login_at
+- locked_at
+- locked_reason
+- password_reset_required
+- password_reset_code_hash
+- password_reset_expires_at
+- password_changed_at
+- created_at
+- updated_at
+
+Reglas:
+
+- username es el usuario visible.
+- username_normalized es el usuario en minúsculas para evitar duplicados.
+- password_hash guarda la contraseña cifrada con bcrypt.
+- role_id indica el rol asignado.
+- is_active indica si el usuario está activo.
+- is_locked indica si está bloqueado.
+- failed_login_attempts cuenta intentos fallidos.
+- password_reset_required obliga al usuario a crear contraseña.
+- password_reset_code_hash guarda el código temporal cifrado/hasheado.
+- password_reset_expires_at indica cuándo vence el código temporal.
+
+Estados importantes:
+
+Usuario activo:
+
+- is_active = true
+- is_locked = false
+
+Usuario desactivado manualmente:
+
+- is_active = false
+
+Usuario bloqueado por intentos fallidos:
+
+- is_locked = true
+- locked_reason = FAILED_LOGIN_ATTEMPTS
+
+
+======================================================
+8. BLOQUEO POR INTENTOS FALLIDOS
+======================================================
+
+Regla:
+
+Después de 3 intentos fallidos de contraseña, el usuario se bloquea.
+
+Cuando se bloquea:
+
+- is_locked = true
+- locked_at = fecha/hora actual
+- locked_reason = FAILED_LOGIN_ATTEMPTS
+- failed_login_attempts = 3
+- se revocan sus sesiones activas
+- se guarda bitácora
+
+El bloqueo no se quita automáticamente por tiempo.
+
+Solo un administrador puede desbloquearlo.
+
+Cuando el administrador desbloquea:
+
+- is_locked = false
+- locked_at = null
+- locked_reason = null
+- failed_login_attempts = 0
+- last_failed_login_at = null
+
+
+======================================================
+9. RESET DE CONTRASEÑA
+======================================================
+
+Cuando el administrador crea un usuario nuevo:
+
+- El usuario queda activo.
+- El usuario queda desbloqueado.
+- password_reset_required = true.
+- El sistema genera un código temporal de 6 dígitos.
+- El código dura 5 minutos.
+- El código se muestra una sola vez al administrador.
+- El administrador lo comparte al usuario por el medio que decida.
+
+Cuando el administrador resetea una contraseña:
+
+- Se genera un código temporal nuevo de 6 dígitos.
+- Se guarda solo el hash del código.
+- El código real no se guarda visible.
+- password_reset_required = true.
+- password_reset_expires_at = fecha/hora actual + 5 minutos.
+- Se revocan sesiones activas del usuario.
+
+El usuario crea contraseña capturando:
+
+- username
+- código temporal
+- nueva contraseña
+- confirmar nueva contraseña
+
+Si el código es correcto y no venció:
+
+- Se guarda el nuevo password_hash.
+- password_reset_required = false.
+- password_reset_code_hash = null.
+- password_reset_expires_at = null.
+- password_changed_at = fecha/hora actual.
+- failed_login_attempts = 0.
+- is_locked = false.
+
+
+======================================================
+10. SESIONES
+======================================================
+
+Las sesiones se guardan en:
+
+- app_session
+
+NominaCes usa cookie httpOnly para sesión.
+
+Esto significa:
+
+- El frontend no guarda token en localStorage.
+- JavaScript no puede leer la cookie.
+- El navegador manda la cookie automáticamente al backend.
+- Es más seguro que guardar tokens visibles en frontend.
+
+El token Fortia nunca se envía al frontend.
+
+El token Fortia se guarda cifrado en backend dentro de:
+
+- app_session.fortia_token_encrypted
+
+El token real de sesión tampoco se guarda en base de datos.
+
+En base de datos se guarda:
+
+- session_token_hash
+
+Regla:
+
+- La cookie contiene el token real.
+- La base de datos contiene solo el hash.
+- El backend compara usando hash.
+
+
+======================================================
+11. TABLA app_session
+======================================================
+
+Campos principales:
+
+- id
+- user_id
+- session_token_hash
+- fortia_token_encrypted
+- expires_at
+- revoked_at
+- revoked_reason
+- created_at
+- last_seen_at
+- ip_address
+- user_agent
+
+Reglas:
+
+- Solo se permite una sesión activa por usuario.
+- Si el usuario inicia sesión de nuevo, se revoca la sesión anterior.
+- La sesión dura 25 minutos fijos.
+- La duración se configura en .env.
+- No hay renovación automática.
+- Cuando vence, se cierra sesión.
+- Al cerrar sesión manualmente, se revoca la sesión y se elimina/descarta el token Fortia cifrado.
+
+Motivos posibles de revocación:
+
+- LOGOUT
+- SESSION_EXPIRED
+- SESSION_REVOKED_BY_NEW_LOGIN
+- USER_LOCKED
+- PASSWORD_RESET
+
+
+======================================================
+12. TOKEN FORTIA
+======================================================
+
+El login de NominaCes depende de un token Fortia.
+
+Regla:
+
+En cada login correcto:
+
+1. Se valida username + contraseña propia de NominaCes.
+2. El backend solicita un token nuevo a Fortia usando credenciales del .env.
+3. Si Fortia responde correctamente, se crea sesión NominaCes.
+4. La sesión de NominaCes dura 25 minutos.
+5. El token Fortia se guarda cifrado solo en backend.
+6. El frontend nunca ve el token Fortia.
+
+Variables esperadas en .env:
+
+- FORTIA_BASE_URL
+- FORTIA_USERNAME
+- FORTIA_PASSWORD
+- SESSION_TTL_MINUTES=25
+- SESSION_ENCRYPTION_KEY
+
+Si Fortia no entrega token, no se inicia sesión.
+
+Cuando pasan 25 minutos:
+
+- Se cierra sesión.
+- No se renueva automáticamente.
+- El usuario debe volver a iniciar sesión.
+
+
+======================================================
+13. COOKIE httpOnly
+======================================================
+
+La sesión usa cookie httpOnly.
+
+Ventajas:
+
+- El frontend no puede leer el token.
+- Reduce riesgo si algún script intenta acceder a la sesión.
+- El backend tiene control total.
+- El token Fortia permanece oculto.
+
+La cookie se limpia cuando:
+
+- El usuario cierra sesión.
+- La sesión vence.
+- La sesión es revocada.
+- El usuario es bloqueado.
+- La contraseña es reseteada.
+
+
+======================================================
+14. BITÁCORA DE AUTENTICACIÓN
+======================================================
+
+La bitácora de autenticación se guarda en:
+
+- app_auth_audit
+
+Campos principales:
+
+- id
+- username_attempted
+- user_id
+- action
+- success
+- failure_reason
+- ip_address
+- user_agent
+- created_at
+
+Acciones posibles:
+
+- LOGIN_SUCCESS
+- LOGIN_FAILED
+- LOGOUT
+- SESSION_EXPIRED
+- SESSION_REVOKED_BY_NEW_LOGIN
+- USER_LOCKED
+
+Esta tabla ayuda a responder:
+
+- Quién inició sesión.
+- Cuándo entró.
+- Desde qué IP.
+- Desde qué navegador/equipo.
+- Cuántos intentos fallidos tuvo.
+- Si una sesión expiró.
+- Si una sesión fue revocada por nuevo login.
+- Si un usuario fue bloqueado.
+
+
+======================================================
+15. BITÁCORAS DE CAMBIOS
+======================================================
+
+Además de la bitácora de autenticación, existen bitácoras para cambios administrativos.
+
+Tablas:
+
+- app_user_audit
+- app_role_audit
+- app_role_permission_audit
+
+Estas tablas permiten reconstruir cambios importantes.
+
+Ejemplos:
+
+- Crear usuario.
+- Editar usuario.
+- Activar usuario.
+- Desactivar usuario.
+- Bloquear/desbloquear usuario.
+- Resetear contraseña.
+- Cambiar rol de usuario.
+- Crear rol.
+- Editar rol.
+- Activar/desactivar rol.
+- Agregar permiso a rol.
+- Quitar permiso a rol.
+
+
+======================================================
+16. TABLA app_user_audit
+======================================================
+
+Guarda histórico de cambios de usuarios.
+
+Campos principales:
+
+- id
+- user_id
+- action
+- old_data
+- new_data
+- changed_by_user_id
+- changed_at
+
+Ejemplos de action:
+
+- CREATE
+- UPDATE
+- CHANGE_ROLE
+- RESET_PASSWORD
+- ACTIVATE
+- DEACTIVATE
+- LOCK
+- UNLOCK
+
+old_data y new_data son JSONB.
+
+Esto permite ver cómo estaba el usuario antes y después del cambio.
+
+
+======================================================
+17. TABLA app_role_audit
+======================================================
+
+Guarda histórico de cambios de roles.
+
+Campos principales:
+
+- id
+- role_id
+- action
+- old_data
+- new_data
+- changed_by_user_id
+- changed_at
+
+Ejemplos de action:
+
+- CREATE
+- UPDATE
+- ACTIVATE
+- DEACTIVATE
+
+Los roles no se eliminan físicamente; se desactivan.
+
+
+======================================================
+18. TABLA app_role_permission_audit
+======================================================
+
+Guarda histórico de permisos asignados o revocados a roles.
+
+Campos principales:
+
+- id
+- role_id
+- permission_key
+- action
+- changed_by_user_id
+- changed_at
+
+Ejemplos de action:
+
+- GRANT
+- REVOKE
+
+La tabla app_role_permission representa el estado actual.
+La tabla app_role_permission_audit representa el historial de cambios.
+
+
+======================================================
+19. USUARIO INICIAL
+======================================================
+
+Se creará un primer usuario administrador para poder entrar al sistema.
+
+Datos:
+
+- username: wsolis
+- full_name: Wendy Solis
+- password inicial: Nomina@2026
+- rol: ADMINISTRADOR
+- activo: sí
+- bloqueado: no
+- reset pendiente: no
+
+Este usuario se crea mediante un seed de Node usando bcrypt.
+
+No se recomienda insertar manualmente el password_hash en SQL con un hash inventado.
+
+El seed asegura que la contraseña se guarde correctamente con la misma configuración de bcrypt del backend.
+
+
+======================================================
+20. DATOS INICIALES EN BASE
+======================================================
+
+Al crear la estructura se insertan:
+
+Rol inicial:
+
+- ADMINISTRADOR
+
+Permisos iniciales:
+
+- USERS_VIEW
+- USERS_CREATE
+- USERS_EDIT
+- ROLES_VIEW
+- ROLES_CREATE
+- ROLES_EDIT
+- CATALOGS_VIEW
+- CATALOGS_EDIT
+- HEADCOUNT_VIEW
+- HEADCOUNT_EXPORT
+- HEADCOUNT_TEMPLATE_ADMIN
+- PAYROLL_UPLOAD
+- PAYROLL_VIEW
+- ISN_VIEW
+- ISN_CONFIG
+- ISN_SIMULATE
+
+El rol ADMINISTRADOR recibe todos los permisos iniciales.
+
+
+======================================================
+21. RESUMEN DE TABLAS
+======================================================
+
+Tablas principales:
+
+- app_role
+- app_permission
+- app_role_permission
+- app_user
+- app_session
+
+Tablas de auditoría:
+
+- app_auth_audit
+- app_user_audit
+- app_role_audit
+- app_role_permission_audit
+
+Función reutilizable:
+
+- set_updated_at()
+
+Triggers:
+
+- trg_app_role_updated_at
+- trg_app_user_updated_at
+
+
+======================================================
+22. PRINCIPIOS DEL DISEÑO
+======================================================
+
+Este diseño busca:
+
+- Seguridad.
+- Mantenimiento sencillo.
+- Código reutilizable.
+- Permisos fáciles de agregar.
+- Sesiones controladas.
+- Token Fortia protegido.
+- Históricos suficientes para auditoría.
+- Evitar eliminación física de información importante.
+- Poder reconstruir cambios administrativos cuando sea necesario.
+
+
+======================================================
+23. REGLAS CLAVE
+======================================================
+
+- No guardar contraseñas en texto claro.
+- No mostrar password_hash.
+- No guardar session_token real en base de datos.
+- No enviar token Fortia al frontend.
+- No usar localStorage para sesión.
+- No permitir más de una sesión activa por usuario.
+- Bloquear usuario después de 3 intentos fallidos.
+- Desbloqueo solo por administrador.
+- Código temporal de reset dura 5 minutos.
+- Código temporal se muestra una sola vez.
+- Roles y usuarios no se eliminan; se desactivan.
+- Todo cambio administrativo importante se audita.
+```

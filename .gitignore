@@ -1,0 +1,44 @@
+# ======================================================
+# NominaCes - archivos que NO deben subirse al repositorio
+# ======================================================
+
+# Dependencias
+node_modules/
+
+# Builds / compilados
+dist/
+build/
+coverage/
+
+# Variables de entorno reales
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Sistema operativo / editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Cachés
+.cache/
+.vite/
+.eslintcache
+
+# Archivos temporales
+*.tmp
+*.temp
+
+# Backups / zips locales
+*.zip
+*.rar
+*.7z

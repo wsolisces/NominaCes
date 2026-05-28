@@ -1,0 +1,43 @@
+{
+  "name": "nominaces-backend",
+  "version": "1.0.0",
+  "description": "Backend NominaCes",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon --watch src --ext ts --exec tsx src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "seed:admin": "tsx src/seeds/seedAdminUser.ts",
+
+    "test:health": "node tests/00.health.manual.mjs",
+    "test:login": "node tests/01.login.manual.mjs all",
+    "test:roles": "node tests/02.roles.manual.mjs all",
+    "test:users": "node tests/03.users.manual.mjs all",
+    "test:all": "node tests/99.run-all.manual.mjs",
+
+    "test:login:menu": "node tests/01.login.manual.mjs",
+    "test:roles:menu": "node tests/02.roles.manual.mjs",
+    "test:users:menu": "node tests/03.users.manual.mjs"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "pg": "^8.21.0",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.9.1",
+    "@types/pg": "^8.20.0",
+    "nodemon": "^3.1.11",
+    "tsx": "^4.20.6",
+    "typescript": "^6.0.3"
+  }
+}

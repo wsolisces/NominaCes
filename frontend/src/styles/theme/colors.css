@@ -1,0 +1,26 @@
+:root {
+  --color-cesantoni-orange: #d67129;
+  --color-cesantoni-orange-dark: #b85f23;
+  --color-cesantoni-orange-darker: #914417;
+  --color-cesantoni-orange-light: #f6c394;
+
+  --color-cesantoni-orange-rgb: 214, 113, 41;
+  --color-cesantoni-orange-dark-rgb: 184, 95, 35;
+
+  --color-text-main: #ffffff;
+  --color-text-soft: rgba(255, 255, 255, 0.72);
+  --color-text-muted: rgba(255, 255, 255, 0.5);
+  --color-text-disabled: rgba(255, 255, 255, 0.34);
+
+  --color-surface-card-dark: rgba(16, 19, 24, 0.92);
+  --color-surface-input-dark: rgba(7, 10, 13, 0.5);
+  --color-surface-input-dark-focus: rgba(7, 10, 13, 0.64);
+
+  --color-border-light: rgba(255, 255, 255, 0.16);
+  --color-border-input: rgba(255, 255, 255, 0.17);
+
+  --shadow-card-dark:
+    0 2.4rem 5.2rem rgba(0, 0, 0, 0.66),
+    0 0 0 1px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}

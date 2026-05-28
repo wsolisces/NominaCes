@@ -1,0 +1,384 @@
+/* ======================================================
+   PATH: src/styles/components/LoginCard.css
+   Card reutilizable para Login
+   ====================================================== */
+
+.login-access {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.login-card {
+  position: relative;
+  width: 100%;
+  max-width: 34rem;
+  min-height: 31rem;
+  overflow: hidden;
+
+
+  border-radius: 0.72rem;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.072) 0%,
+      rgba(255, 255, 255, 0.032) 42%,
+      rgba(255, 255, 255, 0.014) 100%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(36, 37, 41, 0.955) 0%,
+      rgba(18, 19, 22, 0.955) 100%
+    );
+
+  box-shadow:
+    0 2.2rem 4.8rem rgba(0, 0, 0, 0.66),
+    0 0.75rem 1.8rem rgba(0, 0, 0, 0.34),
+    0 0 0 1px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.075),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.35);
+
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+
+  padding: 2.55rem 2.45rem 2.35rem;
+}
+
+
+.login-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.045),
+      transparent 36%,
+      rgba(255, 255, 255, 0.018)
+    ),
+    radial-gradient(
+      ellipse at 16% 0%,
+      rgba(var(--login-accent-rgb), 0.075) 0%,
+      rgba(var(--login-accent-rgb), 0.028) 26%,
+      transparent 58%
+    );
+}
+
+.login-card::after {
+  content: "";
+  position: absolute;
+  left: 2.45rem;
+  right: 2.45rem;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(var(--login-accent-rgb), 0.34),
+    transparent
+  );
+}
+
+.login-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.login-card-header {
+  margin-bottom: 1.85rem;
+}
+
+.login-welcome {
+  margin: 0 0 0.48rem;
+  color: var(--login-accent);
+  font-size: 0.76rem;
+  font-weight: 750;
+  letter-spacing: 0.018em;
+}
+
+.login-card-header h1 {
+  margin: 0;
+  color: #ffffff;
+  font-size: clamp(2.16rem, 1.78rem + 0.85vw, 2.75rem);
+  font-weight: 680;
+  line-height: 1.02;
+  letter-spacing: -0.048em;
+  text-shadow: 0 1rem 2.2rem rgba(0, 0, 0, 0.52);
+}
+
+.login-card-header p:last-child {
+  margin: 0.78rem 0 0;
+  color: rgba(226, 232, 240, 0.72);
+  font-size: 0.88rem;
+}
+
+.login-card-header::after {
+  content: "";
+  display: block;
+  width: 5.4rem;
+  height: 2px;
+  margin-top: 1.4rem;
+  background: linear-gradient(
+    90deg,
+    var(--login-accent-dark),
+    rgba(var(--login-accent-rgb), 0.78),
+    rgba(var(--login-accent-dark-rgb), 0)
+  );
+  border-radius: 999px;
+}
+
+/* ======================================================
+   FORMULARIO
+   ====================================================== */
+
+.login-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.08rem;
+}
+
+.login-field {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.46rem;
+}
+
+.login-field label {
+  color: rgba(241, 245, 249, 0.92);
+  font-size: 0.76rem;
+  font-weight: 680;
+  letter-spacing: 0.005em;
+}
+
+.login-input-shell {
+  position: relative;
+  width: 100%;
+}
+
+.login-input-shell input {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: 2.95rem;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 0.48rem;
+  background:
+    linear-gradient(
+      180deg,
+      var(--login-input-bg-1),
+      var(--login-input-bg-2)
+    );
+  color: #ffffff;
+  padding: 0 2.9rem 0 2.75rem;
+  font-size: 0.86rem;
+  outline: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 0.75rem 1.4rem rgba(0, 0, 0, 0.18);
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease,
+    transform 150ms ease;
+}
+
+.login-input-shell input::placeholder {
+  color: rgba(203, 213, 225, 0.38);
+}
+
+.login-input-shell input:focus {
+  border-color: rgba(var(--login-accent-rgb), 0.88);
+  background:
+    linear-gradient(
+      180deg,
+      var(--login-input-bg-focus-1),
+      var(--login-input-bg-focus-2)
+    );
+  box-shadow:
+    0 0 0 3px rgba(var(--login-accent-rgb), 0.18),
+    0 1rem 1.8rem rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.login-input-shell input:disabled {
+  opacity: 0.65;
+}
+
+.login-input-icon {
+  position: absolute;
+  left: 0.95rem;
+  top: 50%;
+  z-index: 2;
+  color: rgba(203, 213, 225, 0.58);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.login-input-icon svg {
+  width: 1.08rem;
+  height: 1.08rem;
+  display: block;
+}
+
+.login-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.62rem;
+  width: 2.05rem;
+  height: 2.05rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 0.42rem;
+  background: transparent;
+  color: rgba(203, 213, 225, 0.58);
+  transform: translateY(-50%);
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+}
+
+.login-password-toggle:hover:not(:disabled) {
+  background: rgba(var(--login-accent-rgb), 0.12);
+  color: #ffffff;
+}
+
+.login-password-toggle svg {
+  width: 1.06rem;
+  height: 1.06rem;
+}
+
+/* ======================================================
+   BOTÓN
+   ====================================================== */
+.login-submit {
+  width: 100%;
+  max-width: 100%;
+  min-height: 3rem;
+  margin-top: 1.35rem;
+  border: 1px solid rgba(var(--login-accent-dark-rgb), 0.58);
+  border-radius: 0.42rem;
+  background:
+    linear-gradient(
+      180deg,
+      var(--login-accent) 0%,
+      var(--login-accent-dark) 100%
+    );
+  color: #ffffff;
+  font-size: 0.88rem;
+  font-weight: 760;
+  letter-spacing: 0.004em;
+  box-shadow:
+    0 0.85rem 1.75rem rgba(var(--login-accent-rgb), 0.24),
+    0 0 0 1px rgba(255, 255, 255, 0.025),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.76rem;
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease,
+    filter 140ms ease,
+    opacity 140ms ease;
+}
+
+.login-submit:hover:not(:disabled) {
+  filter: brightness(1.045);
+  box-shadow:
+    0 1rem 2rem rgba(var(--login-accent-rgb), 0.28),
+    0 0 0 1px rgba(var(--login-accent-rgb), 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+
+
+
+.login-submit:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.login-submit:disabled {
+  opacity: 0.72;
+}
+
+.login-submit-arrow {
+  font-size: 1.12rem;
+  line-height: 1;
+}
+
+.login-submit-content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.54rem;
+}
+
+.login-spinner {
+  width: 1.04rem;
+  height: 1.04rem;
+  animation: login-spin 0.85s linear infinite;
+}
+
+@keyframes login-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ======================================================
+   ERROR
+   ====================================================== */
+
+.login-error {
+  width: 100%;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(180, 75, 63, 0.42);
+  border-radius: 0.52rem;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(180, 75, 63, 0.18),
+      rgba(127, 29, 29, 0.13)
+    );
+  color: #ffd7d2;
+  padding: 0.76rem 0.88rem;
+  font-size: 0.78rem;
+  font-weight: 650;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+
+
+
+
+
+
+
+
+/* Ocultar ojito nativo de Edge / Internet Explorer */
+.login-input-shell input[type="password"]::-ms-reveal,
+.login-input-shell input[type="password"]::-ms-clear {
+  display: none;
+}
+
+/* Evita controles internos del navegador */
+.login-input-shell input[type="password"] {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.login-input-shell input {
+  padding: 0 2.9rem 0 2.75rem;
+}
