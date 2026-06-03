@@ -1,0 +1,76 @@
+/* ======================================================
+   TABLAS SIMPLES DE SEGURIDAD
+   ====================================================== */
+
+.security-table-wrapper {
+  width: 100%;
+  overflow: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.security-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.security-table th {
+  height: var(--control-height-lg);
+  padding: 0 var(--space-lg);
+  background: var(--color-surface-soft);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-align: left;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.security-table td {
+  padding: var(--space-md) var(--space-lg);
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.security-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.security-table tbody tr:hover {
+  background: rgba(241, 230, 218, 0.32);
+}
+
+.security-table__actions-header {
+  text-align: right !important;
+}
+
+.security-table__empty {
+  height: calc(8rem * var(--app-scale));
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.security-status {
+  display: inline-flex;
+  min-height: calc(1.75rem * var(--app-scale));
+  align-items: center;
+  border-radius: 999px;
+  padding: 0 var(--space-md);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+}
+
+.security-status--active {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+
+.security-status--inactive {
+  background: #f0eeee;
+  color: var(--color-text-secondary);
+}

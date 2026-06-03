@@ -28,22 +28,37 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { IconEye, IconEyeOff, IconSpinner } from "../../components/icons";
 import { useAuth } from "../../auth/useAuth";
+import { IconEye, IconEyeOff, IconSpinner } from "../../components/icons";
 
 import logoCesantoni from "../../components/img/Cesantoni_Blanco.png";
 import isotipoCesantoni from "../../components/img/Cesantoni_Blanco_Isotipo.png";
 
 import "./Login.css";
 
+/**
+ * Ruta privada previa a la que el usuario intentó acceder.
+ *
+ * React Router puede mandar:
+ * - string directo
+ * - objeto location parcial
+ * - null/undefined cuando no hay ruta previa
+ */
+type RedirectFrom =
+  | string
+  | {
+      pathname?: string;
+      search?: string;
+      hash?: string;
+    }
+  | null
+  | undefined;
+
+/**
+ * Estado recibido desde React Router al redirigir al login.
+ */
 type LoginLocationState = {
-  from?:
-    | string
-    | {
-        pathname?: string;
-        search?: string;
-        hash?: string;
-      };
+  from?: RedirectFrom;
 } | null;
 
 type LoginTheme = "orange" | "blue";
@@ -59,7 +74,7 @@ const LOGIN_THEME: LoginTheme = "orange";
 
 const LOGIN_THEME_CLASS: Record<LoginTheme, string> = {
   orange: "login-theme-orange",
-  blue: "login-theme-blue",
+  blue: "login-theme-blue"
 };
 
 /**
@@ -109,7 +124,7 @@ function validateUsername(value: string): string | null {
  * Esto permite que si el usuario intentó entrar a una ruta privada,
  * después del login vuelva a esa ruta y no siempre a /panel.
  */
-function normalizeRedirectTarget(from: LoginLocationState["from"]): string {
+function normalizeRedirectTarget(from: RedirectFrom): string {
   if (!from) return "/panel";
 
   if (typeof from === "string") {
@@ -128,6 +143,7 @@ function normalizeRedirectTarget(from: LoginLocationState["from"]): string {
  */
 function getRedirectTarget(state: unknown): string {
   const locationState = state as LoginLocationState;
+
   return normalizeRedirectTarget(locationState?.from);
 }
 
@@ -253,7 +269,7 @@ export default function Login() {
 
       const result = await signIn({
         username: cleanUsername,
-        password,
+        password
       });
 
       if (!result.ok) {
@@ -261,8 +277,8 @@ export default function Login() {
           navigate("/crear-password", {
             replace: true,
             state: {
-              username: cleanUsername,
-            },
+              username: cleanUsername
+            }
           });
 
           return;
@@ -373,7 +389,9 @@ export default function Login() {
                       className="login-password-toggle"
                       disabled={isBusy}
                       aria-label={
-                        showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                        showPassword
+                          ? "Ocultar contraseña"
+                          : "Mostrar contraseña"
                       }
                       onClick={() => setShowPassword((current) => !current)}
                     >

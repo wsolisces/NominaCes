@@ -3,7 +3,7 @@
 // Tipos centrales del módulo Login
 // ======================================================
 
-import type { AppPermission } from "./login.permissions.js";
+import type { AppPermission } from "../permisos/app.permissions.js";
 
 export type AuthAuditAction =
   | "LOGIN_SUCCESS"
@@ -100,8 +100,4 @@ export type CreateAuthAuditInput = {
 export type RequestMeta = {
   ipAddress?: string | null;
   userAgent?: string | null;
-};
-
-export type FortiaAuthResult = {
-  token: string;
 };

@@ -1,26 +1,39 @@
 // ======================================================
 // PATH: src/layouts/SideBar.tsx
-// Sidebar fijo – Negro sólido – Tamaño cómodo + colapsable
+// Sidebar fijo de NominaCes
 // ======================================================
 
+/**
+ * Responsabilidades:
+ * - Renderizar el menú lateral principal.
+ * - Usar negro obligatorio como base visual.
+ * - Mostrar hover/focus en gris dentro del sidebar.
+ * - Mostrar logo completo o isotipo según estado colapsado.
+ * - Mostrar usuario autenticado y cierre de sesión.
+ *
+ * No debe:
+ * - Consultar APIs directamente.
+ * - Definir rutas fuera de sidebar.config.ts.
+ * - Manejar permisos complejos de negocio.
+ */
+
+import type { Dispatch, SetStateAction } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import {
-  IconPanel,
-  IconEmpleados,
-  IconLogout,
-  IconChevronLeft,
-} from "../components/icons/Icons";
+
 import { useAuth } from "../auth/useAuth";
+import { IconChevronLeft, IconLogout } from "../components/icons/Icons";
 import LogoCompleto from "../components/img/Cesantoni_Blanco.png";
 import Isotipo from "../components/img/Cesantoni_Blanco_Isotipo.png";
+import { sidebarItems } from "./sidebar.config";
 
-/* ===================== PROPS ===================== */
-
-type SidebarProps = {
+type SideBarProps = {
   collapsed: boolean;
-  setCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
+  setCollapsed: Dispatch<SetStateAction<boolean>>;
 };
 
+/**
+ * Convierte valores desconocidos a texto seguro para UI.
+ */
 function toDisplayText(value: unknown, fallback = "—"): string {
   if (value === null || value === undefined) return fallback;
 
@@ -28,28 +41,50 @@ function toDisplayText(value: unknown, fallback = "—"): string {
   return text || fallback;
 }
 
-function getRoleText(userRoleId: unknown, roleName?: unknown, roleKey?: unknown) {
+/**
+ * Obtiene el texto visible del rol.
+ */
+function getRoleText(
+  userRoleId: unknown,
+  roleName?: unknown,
+  roleKey?: unknown
+): string {
   const directRole = toDisplayText(roleName || roleKey, "");
 
   if (directRole) return directRole;
 
   const roleMap: Record<string, string> = {
-    "1": "Administrador",
-    "2": "Viewer",
-    "3": "Analyst",
+    "1": "Administrador"
   };
 
   return roleMap[String(userRoleId ?? "")] || "Sin rol";
 }
 
-export default function SideBar({ collapsed, setCollapsed }: SidebarProps) {
+/**
+ * Agrupa las opciones del sidebar por sección visual.
+ */
+function groupSidebarItems() {
+  return sidebarItems.reduce<Record<string, typeof sidebarItems>>(
+    (groups, item) => {
+      if (!groups[item.section]) {
+        groups[item.section] = [];
+      }
+
+      groups[item.section].push(item);
+      return groups;
+    },
+    {}
+  );
+}
+
+/**
+ * Sidebar principal.
+ */
+export default function SideBar({ collapsed, setCollapsed }: SideBarProps) {
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
 
-  const handleLogout = async () => {
-    await signOut();
-    navigate("/login", { replace: true });
-  };
+  const groupedItems = groupSidebarItems();
 
   const displayName =
     user?.full_name ||
@@ -65,179 +100,115 @@ export default function SideBar({ collapsed, setCollapsed }: SidebarProps) {
     user?.role_key || user?.role
   );
 
-  const rowClass = (active: boolean) =>
-    `
-      group
-      flex items-center
-      ${collapsed ? "justify-center px-0" : "gap-4 px-4"}
-      h-12
-      rounded-lg
-      text-[15px]
-      font-medium
-      transition-colors duration-150
-      ${
-        active
-          ? "bg-[#1f2937] text-white"
-          : "text-[#b4bbc6] hover:bg-[#161b22] hover:text-white"
-      }
-    `;
-
-  const iconClass =
-    "h-[21px] w-[21px] text-[21px] text-current leading-none shrink-0";
+  /**
+   * Cierra sesión y regresa al login.
+   */
+  async function handleLogout(): Promise<void> {
+    await signOut();
+    navigate("/login", { replace: true });
+  }
 
   return (
     <aside
-      className={`
-        fixed left-0 top-0 z-40
-        h-screen
-        ${collapsed ? "w-24" : "w-64"}
-        bg-[#0d1115]
-        border-r border-[#161b22]
-        shadow-[4px_0_24px_rgba(0,0,0,0.55)]
-        flex flex-col
-        transition-all duration-300
-      `}
+      className={`sidebar ${collapsed ? "sidebar--collapsed" : ""}`}
+      aria-label="Menú principal"
     >
-      {/* ================= HEADER ================= */}
-      <div
-        className={`
-          flex items-center justify-center
-          ${collapsed ? "h-36 px-2" : "h-36 px-4"}
-        `}
-      >
-        {collapsed ? (
-          <img
-            src={Isotipo}
-            alt="Cesantoni"
-            className="
-              h-24
-              w-auto
-              object-contain
-              transition-all
-              duration-300
-            "
-          />
-        ) : (
-          <img
-            src={LogoCompleto}
-            alt="Cesantoni"
-            className="
-              h-28
-              w-auto
-              object-contain
-              transition-all
-              duration-300
-            "
-          />
-        )}
+      <div className="sidebar__brand">
+        <img
+          src={collapsed ? Isotipo : LogoCompleto}
+          alt="Cesantoni"
+          className={collapsed ? "sidebar__logo sidebar__logo--iso" : "sidebar__logo"}
+        />
       </div>
 
-      {/* ================= NAV ================= */}
-      <nav className="flex-1 overflow-y-auto px-3 py-6 space-y-2 sidebar-scroll">
-        {!collapsed && (
-          <div className="px-4 pb-2 text-[10px] font-semibold tracking-[0.28em] text-[#6b7280]">
-            INICIO
+      <nav className="sidebar__nav">
+        {Object.entries(groupedItems).map(([section, items]) => (
+          <div className="sidebar__section" key={section}>
+            {!collapsed ? (
+              <div className="sidebar__section-title">{section}</div>
+            ) : null}
+
+            <div className="sidebar__section-items">
+              {items.map((item) => {
+                const Icon = item.icon;
+
+                return (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    end={item.end}
+                    title={collapsed ? item.label : undefined}
+                    className={({ isActive }) =>
+                      [
+                        "sidebar__item",
+                        isActive ? "sidebar__item--active" : "",
+                        collapsed ? "sidebar__item--collapsed" : ""
+                      ]
+                        .filter(Boolean)
+                        .join(" ")
+                    }
+                  >
+                    <Icon className="sidebar__item-icon" />
+                    {!collapsed ? (
+                      <span className="sidebar__item-label">{item.label}</span>
+                    ) : null}
+                  </NavLink>
+                );
+              })}
+            </div>
           </div>
-        )}
-
-        <NavLink
-          to="/panel"
-          end
-          className={({ isActive }) => rowClass(isActive)}
-        >
-          <IconPanel className={iconClass} />
-          {!collapsed && <span className="truncate">Panel</span>}
-        </NavLink>
-
-        {!collapsed && (
-          <div className="px-4 pt-6 pb-2 text-[10px] font-semibold tracking-[0.28em] text-[#6b7280]">
-            ADMINISTRACIÓN
-          </div>
-        )}
-
-        <NavLink
-          to="/usuarios"
-          end
-          className={({ isActive }) => rowClass(isActive)}
-        >
-          <IconEmpleados className={iconClass} />
-          {!collapsed && <span className="truncate">Usuarios</span>}
-        </NavLink>
+        ))}
       </nav>
 
-      {/* ================= BOTÓN COLAPSAR ================= */}
-      <div className="py-5 flex justify-center">
+      <div className="sidebar__collapse">
         <button
           type="button"
+          className="sidebar__icon-button"
           onClick={() => setCollapsed((prev) => !prev)}
           title={collapsed ? "Expandir menú" : "Contraer menú"}
-          className="
-            inline-flex
-            h-11
-            w-11
-            items-center
-            justify-center
-            rounded-lg
-            text-[#b4bbc6]
-            hover:text-white
-            hover:bg-[#1f2937]
-            transition-all
-            duration-200
-          "
         >
           <IconChevronLeft
-            className={`
-              h-6 w-6
-              transition-transform duration-300
-              ${collapsed ? "rotate-180" : ""}
-            `}
+            className={`sidebar__collapse-icon ${
+              collapsed ? "sidebar__collapse-icon--collapsed" : ""
+            }`}
           />
         </button>
       </div>
 
-      {/* ================= PROFILE ================= */}
-      <div className="p-4">
-        {collapsed ? (
-          <div className="flex justify-center">
-            
+      <div className="sidebar__profile">
+        {!collapsed ? (
+          <div className="sidebar__profile-card">
+            <div className="sidebar__avatar">
+              {toDisplayText(displayName, "U").slice(0, 1).toUpperCase()}
+            </div>
+
+            <div className="sidebar__profile-text">
+              <div className="sidebar__profile-name">
+                {toDisplayText(displayName, "Usuario")}
+              </div>
+              <div className="sidebar__profile-role">
+                {toDisplayText(displayRole, "Sin rol")}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="sidebar__icon-button"
+              onClick={handleLogout}
+              title="Cerrar sesión"
+            >
+              <IconLogout className="sidebar__logout-icon" />
+            </button>
           </div>
         ) : (
-          <div className="rounded-xl bg-[#121820] border border-[#1d2632] p-4">
-            <div className="flex items-center gap-4">
-              
-
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-[15px] font-semibold text-white">
-                  {toDisplayText(displayName, "Usuario")}
-                </div>
-
-                <div className="truncate text-[13px] text-[#9ca3af]">
-                  {toDisplayText(displayRole, "Sin rol")}
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleLogout}
-                title="Cerrar sesión"
-                className="
-                  inline-flex
-                  h-9
-                  w-9
-                  items-center
-                  justify-center
-                  rounded-lg
-                  text-[#b4bbc6]
-                  hover:text-white
-                  hover:bg-[#1f2937]
-                  transition-colors
-                  shrink-0
-                "
-              >
-                <IconLogout className="h-5 w-5" />
-              </button>
-            </div>
-          </div>
+          <button
+            type="button"
+            className="sidebar__icon-button sidebar__icon-button--center"
+            onClick={handleLogout}
+            title="Cerrar sesión"
+          >
+            <IconLogout className="sidebar__logout-icon" />
+          </button>
         )}
       </div>
     </aside>

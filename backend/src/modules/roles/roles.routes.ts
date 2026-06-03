@@ -1,53 +1,85 @@
 // ======================================================
 // PATH: backend/src/modules/roles/roles.routes.ts
-// Módulo: Roles
-// Archivo: Routes
-// ------------------------------------------------------
-// Define endpoints del módulo.
-//
-// Temporalmente valida por cookie porque el login sí entrega
-// Set-Cookie y las pruebas manuales lo reutilizan.
+// Rutas HTTP del módulo Roles
 // ======================================================
 
-import { Router, type NextFunction, type Request, type Response } from "express";
-import {
-  activateRoleController,
-  createRoleController,
-  deactivateRoleController,
-  getRoleController,
-  listRolesController,
-  updateRoleController,
-} from "./roles.controller.js";
+import { Router } from "express";
 
-/**
- * Middleware mínimo de autenticación para pruebas manuales.
- */
-function requireAuthCookie(req: Request, res: Response, next: NextFunction): void {
-  const cookie = req.headers.cookie;
-
-  if (!cookie) {
-    res.status(401).json({
-      ok: false,
-      error: {
-        code: "UNAUTHORIZED",
-        message: "Sesión requerida",
-      },
-    });
-    return;
-  }
-
-  next();
-}
+import { asyncHandler } from "../../shared/errors/asyncHandler.js";
+import { authRequired } from "../login/auth.middleware.js";
+import { APP_PERMISSIONS } from "../permisos/app.permissions.js";
+import { requirePermission } from "../permisos/permission.middleware.js";
+import * as rolesController from "./roles.controller.js";
 
 export const rolesRoutes = Router();
 
-rolesRoutes.use(requireAuthCookie);
+/**
+ * Todas las rutas de Roles requieren sesión válida.
+ */
+rolesRoutes.use(authRequired);
 
-rolesRoutes.get("/", listRolesController);
-rolesRoutes.get("/:id", getRoleController);
+/**
+ * GET /roles
+ *
+ * Lista roles disponibles para mantenimiento y selects.
+ */
+rolesRoutes.get(
+  "/",
+  requirePermission(APP_PERMISSIONS.ROLES_VIEW),
+  asyncHandler(rolesController.listRoles)
+);
 
-rolesRoutes.post("/", createRoleController);
-rolesRoutes.patch("/:id", updateRoleController);
+/**
+ * GET /roles/:id
+ *
+ * Consulta detalle de un rol específico.
+ */
+rolesRoutes.get(
+  "/:id",
+  requirePermission(APP_PERMISSIONS.ROLES_VIEW),
+  asyncHandler(rolesController.getRole)
+);
 
-rolesRoutes.post("/:id/deactivate", deactivateRoleController);
-rolesRoutes.post("/:id/activate", activateRoleController);
+/**
+ * POST /roles
+ *
+ * Crea un nuevo rol con permisos.
+ */
+rolesRoutes.post(
+  "/",
+  requirePermission(APP_PERMISSIONS.ROLES_CREATE),
+  asyncHandler(rolesController.createRole)
+);
+
+/**
+ * PATCH /roles/:id
+ *
+ * Edita nombre, descripción y permisos de un rol.
+ */
+rolesRoutes.patch(
+  "/:id",
+  requirePermission(APP_PERMISSIONS.ROLES_EDIT),
+  asyncHandler(rolesController.updateRole)
+);
+
+/**
+ * POST /roles/:id/deactivate
+ *
+ * Desactiva un rol.
+ */
+rolesRoutes.post(
+  "/:id/deactivate",
+  requirePermission(APP_PERMISSIONS.ROLES_EDIT),
+  asyncHandler(rolesController.deactivateRole)
+);
+
+/**
+ * POST /roles/:id/activate
+ *
+ * Activa un rol.
+ */
+rolesRoutes.post(
+  "/:id/activate",
+  requirePermission(APP_PERMISSIONS.ROLES_EDIT),
+  asyncHandler(rolesController.activateRole)
+);

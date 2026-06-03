@@ -1,0 +1,90 @@
+/* ======================================================
+   PATH: src/shared/ui/Page/page.css
+   Estilos base de layout para páginas internas
+
+   Responsabilidades:
+     - Unificar estructura visual de todas las pantallas.
+     - Definir encabezado, título, descripción y contenido.
+     - Mantener una base sobria reutilizable.
+
+   No debe:
+     - Tener estilos específicos de Usuarios, Roles u otro módulo.
+     - Sobrescribir estilos globales fuera de .app-page.
+   ====================================================== */
+
+.app-page {
+  width: 100%;
+  min-height: 100%;
+  padding: 24px;
+  color: #111827;
+  background: #f5f5f4;
+}
+
+.app-page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.app-page__heading {
+  min-width: 0;
+}
+
+.app-page__eyebrow {
+  margin: 0 0 4px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #6b7280;
+}
+
+.app-page__title {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 850;
+  letter-spacing: -0.035em;
+  color: #111827;
+}
+
+.app-page__description {
+  margin: 6px 0 0;
+  max-width: 680px;
+  color: #6b7280;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.app-page__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.app-page__content {
+  display: grid;
+  gap: 14px;
+}
+
+@media (max-width: 760px) {
+  .app-page {
+    padding: 16px;
+  }
+
+  .app-page__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .app-page__actions {
+    justify-content: stretch;
+  }
+
+  .app-page__actions > * {
+    width: 100%;
+  }
+}

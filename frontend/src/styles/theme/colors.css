@@ -1,26 +1,79 @@
+/* ======================================================
+   PATH: src/styles/theme/colors.css
+   Paleta oficial del sistema NominaCes
+
+   Responsabilidades:
+   - Centralizar colores del sistema.
+   - Mantener negro obligatorio para sidebar.
+   - Definir colores corporativos y estados.
+   - Evitar colores escritos directamente en componentes.
+
+   No debe:
+   - Contener estilos de componentes.
+   - Contener reglas específicas de páginas.
+   ====================================================== */
+
 :root {
-  --color-cesantoni-orange: #d67129;
-  --color-cesantoni-orange-dark: #b85f23;
-  --color-cesantoni-orange-darker: #914417;
-  --color-cesantoni-orange-light: #f6c394;
+  /* Base */
+  --color-white: #ffffff;
+  --color-black: #000000;
 
-  --color-cesantoni-orange-rgb: 214, 113, 41;
-  --color-cesantoni-orange-dark-rgb: 184, 95, 35;
+  /* Neutros */
+  --color-cream: #f1e6da;
+  --color-warm-gray: #b5aaa0;
+  --color-app-bg: #f7f7f5;
+  --color-surface: #ffffff;
+  --color-surface-soft: #fbfaf8;
+  --color-border: #e5e0db;
+  --color-border-strong: #d8d1ca;
 
-  --color-text-main: #ffffff;
-  --color-text-soft: rgba(255, 255, 255, 0.72);
-  --color-text-muted: rgba(255, 255, 255, 0.5);
-  --color-text-disabled: rgba(255, 255, 255, 0.34);
+  /* Texto */
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
+  --color-text-muted: #9ca3af;
+  --color-text-inverse: #ffffff;
 
-  --color-surface-card-dark: rgba(16, 19, 24, 0.92);
-  --color-surface-input-dark: rgba(7, 10, 13, 0.5);
-  --color-surface-input-dark-focus: rgba(7, 10, 13, 0.64);
+  /* Corporativos */
+  --color-orange: #d67129;
+  --color-coffee: #4b392a;
+  --color-green-soft: #8ca082;
+  --color-green-dark: #21231e;
+  --color-blue-dark: #1d2635;
 
-  --color-border-light: rgba(255, 255, 255, 0.16);
-  --color-border-input: rgba(255, 255, 255, 0.17);
+  /* Sidebar */
+  --color-sidebar-bg: #000000;
+  --color-sidebar-surface: #0d0d0d;
+  --color-sidebar-hover: #1a1a1a;
+  --color-sidebar-focus: #2a2a2a;
+  --color-sidebar-active: #21231e;
+  --color-sidebar-border: rgba(255, 255, 255, 0.1);
+  --color-sidebar-text: rgba(255, 255, 255, 0.88);
+  --color-sidebar-muted: rgba(255, 255, 255, 0.58);
+  --color-sidebar-accent: #d67129;
 
-  --shadow-card-dark:
-    0 2.4rem 5.2rem rgba(0, 0, 0, 0.66),
-    0 0 0 1px rgba(0, 0, 0, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  /* Acciones */
+  --color-primary: #1d2635;
+  --color-primary-hover: #111827;
+  --color-primary-soft: rgba(29, 38, 53, 0.1);
+
+  --color-accent: #d67129;
+  --color-accent-hover: #bd5f1f;
+  --color-accent-soft: rgba(214, 113, 41, 0.12);
+
+  /* Estados */
+  --color-success: #2f7d46;
+  --color-success-soft: #e8f3eb;
+
+  --color-warning: #d67129;
+  --color-warning-soft: #fff1e6;
+
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-danger-soft: #fee2e2;
+
+  --color-info: #1d4ed8;
+  --color-info-soft: #eaf1ff;
+
+  /* Focus accesible */
+  --focus-ring: 0 0 0 3px rgba(29, 38, 53, 0.18);
 }

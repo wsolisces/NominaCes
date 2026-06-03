@@ -1,0 +1,47 @@
+/* ======================================================
+   PATH: src/shared/ui/Toolbar/toolbar.css
+   Estilos reutilizables para barras de herramientas
+
+   Responsabilidades:
+     - Alinear filtros, buscadores y botones.
+     - Mantener comportamiento responsive.
+   ====================================================== */
+
+.app-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.app-toolbar__left,
+.app-toolbar__right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.app-toolbar__left {
+  min-width: 0;
+  flex: 1;
+}
+
+.app-toolbar__right {
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+@media (max-width: 760px) {
+  .app-toolbar,
+  .app-toolbar__left,
+  .app-toolbar__right {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .app-toolbar__right > *,
+  .app-toolbar__left > * {
+    width: 100%;
+  }
+}

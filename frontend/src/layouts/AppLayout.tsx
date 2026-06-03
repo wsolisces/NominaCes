@@ -1,26 +1,64 @@
 // ======================================================
 // PATH: src/layouts/AppLayout.tsx
-// Layout principal autenticado
+// Layout principal autenticado de NominaCes
 // ======================================================
 
-import { useState } from "react";
+/**
+ * Responsabilidades:
+ * - Montar el sidebar fijo del sistema.
+ * - Reservar el espacio horizontal del contenido.
+ * - Renderizar rutas internas mediante Outlet.
+ * - Mantener el estado visual de colapso del sidebar.
+ *
+ * No debe:
+ * - Consultar APIs del negocio.
+ * - Manejar login o permisos directamente.
+ * - Definir lógica específica de páginas.
+ */
+
+import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 
 import SideBar from "./SideBar";
 
+const SIDEBAR_STORAGE_KEY = "nominaces.sidebar.collapsed";
+
+/**
+ * Obtiene el estado inicial del sidebar desde localStorage.
+ */
+function getInitialCollapsedState(): boolean {
+  try {
+    return window.localStorage.getItem(SIDEBAR_STORAGE_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Layout principal para todas las pantallas privadas.
+ */
 export default function AppLayout() {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(getInitialCollapsedState);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(collapsed));
+    } catch {
+      // Si localStorage no está disponible, el layout sigue funcionando.
+    }
+  }, [collapsed]);
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7] text-zinc-950">
+    <div className="app-shell">
       <SideBar collapsed={collapsed} setCollapsed={setCollapsed} />
 
       <main
-        className={`
-          min-h-screen
-          transition-all duration-300
-          ${collapsed ? "ml-24" : "ml-64"}
-        `}
+        className="app-shell__main"
+        style={{
+          marginLeft: collapsed
+            ? "var(--sidebar-collapsed-width)"
+            : "var(--sidebar-width)"
+        }}
       >
         <Outlet />
       </main>

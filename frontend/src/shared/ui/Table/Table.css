@@ -1,0 +1,641 @@
+/* ======================================================
+   PATH: src/shared/ui/Table/Table.css
+   Estilos editables para la tabla reutilizable
+   ====================================================== */
+
+/**
+ * Responsabilidades:
+ * - Definir el estilo visual de la tabla reusable.
+ * - Permitir cambios rápidos mediante variables CSS.
+ * - Mantener una apariencia sobria, fina y elegante.
+ *
+ * No debe:
+ * - Contener estilos específicos de Usuarios, Roles o Head Count.
+ * - Depender de estilos externos complejos.
+ */
+
+/* ======================================================
+   VARIABLES PRINCIPALES
+   Edita esta zona para cambiar el look de todas las tablas.
+   ====================================================== */
+
+.ni-table {
+  --table-bg: #ffffff;
+  --table-bg-soft: #f7f6f2;
+  --table-bg-header: #efede7;
+
+  --table-text: #151815;
+  --table-heading: #101512;
+  --table-muted: #73776f;
+  --table-border: rgba(17, 21, 18, 0.1);
+
+  --table-radius: 20px;
+  --table-radius-sm: 12px;
+
+  --table-shadow: 0 18px 42px rgba(16, 21, 18, 0.08);
+
+  --table-row-height: 48px;
+  --table-head-height: 46px;
+
+  --table-font-size: 0.84rem;
+  --table-head-font-size: 0.68rem;
+
+  --table-accent: #101512;
+  --table-accent-soft: rgba(16, 21, 18, 0.06);
+
+  --table-danger-bg: #fef2f2;
+  --table-danger-text: #991b1b;
+  --table-danger-border: rgba(153, 27, 27, 0.16);
+
+  width: 100%;
+  color: var(--table-text);
+}
+
+/* ======================================================
+   VARIANTES
+   ====================================================== */
+
+.ni-table--elegant {
+  --table-bg-soft: #f5f4f1;
+  --table-bg-header: #efede7;
+  --table-radius: 22px;
+  --table-shadow: 0 22px 50px rgba(16, 21, 18, 0.09);
+}
+
+.ni-table--simple {
+  --table-bg-soft: #ffffff;
+  --table-bg-header: #ffffff;
+  --table-radius: 12px;
+  --table-shadow: none;
+}
+
+.ni-table--default {
+  --table-bg-soft: #f8f8f8;
+  --table-bg-header: #f1f1f1;
+}
+
+/* ======================================================
+   DENSIDADES
+   ====================================================== */
+
+.ni-table--comfortable {
+  --table-row-height: 54px;
+  --table-font-size: 0.88rem;
+}
+
+.ni-table--normal {
+  --table-row-height: 48px;
+  --table-font-size: 0.84rem;
+}
+
+.ni-table--compact {
+  --table-row-height: 40px;
+  --table-font-size: 0.78rem;
+}
+
+/* ======================================================
+   HEADER
+   ====================================================== */
+
+.ni-table__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.ni-table__titleBlock {
+  min-width: 0;
+}
+
+.ni-table__title {
+  margin: 0;
+  color: var(--table-heading);
+  font-size: 1.08rem;
+  font-weight: 750;
+  letter-spacing: -0.025em;
+}
+
+.ni-table__subtitle {
+  max-width: 720px;
+  margin: 0.25rem 0 0;
+  color: var(--table-muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.ni-table__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* ======================================================
+   TOOLBAR
+   ====================================================== */
+
+.ni-table__toolbar {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--table-border);
+  border-radius: calc(var(--table-radius) - 2px);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(250, 249, 246, 0.96));
+  box-shadow:
+    0 14px 34px rgba(16, 21, 18, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.ni-table__toolbarLeft,
+.ni-table__toolbarRight {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.ni-table__toolbarLeft {
+  min-width: 260px;
+  flex: 1;
+}
+
+.ni-table__toolbarRight {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.ni-table__search {
+  width: min(390px, 100%);
+  display: grid;
+  gap: 0.25rem;
+}
+
+.ni-table__search span,
+.ni-table__pageSize span {
+  color: var(--table-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ni-table__search input,
+.ni-table__pageSize select {
+  height: 2.35rem;
+  border: 1px solid rgba(17, 21, 18, 0.13);
+  border-radius: var(--table-radius-sm);
+  background: #ffffff;
+  color: var(--table-text);
+  outline: none;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+
+.ni-table__search input {
+  width: 100%;
+  padding: 0 0.85rem;
+}
+
+.ni-table__pageSize {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.ni-table__pageSize select {
+  min-width: 74px;
+  padding: 0 0.6rem;
+}
+
+.ni-table__search input:focus,
+.ni-table__pageSize select:focus {
+  border-color: rgba(16, 21, 18, 0.42);
+  box-shadow: 0 0 0 4px var(--table-accent-soft);
+}
+
+.ni-table__status,
+.ni-table__count {
+  white-space: nowrap;
+  color: var(--table-muted);
+  font-size: 0.78rem;
+}
+
+.ni-table__ghostButton {
+  height: 2.35rem;
+  padding: 0 0.85rem;
+  border: 1px solid rgba(17, 21, 18, 0.16);
+  border-radius: var(--table-radius-sm);
+  background: #ffffff;
+  color: var(--table-text);
+  font-size: 0.78rem;
+  font-weight: 750;
+  cursor: pointer;
+  transition:
+    transform 140ms ease,
+    border-color 140ms ease,
+    background-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.ni-table__ghostButton:hover {
+  border-color: rgba(17, 21, 18, 0.32);
+  background: var(--table-bg-soft);
+  box-shadow: 0 10px 22px rgba(16, 21, 18, 0.06);
+}
+
+.ni-table__ghostButton:active {
+  transform: scale(0.985);
+}
+
+/* ======================================================
+   ERROR
+   ====================================================== */
+
+.ni-table__error {
+  margin-bottom: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--table-danger-border);
+  border-radius: 14px;
+  background: var(--table-danger-bg);
+  color: var(--table-danger-text);
+  font-size: 0.82rem;
+}
+
+/* ======================================================
+   TABLA
+   ====================================================== */
+
+.ni-table__frame {
+  overflow: hidden;
+  border: 1px solid var(--table-border);
+  border-radius: var(--table-radius);
+  background: var(--table-bg);
+  box-shadow: var(--table-shadow);
+}
+
+.ni-table__scroll {
+  width: 100%;
+  max-height: calc(100vh - 340px);
+  min-height: 220px;
+  overflow: auto;
+}
+
+.ni-table table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--table-font-size);
+}
+
+.ni-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+
+.ni-table th {
+  padding: 0;
+  border-bottom: 1px solid rgba(17, 21, 18, 0.11);
+  background:
+    linear-gradient(180deg, var(--table-bg-soft), var(--table-bg-header));
+  color: #3a3f39;
+}
+
+.ni-table__headButton {
+  width: 100%;
+  min-height: var(--table-head-height);
+  display: inline-flex;
+  align-items: center;
+  justify-content: inherit;
+  gap: 0.4rem;
+  padding: 0.75rem 0.85rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--table-head-font-size);
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-align: inherit;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.ni-table__headButton:hover {
+  background: rgba(17, 21, 18, 0.035);
+}
+
+.ni-table__headButton--disabled {
+  cursor: default;
+}
+
+.ni-table__sort {
+  display: inline-flex;
+  width: 1.2rem;
+  height: 1.2rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--table-accent);
+  color: #ffffff;
+  font-size: 0.55rem;
+  line-height: 1;
+}
+
+.ni-table tbody tr {
+  transition:
+    background-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.ni-table tbody tr:hover {
+  background: #fbfaf7;
+}
+
+.ni-table__row--clickable {
+  cursor: pointer;
+}
+
+.ni-table td {
+  height: var(--table-row-height);
+  padding: 0.72rem 0.85rem;
+  border-bottom: 1px solid rgba(17, 21, 18, 0.065);
+  color: #232823;
+  vertical-align: middle;
+}
+
+.ni-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.ni-table__empty {
+  height: 8rem;
+  text-align: center;
+  color: #8a8e86;
+}
+
+.ni-table tfoot {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+}
+
+.ni-table tfoot td {
+  border-top: 1px solid rgba(17, 21, 18, 0.12);
+  border-bottom: 0;
+  background: #f4f2ec;
+  color: var(--table-heading);
+  font-weight: 850;
+}
+
+/* ======================================================
+   PAGINACIÓN
+   ====================================================== */
+
+.ni-table__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--table-border);
+  border-top: 0;
+  border-radius: 0 0 var(--table-radius) var(--table-radius);
+  background: #ffffff;
+  color: var(--table-muted);
+  font-size: 0.78rem;
+}
+
+.ni-table__pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ni-table__pagination button {
+  min-width: 82px;
+  height: 2.15rem;
+  padding: 0 0.7rem;
+  border: 1px solid rgba(17, 21, 18, 0.14);
+  border-radius: 11px;
+  background: #ffffff;
+  color: var(--table-text);
+  font-size: 0.76rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.ni-table__pagination button:hover:not(:disabled) {
+  background: var(--table-bg-soft);
+  border-color: rgba(17, 21, 18, 0.28);
+}
+
+.ni-table__pagination button:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+.ni-table__pagination span {
+  min-width: 54px;
+  color: #2f342f;
+  font-weight: 750;
+  text-align: center;
+}
+
+/* ======================================================
+   MODALES INTERNOS DE TABLE
+   ====================================================== */
+
+.ni-table-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.ni-table-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(16, 21, 18, 0.42);
+  cursor: pointer;
+}
+
+.ni-table-modal__panel {
+  position: relative;
+  z-index: 1;
+  width: min(440px, 100%);
+  max-height: min(620px, calc(100vh - 2rem));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(17, 21, 18, 0.12);
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 28px 80px rgba(16, 21, 18, 0.25);
+}
+
+.ni-table-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid rgba(17, 21, 18, 0.08);
+  background: linear-gradient(180deg, #ffffff, #f8f7f3);
+}
+
+.ni-table-modal__header p {
+  margin: 0 0 0.2rem;
+  color: #8a8065;
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ni-table-modal__header h3 {
+  margin: 0;
+  color: var(--table-heading);
+  font-size: 1rem;
+}
+
+.ni-table-modal__close {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid rgba(17, 21, 18, 0.12);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--table-text);
+  cursor: pointer;
+}
+
+.ni-table-modal__content {
+  min-height: 120px;
+  overflow: auto;
+  padding: 0.75rem;
+}
+
+.ni-table-modal__option {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem;
+  border-radius: 12px;
+  color: #2a2e2a;
+  font-size: 0.84rem;
+  cursor: pointer;
+}
+
+.ni-table-modal__option:hover {
+  background: #f6f4ef;
+}
+
+.ni-table-modal__option input {
+  accent-color: var(--table-accent);
+}
+
+.ni-table-modal__chips {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.ni-table-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid rgba(17, 21, 18, 0.1);
+  border-radius: 14px;
+  background: #faf9f6;
+  color: #2a2e2a;
+  font-size: 0.82rem;
+}
+
+.ni-table-chip button {
+  width: 1.7rem;
+  height: 1.7rem;
+  border: 1px solid rgba(17, 21, 18, 0.12);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--table-text);
+  cursor: pointer;
+}
+
+.ni-table-modal__empty {
+  margin: 0;
+  padding: 1rem;
+  color: var(--table-muted);
+  text-align: center;
+}
+
+.ni-table-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  padding: 0.85rem;
+  border-top: 1px solid rgba(17, 21, 18, 0.08);
+  background: #ffffff;
+}
+
+.ni-table-modal__secondary,
+.ni-table-modal__primary {
+  height: 2.35rem;
+  padding: 0 0.9rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.ni-table-modal__secondary {
+  border: 1px solid rgba(17, 21, 18, 0.14);
+  background: #ffffff;
+  color: var(--table-text);
+}
+
+.ni-table-modal__primary {
+  border: 1px solid var(--table-accent);
+  background: var(--table-accent);
+  color: #ffffff;
+}
+
+/* ======================================================
+   RESPONSIVE
+   ====================================================== */
+
+@media (max-width: 760px) {
+  .ni-table__header,
+  .ni-table__toolbar,
+  .ni-table__footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ni-table__toolbarLeft,
+  .ni-table__toolbarRight,
+  .ni-table__actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .ni-table__search {
+    width: 100%;
+  }
+
+  .ni-table__pagination {
+    justify-content: space-between;
+  }
+}

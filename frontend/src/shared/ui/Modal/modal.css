@@ -1,0 +1,110 @@
+/* ======================================================
+   PATH: src/shared/ui/Modal/modal.css
+   Estilos reutilizables para modales
+
+   Responsabilidades:
+     - Unificar modales del sistema.
+     - Manejar backdrop, tamaños, header, body y footer.
+
+   No debe:
+     - Tener lógica específica por módulo.
+   ====================================================== */
+
+.app-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(17, 24, 39, 0.38);
+  backdrop-filter: blur(3px);
+}
+
+.app-modal {
+  width: min(100%, 560px);
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+  padding: 22px;
+  border-radius: 20px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 30px 70px rgba(17, 24, 39, 0.24);
+}
+
+.app-modal--sm {
+  width: min(100%, 420px);
+}
+
+.app-modal--md {
+  width: min(100%, 560px);
+}
+
+.app-modal--lg {
+  width: min(100%, 860px);
+}
+
+.app-modal__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.app-modal__eyebrow {
+  margin: 0 0 4px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #6b7280;
+}
+
+.app-modal__title {
+  margin: 0;
+  color: #111827;
+  font-size: 1.25rem;
+  font-weight: 850;
+  letter-spacing: -0.03em;
+}
+
+.app-modal__close {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #111827;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.app-modal__close:hover {
+  background: #e5e7eb;
+}
+
+.app-modal__body {
+  display: grid;
+  gap: 14px;
+}
+
+.app-modal__footer {
+  margin-top: 18px;
+}
+
+.app-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+@media (max-width: 760px) {
+  .app-modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .app-modal-actions > * {
+    width: 100%;
+  }
+}

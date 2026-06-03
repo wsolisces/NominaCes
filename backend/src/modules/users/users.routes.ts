@@ -1,19 +1,20 @@
 // ======================================================
-// PATH: backend\src\modules\users\users.routes.ts
+// PATH: backend/src/modules/users/users.routes.ts
 // Rutas HTTP del módulo Users
 // ======================================================
 
 import { Router } from "express";
 
 import { asyncHandler } from "../../shared/errors/asyncHandler.js";
-import { authRequired, requirePermission } from "../login/login.middleware.js";
-import { APP_PERMISSIONS } from "../login/login.permissions.js";
+import { authRequired } from "../login/auth.middleware.js";
+import { APP_PERMISSIONS } from "../permisos/app.permissions.js";
+import { requirePermission } from "../permisos/permission.middleware.js";
 import * as usersController from "./users.controller.js";
 
 export const usersRouter = Router();
 
 /**
- * Todas las rutas de Users requieren sesión.
+ * Todas las rutas de Users requieren sesión válida.
  */
 usersRouter.use(authRequired);
 

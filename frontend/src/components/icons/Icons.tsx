@@ -618,3 +618,70 @@ export const IconSuccess = memo((props: IconProps) => (
     <path d="M8 12l3 3 5-6" />
   </BaseIcon>
 ));
+
+// ======================================================
+// Icono de escudo para permisos / seguridad
+// ======================================================
+
+export function IconShield({ className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M12 3.5L5.5 6v5.7c0 4.1 2.7 7.9 6.5 8.8 3.8-.9 6.5-4.7 6.5-8.8V6L12 3.5Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M9.2 12.1l1.8 1.8 3.9-4.1"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+// ======================================================
+// Icono de usuario con engrane para roles
+// ======================================================
+
+export function IconUserCog({ className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M9.5 11.5a3.7 3.7 0 1 0 0-7.4 3.7 3.7 0 0 0 0 7.4Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+      <path
+        d="M3.5 19.5c.7-3.2 3-5 6-5 1.6 0 3 .5 4 1.4"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M17.2 20.5a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+      />
+      <path
+        d="M17.2 13.6v1.1M17.2 20.7v1.1M13.8 17.7h1.1M19.5 17.7h1.1M14.8 15.3l.8.8M18.8 19.3l.8.8M19.6 15.3l-.8.8M15.6 19.3l-.8.8"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}

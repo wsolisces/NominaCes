@@ -19,8 +19,8 @@ import {
   verifyPassword,
 } from "../../shared/security/password.js";
 
-import { createAuthAudit } from "./login.audit.js";
-import { authenticateFortia } from "./fortia.client.js";
+import { authenticateFortia } from "../../integrations/fortia/fortia.client.js";
+import { createAuthAudit } from "./auth.audit.js";
 
 import type {
   AuthenticatedUser,

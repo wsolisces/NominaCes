@@ -4,14 +4,17 @@
 // ======================================================
 
 import { db } from "../../config/db.js";
+import type { AppPermission } from "../permisos/app.permissions.js";
 import type {
   LoginUserRecord,
   PasswordResetUserRecord,
   SessionRecord,
-  SessionRevokedReason,
+  SessionRevokedReason
 } from "./login.types.js";
-import type { AppPermission } from "./login.permissions.js";
 
+/**
+ * Busca un usuario para login usando username_normalized.
+ */
 export async function findLoginUserByUsernameNormalized(
   usernameNormalized: string
 ): Promise<LoginUserRecord | null> {
@@ -42,6 +45,9 @@ export async function findLoginUserByUsernameNormalized(
   return result.rows[0] ?? null;
 }
 
+/**
+ * Busca un usuario por ID para validar sesiones activas.
+ */
 export async function findLoginUserById(
   userId: string
 ): Promise<LoginUserRecord | null> {
@@ -72,6 +78,9 @@ export async function findLoginUserById(
   return result.rows[0] ?? null;
 }
 
+/**
+ * Obtiene permisos activos asignados a un rol.
+ */
 export async function getPermissionsByRoleId(
   roleId: string
 ): Promise<AppPermission[]> {
@@ -90,6 +99,9 @@ export async function getPermissionsByRoleId(
   return result.rows.map((row) => row.permission_key);
 }
 
+/**
+ * Reinicia contador de intentos fallidos.
+ */
 export async function resetFailedLoginAttempts(userId: string): Promise<void> {
   await db.query(
     `
@@ -103,6 +115,9 @@ export async function resetFailedLoginAttempts(userId: string): Promise<void> {
   );
 }
 
+/**
+ * Registra intento fallido y bloquea al llegar a 3 intentos.
+ */
 export async function registerFailedLoginAttempt(userId: string): Promise<{
   failedLoginAttempts: number;
   isLocked: boolean;
@@ -138,10 +153,13 @@ export async function registerFailedLoginAttempt(userId: string): Promise<{
 
   return {
     failedLoginAttempts: row?.failed_login_attempts ?? 0,
-    isLocked: row?.is_locked ?? false,
+    isLocked: row?.is_locked ?? false
   };
 }
 
+/**
+ * Revoca todas las sesiones activas de un usuario.
+ */
 export async function revokeActiveSessionsByUserId(
   userId: string,
   reason: SessionRevokedReason
@@ -164,6 +182,9 @@ export async function revokeActiveSessionsByUserId(
   return result.rowCount ?? 0;
 }
 
+/**
+ * Crea una nueva sesión de usuario.
+ */
 export async function createSession(input: {
   userId: string;
   sessionTokenHash: string;
@@ -204,13 +225,16 @@ export async function createSession(input: {
       input.fortiaTokenEncrypted,
       input.expiresAt,
       input.ipAddress ?? null,
-      input.userAgent ?? null,
+      input.userAgent ?? null
     ]
   );
 
   return result.rows[0];
 }
 
+/**
+ * Busca una sesión activa por hash del token.
+ */
 export async function findActiveSessionByTokenHash(
   sessionTokenHash: string
 ): Promise<SessionRecord | null> {
@@ -234,6 +258,9 @@ export async function findActiveSessionByTokenHash(
   return result.rows[0] ?? null;
 }
 
+/**
+ * Revoca una sesión específica.
+ */
 export async function revokeSessionById(
   sessionId: string,
   reason: SessionRevokedReason
@@ -252,6 +279,9 @@ export async function revokeSessionById(
   );
 }
 
+/**
+ * Actualiza last_seen_at de una sesión activa.
+ */
 export async function touchSession(sessionId: string): Promise<void> {
   await db.query(
     `
@@ -264,6 +294,9 @@ export async function touchSession(sessionId: string): Promise<void> {
   );
 }
 
+/**
+ * Busca usuario para creación/restablecimiento de contraseña.
+ */
 export async function findUserForPasswordReset(
   usernameNormalized: string
 ): Promise<PasswordResetUserRecord | null> {
@@ -294,6 +327,9 @@ export async function findUserForPasswordReset(
   return result.rows[0] ?? null;
 }
 
+/**
+ * Completa el cambio de contraseña con código temporal.
+ */
 export async function completePasswordReset(input: {
   userId: string;
   passwordHash: string;
@@ -318,6 +354,9 @@ export async function completePasswordReset(input: {
   );
 }
 
+/**
+ * Registra auditoría administrativa del cambio de contraseña.
+ */
 export async function createPasswordResetAudit(input: {
   userId: string;
   username: string;

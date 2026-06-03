@@ -9,7 +9,7 @@ import { z } from "zod";
 import { env, isProduction } from "../../config/env.js";
 import { AppError } from "../../shared/errors/AppError.js";
 import { ok } from "../../shared/http/responses.js";
-import { getRequestMeta } from "./login.audit.js";
+import { getRequestMeta } from "./auth.audit.js";
 import * as loginService from "./login.service.js";
 
 /**

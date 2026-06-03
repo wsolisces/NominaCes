@@ -1,0 +1,56 @@
+/* ======================================================
+   PATH: src/shared/ui/Form/form.css
+   Estilos reutilizables para campos de formulario
+
+   Responsabilidades:
+     - Unificar inputs, selects, labels, ayudas y errores.
+     - Evitar estilos repetidos por módulo.
+   ====================================================== */
+
+.app-field {
+  display: grid;
+  gap: 7px;
+  font-size: 0.8rem;
+  font-weight: 900;
+  color: #374151;
+}
+
+.app-field__label {
+  color: #374151;
+}
+
+.app-field__control {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid #d4d4d4;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #111827;
+  outline: none;
+  font: inherit;
+  font-weight: 600;
+}
+
+.app-field__control:focus {
+  border-color: #111827;
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08);
+}
+
+.app-field__control:disabled {
+  color: #6b7280;
+  background: #f3f4f6;
+  cursor: not-allowed;
+}
+
+.app-field__hint {
+  color: #6b7280;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.app-field__error {
+  color: #b91c1c;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
