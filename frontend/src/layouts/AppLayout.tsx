@@ -20,6 +20,7 @@ import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 
 import SideBar from "./SideBar";
+import "./layout.css";
 
 const SIDEBAR_STORAGE_KEY = "nominaces.sidebar.collapsed";
 
@@ -49,17 +50,12 @@ export default function AppLayout() {
   }, [collapsed]);
 
   return (
-    <div className="app-shell">
+    <div
+      className={`app-shell ${collapsed ? "app-shell--sidebar-collapsed" : ""}`}
+    >
       <SideBar collapsed={collapsed} setCollapsed={setCollapsed} />
 
-      <main
-        className="app-shell__main"
-        style={{
-          marginLeft: collapsed
-            ? "var(--sidebar-collapsed-width)"
-            : "var(--sidebar-width)"
-        }}
-      >
+      <main className="app-shell__main">
         <Outlet />
       </main>
     </div>

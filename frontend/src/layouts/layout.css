@@ -1,0 +1,511 @@
+/* ======================================================
+   PATH: src/layouts/layout.css
+   Layout autenticado y sidebar de NominaCes
+   ====================================================== */
+
+/**
+ * Responsabilidades:
+ * - Definir el layout principal autenticado.
+ * - Definir el sidebar fijo.
+ * - Controlar ancho, colapso, responsive, logo y navegación.
+ * - Mantener todas las proporciones relacionadas en un solo archivo.
+ *
+ * No debe:
+ * - Definir estilos específicos de páginas internas.
+ * - Definir estilos de formularios, tablas o modales.
+ * - Duplicar estilos globales de index.css.
+ */
+
+:root {
+  /*
+    Sidebar tipo corporativo.
+    Más ancho para que se parezca al ejemplo visual.
+  */
+  --sidebar-width: 14.8rem;
+  --sidebar-collapsed-width: 4rem;
+
+  --sidebar-bg: #050505;
+  --sidebar-text: rgba(255, 255, 255, 0.9);
+  --sidebar-muted: rgba(255, 255, 255, 0.48);
+
+  /*
+    Estados en gris sobrio.
+    El acento naranja queda únicamente como línea lateral activa.
+  */
+  --sidebar-hover: rgba(255, 255, 255, 0.08);
+  --sidebar-active: rgba(255, 255, 255, 0.12);
+  --sidebar-active-accent: #d67129;
+
+  --sidebar-radius: 0.65rem;
+  --sidebar-transition: 180ms ease;
+
+  /*
+    Escala visual compacta.
+  */
+  --sidebar-font-section: 0.66rem;
+  --sidebar-font-item: 0.72rem;
+  --sidebar-font-profile-name: 0.7rem;
+  --sidebar-font-profile-role: 0.6rem;
+  --sidebar-font-avatar: 0.68rem;
+}
+
+/* ======================================================
+   SHELL
+   ====================================================== */
+
+.app-shell {
+  min-height: 100vh;
+  background: var(--app-bg, #f4f4f5);
+}
+
+.app-shell__main {
+  min-height: 100vh;
+  margin-left: var(--sidebar-width);
+  background: var(--app-bg, #f4f4f5);
+  transition: margin-left var(--sidebar-transition);
+}
+
+.app-shell--sidebar-collapsed .app-shell__main {
+  margin-left: var(--sidebar-collapsed-width);
+}
+
+/* ======================================================
+   SIDEBAR
+   ====================================================== */
+
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 50;
+
+  width: var(--sidebar-width);
+  min-width: var(--sidebar-width);
+  max-width: var(--sidebar-width);
+  height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  color: var(--sidebar-text);
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border);
+  box-shadow: 1.1rem 0 2.4rem rgba(0, 0, 0, 0.16);
+
+  transition:
+    width var(--sidebar-transition),
+    min-width var(--sidebar-transition),
+    max-width var(--sidebar-transition);
+}
+
+.sidebar--collapsed {
+  width: var(--sidebar-collapsed-width);
+  min-width: var(--sidebar-collapsed-width);
+  max-width: var(--sidebar-collapsed-width);
+}
+
+/* ======================================================
+   BRAND
+   ====================================================== */
+
+.sidebar__brand {
+  min-height: 7.35rem;
+  padding: 1.55rem 1rem 1.25rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+}
+
+.sidebar__logo {
+  display: block;
+
+  width: 5.1rem;
+  max-width: 100%;
+  max-height: 2.35rem;
+
+  object-fit: contain;
+}
+
+.sidebar__logo--iso {
+  width: 2.45rem;
+  max-width: 2.45rem;
+  max-height: 2.45rem;
+}
+
+/* ======================================================
+   NAV
+   ====================================================== */
+
+.sidebar__nav {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+
+  padding: 0.72rem 0.62rem 0.65rem;
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.sidebar__nav::-webkit-scrollbar {
+  width: 0.28rem;
+}
+
+.sidebar__nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+}
+
+.sidebar__section {
+  margin-bottom: 1.08rem;
+}
+
+.sidebar__section-title {
+  padding: 0.22rem 0.42rem 0.42rem;
+
+  font-size: var(--sidebar-font-section);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+
+  color: var(--sidebar-muted);
+}
+
+.sidebar__section-items {
+  display: grid;
+  gap: 0.26rem;
+}
+
+.sidebar__item {
+  position: relative;
+
+  min-height: 2.42rem;
+  padding: 0.56rem 0.7rem;
+
+  display: flex;
+  align-items: center;
+  gap: 0.72rem;
+
+  border-radius: var(--sidebar-radius);
+
+  color: var(--sidebar-text);
+  background: transparent;
+  text-decoration: none;
+
+  font-size: var(--sidebar-font-item);
+  font-weight: 750;
+  line-height: 1.1;
+
+  transition:
+    background-color var(--sidebar-transition),
+    color var(--sidebar-transition);
+}
+
+.sidebar__item::before {
+  content: "";
+  position: absolute;
+  left: 0.18rem;
+  top: 0.45rem;
+  bottom: 0.45rem;
+
+  width: 0.16rem;
+  border-radius: 999px;
+
+  background: transparent;
+}
+
+.sidebar__item:hover,
+.sidebar__item:focus-visible {
+  color: #ffffff;
+  background: var(--sidebar-hover);
+  outline: none;
+}
+
+.sidebar__item--active {
+  color: #ffffff;
+  background: var(--sidebar-active);
+}
+
+.sidebar__item--active::before {
+  background: var(--sidebar-active-accent);
+}
+
+.sidebar__item--collapsed {
+  justify-content: center;
+  padding-inline: 0.42rem;
+}
+
+.sidebar__item-icon {
+  flex: 0 0 auto;
+  width: 0.92rem;
+  height: 0.92rem;
+}
+
+.sidebar__item-label {
+  min-width: 0;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ======================================================
+   COLLAPSE BUTTON
+   ====================================================== */
+
+.sidebar__collapse {
+  padding: 0.72rem 0.72rem;
+}
+
+.sidebar__icon-button {
+  width: 1.78rem;
+  height: 1.78rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 0;
+  border-radius: 0.58rem;
+
+  color: var(--sidebar-text);
+  background: transparent;
+
+  cursor: pointer;
+
+  transition:
+    background-color var(--sidebar-transition),
+    color var(--sidebar-transition);
+}
+
+.sidebar__icon-button:hover,
+.sidebar__icon-button:focus-visible {
+  color: #ffffff;
+  background: var(--sidebar-hover);
+  outline: none;
+}
+
+.sidebar__icon-button--center {
+  width: 100%;
+}
+
+.sidebar__collapse-icon {
+  width: 0.82rem;
+  height: 0.82rem;
+  transition: transform var(--sidebar-transition);
+}
+
+.sidebar__collapse-icon--collapsed {
+  transform: rotate(180deg);
+}
+
+/* ======================================================
+   PROFILE
+   ====================================================== */
+
+.sidebar__profile {
+  padding: 0.68rem 0.62rem;
+  border-top: 1px solid var(--sidebar-border);
+}
+
+.sidebar__profile-card {
+  display: grid;
+  grid-template-columns: 1.8rem minmax(0, 1fr) 1.55rem;
+  align-items: center;
+  gap: 0.48rem;
+
+  width: 100%;
+  margin-inline: auto;
+
+  padding: 0.54rem 0.56rem;
+  border-radius: 0.86rem;
+
+  background: rgba(255, 255, 255, 0.065);
+}
+
+.sidebar__avatar {
+  width: 1.8rem;
+  height: 1.8rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+
+  font-size: var(--sidebar-font-avatar);
+  font-weight: 850;
+  color: #ffffff;
+}
+
+.sidebar__profile-text {
+  min-width: 0;
+}
+
+.sidebar__profile-name,
+.sidebar__profile-role {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sidebar__profile-name {
+  font-size: var(--sidebar-font-profile-name);
+  font-weight: 850;
+  line-height: 1.05;
+}
+
+.sidebar__profile-role {
+  margin-top: 0.12rem;
+
+  font-size: var(--sidebar-font-profile-role);
+  font-weight: 650;
+  line-height: 1.05;
+
+  color: var(--sidebar-muted);
+}
+
+.sidebar__logout-icon {
+  width: 0.78rem;
+  height: 0.78rem;
+}
+
+/* ======================================================
+   COLLAPSED STATE
+   ====================================================== */
+
+.sidebar--collapsed .sidebar__brand {
+  min-height: 5.4rem;
+  padding-inline: 0.42rem;
+}
+
+.sidebar--collapsed .sidebar__logo--iso {
+  width: 2.45rem;
+  max-width: 2.45rem;
+  max-height: 2.45rem;
+}
+
+.sidebar--collapsed .sidebar__nav,
+.sidebar--collapsed .sidebar__collapse {
+  padding-inline: 0.5rem;
+}
+
+.sidebar--collapsed .sidebar__section {
+  margin-bottom: 0.55rem;
+}
+
+.sidebar--collapsed .sidebar__section-title,
+.sidebar--collapsed .sidebar__item-label,
+.sidebar--collapsed .sidebar__profile {
+  display: none;
+}
+
+.sidebar--collapsed .sidebar__item {
+  justify-content: center;
+  min-height: 2.42rem;
+  padding-inline: 0.35rem;
+}
+
+.sidebar--collapsed .sidebar__item::before {
+  left: 0.1rem;
+}
+
+/* ======================================================
+   RESPONSIVE
+   ====================================================== */
+
+@media (max-width: 900px) {
+  :root {
+    --sidebar-width: 13.4rem;
+    --sidebar-collapsed-width: 3.8rem;
+
+    --sidebar-font-section: 0.6rem;
+    --sidebar-font-item: 0.68rem;
+    --sidebar-font-profile-name: 0.66rem;
+    --sidebar-font-profile-role: 0.56rem;
+    --sidebar-font-avatar: 0.62rem;
+  }
+
+  .sidebar__brand {
+    min-height: 6.8rem;
+  }
+
+  .sidebar__logo {
+    width: 4.8rem;
+    max-height: 2.2rem;
+  }
+
+  .sidebar__item {
+    min-height: 2.28rem;
+  }
+
+  .sidebar__item-icon {
+    width: 0.88rem;
+    height: 0.88rem;
+  }
+
+  .sidebar__profile-card {
+    grid-template-columns: 1.68rem minmax(0, 1fr) 1.45rem;
+    padding: 0.48rem;
+  }
+
+  .sidebar__avatar {
+    width: 1.68rem;
+    height: 1.68rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .sidebar,
+  .sidebar:not(.sidebar--collapsed) {
+    width: var(--sidebar-collapsed-width);
+    min-width: var(--sidebar-collapsed-width);
+    max-width: var(--sidebar-collapsed-width);
+  }
+
+  .app-shell__main,
+  .app-shell--sidebar-collapsed .app-shell__main {
+    margin-left: var(--sidebar-collapsed-width);
+  }
+
+  .sidebar__section-title,
+  .sidebar__item-label,
+  .sidebar__profile,
+  .sidebar__collapse {
+    display: none;
+  }
+
+  .sidebar__brand {
+    min-height: 4.8rem;
+    padding-inline: 0.36rem;
+  }
+
+  .sidebar__logo {
+    width: 2.7rem;
+    max-width: 2.7rem;
+    max-height: 2.7rem;
+    content: url("../components/img/Cesantoni_Blanco_Isotipo.png");
+  }
+
+  .sidebar__nav {
+    padding: 0.6rem 0.46rem;
+  }
+
+  .sidebar__section {
+    margin-bottom: 0.52rem;
+  }
+
+  .sidebar__item {
+    min-height: 2.3rem;
+    justify-content: center;
+    padding-inline: 0.28rem;
+  }
+
+  .sidebar__item-icon {
+    width: 0.86rem;
+    height: 0.86rem;
+  }
+}

@@ -31,8 +31,10 @@ type SideBarProps = {
   setCollapsed: Dispatch<SetStateAction<boolean>>;
 };
 
+type SafeRecord = Record<string, unknown>;
+
 /**
- * Convierte valores desconocidos a texto seguro para UI.
+ * Convierte valores desconocidos a texto seguro para mostrar en UI.
  */
 function toDisplayText(value: unknown, fallback = "—"): string {
   if (value === null || value === undefined) return fallback;
@@ -42,14 +44,66 @@ function toDisplayText(value: unknown, fallback = "—"): string {
 }
 
 /**
+ * Convierte un objeto desconocido a un diccionario seguro.
+ */
+function toSafeRecord(value: unknown): SafeRecord {
+  if (value && typeof value === "object") {
+    return value as SafeRecord;
+  }
+
+  return {};
+}
+
+/**
+ * Obtiene el primer valor existente dentro de una lista de llaves.
+ */
+function getFirstValue(source: SafeRecord, keys: string[]): unknown {
+  for (const key of keys) {
+    const value = source[key];
+
+    if (value !== null && value !== undefined && String(value).trim()) {
+      return value;
+    }
+  }
+
+  return undefined;
+}
+
+/**
+ * Obtiene el nombre visible del usuario autenticado.
+ */
+function getDisplayName(user: unknown): string {
+  const safeUser = toSafeRecord(user);
+
+  return toDisplayText(
+    getFirstValue(safeUser, [
+      "full_name",
+      "fullName",
+      "employee_name",
+      "employeeName",
+      "name",
+      "username"
+    ]),
+    "Usuario"
+  );
+}
+
+/**
  * Obtiene el texto visible del rol.
  */
-function getRoleText(
-  userRoleId: unknown,
-  roleName?: unknown,
-  roleKey?: unknown
-): string {
-  const directRole = toDisplayText(roleName || roleKey, "");
+function getDisplayRole(user: unknown): string {
+  const safeUser = toSafeRecord(user);
+
+  const directRole = toDisplayText(
+    getFirstValue(safeUser, [
+      "role_name",
+      "roleName",
+      "role_key",
+      "roleKey",
+      "role"
+    ]),
+    ""
+  );
 
   if (directRole) return directRole;
 
@@ -57,7 +111,12 @@ function getRoleText(
     "1": "Administrador"
   };
 
-  return roleMap[String(userRoleId ?? "")] || "Sin rol";
+  const roleId = toDisplayText(
+    getFirstValue(safeUser, ["role_id", "roleId"]),
+    ""
+  );
+
+  return roleMap[roleId] || "Sin rol";
 }
 
 /**
@@ -85,20 +144,8 @@ export default function SideBar({ collapsed, setCollapsed }: SideBarProps) {
   const { signOut, user } = useAuth();
 
   const groupedItems = groupSidebarItems();
-
-  const displayName =
-    user?.full_name ||
-    user?.fullName ||
-    user?.employee_name ||
-    user?.name ||
-    user?.username ||
-    "Usuario";
-
-  const displayRole = getRoleText(
-    user?.role_id,
-    user?.role_name,
-    user?.role_key || user?.role
-  );
+  const displayName = getDisplayName(user);
+  const displayRole = getDisplayRole(user);
 
   /**
    * Cierra sesión y regresa al login.
@@ -117,11 +164,15 @@ export default function SideBar({ collapsed, setCollapsed }: SideBarProps) {
         <img
           src={collapsed ? Isotipo : LogoCompleto}
           alt="Cesantoni"
-          className={collapsed ? "sidebar__logo sidebar__logo--iso" : "sidebar__logo"}
+          className={
+            collapsed
+              ? "sidebar__logo sidebar__logo--iso"
+              : "sidebar__logo sidebar__logo--full"
+          }
         />
       </div>
 
-      <nav className="sidebar__nav">
+      <nav className="sidebar__nav" aria-label="Navegación principal">
         {Object.entries(groupedItems).map(([section, items]) => (
           <div className="sidebar__section" key={section}>
             {!collapsed ? (
@@ -149,8 +200,11 @@ export default function SideBar({ collapsed, setCollapsed }: SideBarProps) {
                     }
                   >
                     <Icon className="sidebar__item-icon" />
+
                     {!collapsed ? (
-                      <span className="sidebar__item-label">{item.label}</span>
+                      <span className="sidebar__item-label">
+                        {item.label}
+                      </span>
                     ) : null}
                   </NavLink>
                 );
@@ -166,6 +220,7 @@ export default function SideBar({ collapsed, setCollapsed }: SideBarProps) {
           className="sidebar__icon-button"
           onClick={() => setCollapsed((prev) => !prev)}
           title={collapsed ? "Expandir menú" : "Contraer menú"}
+          aria-label={collapsed ? "Expandir menú" : "Contraer menú"}
         >
           <IconChevronLeft
             className={`sidebar__collapse-icon ${
@@ -175,20 +230,16 @@ export default function SideBar({ collapsed, setCollapsed }: SideBarProps) {
         </button>
       </div>
 
-      <div className="sidebar__profile">
-        {!collapsed ? (
+      {!collapsed ? (
+        <div className="sidebar__profile">
           <div className="sidebar__profile-card">
-            <div className="sidebar__avatar">
-              {toDisplayText(displayName, "U").slice(0, 1).toUpperCase()}
+            <div className="sidebar__avatar" aria-hidden="true">
+              {displayName.slice(0, 1).toUpperCase()}
             </div>
 
             <div className="sidebar__profile-text">
-              <div className="sidebar__profile-name">
-                {toDisplayText(displayName, "Usuario")}
-              </div>
-              <div className="sidebar__profile-role">
-                {toDisplayText(displayRole, "Sin rol")}
-              </div>
+              <div className="sidebar__profile-name">{displayName}</div>
+              <div className="sidebar__profile-role">{displayRole}</div>
             </div>
 
             <button
@@ -196,21 +247,13 @@ export default function SideBar({ collapsed, setCollapsed }: SideBarProps) {
               className="sidebar__icon-button"
               onClick={handleLogout}
               title="Cerrar sesión"
+              aria-label="Cerrar sesión"
             >
               <IconLogout className="sidebar__logout-icon" />
             </button>
           </div>
-        ) : (
-          <button
-            type="button"
-            className="sidebar__icon-button sidebar__icon-button--center"
-            onClick={handleLogout}
-            title="Cerrar sesión"
-          >
-            <IconLogout className="sidebar__logout-icon" />
-          </button>
-        )}
-      </div>
+        </div>
+      ) : null}
     </aside>
   );
 }
