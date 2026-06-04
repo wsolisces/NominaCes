@@ -1,47 +1,61 @@
 /* ======================================================
    PATH: src/shared/ui/Toolbar/toolbar.css
-   Estilos reutilizables para barras de herramientas
-
-   Responsabilidades:
-     - Alinear filtros, buscadores y botones.
-     - Mantener comportamiento responsive.
+   Barra de herramientas reutilizable del sistema
    ====================================================== */
 
+/**
+ * Responsabilidades:
+ * - Definir layout flexible para búsquedas, filtros y acciones.
+ * - Mantener comportamiento responsive.
+ *
+ * No debe:
+ * - Definir estilos específicos de módulos.
+ * - Estilizar internamente inputs, botones o tablas.
+ */
+
 .app-toolbar {
+  width: 100%;
+  min-width: 0;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  width: 100%;
-}
+  gap: 0.8rem;
 
-.app-toolbar__left,
-.app-toolbar__right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  padding: 0;
 }
 
 .app-toolbar__left {
+  flex: 1 1 auto;
   min-width: 0;
-  flex: 1;
+
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
 }
 
 .app-toolbar__right {
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
   justify-content: flex-end;
-  flex-shrink: 0;
+  gap: 0.6rem;
 }
 
 @media (max-width: 760px) {
-  .app-toolbar,
-  .app-toolbar__left,
-  .app-toolbar__right {
+  .app-toolbar {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .app-toolbar__right > *,
-  .app-toolbar__left > * {
+  .app-toolbar__left,
+  .app-toolbar__right {
     width: 100%;
+  }
+
+  .app-toolbar__right {
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 }

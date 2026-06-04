@@ -8,52 +8,115 @@
  * - Centralizar imports de componentes compartidos.
  * - Evitar rutas largas en módulos.
  * - Exponer únicamente componentes reutilizables del sistema.
+ * - Mantener un único punto público de acceso a la capa UI.
  *
  * Ejemplo:
- * import { Page, Button, Modal, Table } from "../../shared/ui";
+ * import {
+ *   Page,
+ *   Button,
+ *   Modal,
+ *   Table,
+ *   DataTable
+ * } from "../../shared/ui";
  *
  * No debe:
  * - Exportar componentes específicos de un módulo.
  * - Exportar archivos internos de páginas.
  * - Duplicar componentes con el mismo propósito.
+ * - Contener lógica de negocio.
  */
+
+/* ======================================================
+   PAGE
+   ====================================================== */
 
 export { Page } from "./Page/Page";
 export type { PageProps } from "./Page/Page";
 
+/* ======================================================
+   BUTTON
+   ====================================================== */
+
 export { Button } from "./Button/Button";
-export type { ButtonProps, ButtonSize, ButtonVariant } from "./Button/Button";
+export type {
+  ButtonProps,
+  ButtonSize,
+  ButtonVariant
+} from "./Button/Button";
+
+/* ======================================================
+   BADGE
+   ====================================================== */
 
 export { Badge } from "./Badge/Badge";
-export type { BadgeProps, BadgeVariant } from "./Badge/Badge";
+export type {
+  BadgeProps,
+  BadgeVariant
+} from "./Badge/Badge";
+
+/* ======================================================
+   TOOLBAR
+   ====================================================== */
 
 export { Toolbar } from "./Toolbar/Toolbar";
 export type { ToolbarProps } from "./Toolbar/Toolbar";
 
-export { InputField, SelectField } from "./Form/FormField";
+/* ======================================================
+   FORM
+   ====================================================== */
+
+export {
+  InputField,
+  SelectField
+} from "./Form/FormField";
+
 export type {
   InputFieldProps,
   SelectFieldProps,
   SelectOption
 } from "./Form/FormField";
 
-export { Modal, ModalFormActions } from "./Modal/Modal";
-export type { ModalProps, ModalActionsProps } from "./Modal/Modal";
+/* ======================================================
+   MODAL
+   ====================================================== */
 
-export { Table } from "./Table/Table";
+export {
+  Modal,
+  ModalFormActions
+} from "./Modal/Modal";
+
 export type {
-  TableAlign,
-  TableColumn,
-  TableDensity,
-  TableFilterChip,
-  TableProps,
-  TableRowAction,
-  TableSort,
-  TableVariant
-} from "./Table/Table.types";
+  ModalProps,
+  ModalActionsProps
+} from "./Modal/Modal";
 
+
+
+/* ======================================================
+   DATA TABLE
+   ====================================================== */
+
+/**
+ * DataTable:
+ * Tabla avanzada reutilizable con búsqueda, filtros,
+ * ordenamiento, configuración de columnas y paginación.
+ */
+export { default as DataTable } from "./DataTable/DataTable";
+
+export type {
+  Align as DataTableAlign,
+  ColumnDef as DataTableColumn,
+  DataTableProps,
+  SortState as DataTableSortState,
+  TableMode as DataTableMode
+} from "./DataTable/DataTable";
+
+/* ======================================================
+   UI SCALE
+   ====================================================== */
 
 export { UiScaleSelect } from "./UiScaleSelect/UiScaleSelect";
+
 export type {
   UiScale,
   UiScaleSelectProps

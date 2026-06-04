@@ -9,12 +9,13 @@
  * Responsabilidades:
  * - Centralizar las claves técnicas usadas por backend, frontend y BD.
  * - Evitar strings sueltos en rutas, servicios y pantallas.
- * - Servir como base para sembrar o mantener app_permission.
+ * - Servir como base para mantener app_permission.
  *
  * Reglas:
  * - Todo permiso nuevo debe agregarse aquí.
  * - Las claves deben coincidir exactamente con app_permission.permission_key.
  * - Las claves deben ser estables; no se renombran sin migración.
+ * - El catálogo de permisos es controlado; no se crean permisos desde pantalla.
  *
  * No debe:
  * - Consultar la base de datos.
@@ -31,7 +32,6 @@ export const APP_PERMISSIONS = {
   ROLES_EDIT: "ROLES_EDIT",
 
   PERMISSIONS_VIEW: "PERMISSIONS_VIEW",
-  PERMISSIONS_CREATE: "PERMISSIONS_CREATE",
   PERMISSIONS_EDIT: "PERMISSIONS_EDIT",
 
   CATALOGS_VIEW: "CATALOGS_VIEW",
@@ -108,15 +108,10 @@ export const APP_PERMISSION_META: Record<
     moduleKey: "PERMISSIONS",
     description: "Permite consultar permisos disponibles."
   },
-  PERMISSIONS_CREATE: {
-    name: "Crear permisos",
-    moduleKey: "PERMISSIONS",
-    description: "Permite crear permisos técnicos nuevos."
-  },
   PERMISSIONS_EDIT: {
     name: "Editar permisos",
     moduleKey: "PERMISSIONS",
-    description: "Permite editar nombre, módulo, descripción o estatus de permisos."
+    description: "Permite editar nombre, módulo, descripción o estado de permisos."
   },
 
   CATALOGS_VIEW: {

@@ -3,32 +3,26 @@
 // Controladores HTTP del módulo Permisos
 // ======================================================
 
+/**
+ * Responsabilidades:
+ * - Recibir peticiones HTTP del módulo Permisos.
+ * - Validar body con Zod.
+ * - Pasar datos normalizados al service.
+ * - Responder usando helpers HTTP compartidos.
+ *
+ * No debe:
+ * - Ejecutar SQL.
+ * - Aplicar reglas de negocio.
+ * - Decidir estructura visual del frontend.
+ */
+
 import type { Request, Response } from "express";
 import { z } from "zod";
 
 import { AppError } from "../../shared/errors/AppError.js";
-import { created, ok } from "../../shared/http/responses.js";
-import * as permisosService from "./permisos.service.js";
+import { ok } from "../../shared/http/responses.js";
 
-/**
- * Schema para crear permisos.
- *
- * Responsabilidades:
- * - Validar datos mínimos antes de llegar al service.
- * - Evitar que payloads incompletos entren a reglas de negocio.
- *
- * No debe:
- * - Consultar BD.
- * - Normalizar claves técnicas.
- * - Aplicar permisos de autorización.
- */
-const createPermissionSchema = z.object({
-  permissionKey: z.string().min(1, "La clave del permiso es obligatoria."),
-  permissionName: z.string().min(1, "El nombre del permiso es obligatorio."),
-  moduleKey: z.string().min(1, "El módulo es obligatorio."),
-  description: z.string().nullable().optional(),
-  isActive: z.boolean().optional()
-});
+import * as permisosService from "./permisos.service.js";
 
 /**
  * Schema para editar permisos.
@@ -38,8 +32,8 @@ const createPermissionSchema = z.object({
  * - Solo se editan datos descriptivos y estado.
  */
 const updatePermissionSchema = z.object({
-  permissionName: z.string().min(1).optional(),
-  moduleKey: z.string().min(1).optional(),
+  permissionName: z.string().min(1, "El nombre del permiso es obligatorio.").optional(),
+  moduleKey: z.string().min(1, "El módulo es obligatorio.").optional(),
   description: z.string().nullable().optional(),
   isActive: z.boolean().optional()
 });
@@ -49,10 +43,6 @@ const updatePermissionSchema = z.object({
  *
  * Express/TypeScript puede tipar params como string | string[].
  * El sistema espera un único string para permissionKey.
- *
- * No debe:
- * - Aplicar reglas de negocio del permiso.
- * - Consultar base de datos.
  */
 function getRouteParamAsString(
   value: string | string[] | undefined,
@@ -78,6 +68,28 @@ function getRouteParamAsString(
 }
 
 /**
+ * Obtiene el id numérico del usuario autenticado.
+ *
+ * req.auth lo agrega authRequired.
+ * Algunas implementaciones tipan el id como string aunque venga de BD.
+ */
+function getAuthUserId(req: Request): number | null {
+  const rawUserId = req.auth?.user.id ?? null;
+
+  if (rawUserId === null || rawUserId === undefined) {
+    return null;
+  }
+
+  const userId = Number(rawUserId);
+
+  if (!Number.isInteger(userId) || userId <= 0) {
+    return null;
+  }
+
+  return userId;
+}
+
+/**
  * GET /permisos
  *
  * Lista permisos disponibles.
@@ -91,28 +103,22 @@ export async function listPermissions(
 }
 
 /**
- * POST /permisos
+ * GET /permisos/:permissionKey
  *
- * Crea un permiso técnico nuevo.
+ * Consulta detalle de un permiso.
  */
-export async function createPermission(
+export async function getPermission(
   req: Request,
   res: Response
 ): Promise<void> {
-  const parsed = createPermissionSchema.safeParse(req.body);
+  const permissionKey = getRouteParamAsString(
+    req.params.permissionKey,
+    "permissionKey"
+  );
 
-  if (!parsed.success) {
-    throw new AppError({
-      statusCode: 400,
-      code: "VALIDATION_ERROR",
-      message: "Datos inválidos para crear permiso.",
-      details: parsed.error.flatten().fieldErrors
-    });
-  }
+  const permission = await permisosService.getPermissionByKey(permissionKey);
 
-  const permission = await permisosService.createPermission(parsed.data);
-
-  created(res, permission, "Permiso creado correctamente.");
+  ok(res, permission);
 }
 
 /**
@@ -142,8 +148,28 @@ export async function updatePermission(
 
   const permission = await permisosService.updatePermission({
     permissionKey,
-    ...parsed.data
+    ...parsed.data,
+    changedByUserId: getAuthUserId(req)
   });
 
   ok(res, permission, "Permiso actualizado correctamente.");
+}
+
+/**
+ * GET /permisos/:permissionKey/audit
+ *
+ * Lista auditoría de un permiso.
+ */
+export async function listPermissionAudit(
+  req: Request,
+  res: Response
+): Promise<void> {
+  const permissionKey = getRouteParamAsString(
+    req.params.permissionKey,
+    "permissionKey"
+  );
+
+  const audit = await permisosService.listPermissionAudit(permissionKey);
+
+  ok(res, audit);
 }

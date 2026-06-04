@@ -79,25 +79,38 @@ export async function findLoginUserById(
 }
 
 /**
- * Obtiene permisos activos asignados a un rol.
+ * Obtiene los permisos activos asignados a un rol activo.
+ *
+ * Reglas:
+ * - Solo devuelve permisos registrados y activos.
+ * - Solo devuelve permisos de roles activos.
+ * - Evita permisos duplicados.
+ * - Devuelve un arreglo vacío cuando el rol no tiene asignaciones.
  */
 export async function getPermissionsByRoleId(
   roleId: string
 ): Promise<AppPermission[]> {
   const result = await db.query<{ permission_key: AppPermission }>(
     `
-    SELECT rp.permission_key
-    FROM app_role_permission rp
-    JOIN app_permission p ON p.permission_key = rp.permission_key
-    WHERE rp.role_id = $1
+    SELECT DISTINCT
+      p.permission_key
+    FROM app_role r
+    INNER JOIN app_role_permission rp
+      ON rp.role_id = r.id
+    INNER JOIN app_permission p
+      ON p.permission_key = rp.permission_key
+    WHERE r.id = $1
+      AND r.is_active = TRUE
       AND p.is_active = TRUE
-    ORDER BY rp.permission_key
+    ORDER BY p.permission_key ASC
     `,
     [roleId]
   );
 
   return result.rows.map((row) => row.permission_key);
 }
+
+
 
 /**
  * Reinicia contador de intentos fallidos.

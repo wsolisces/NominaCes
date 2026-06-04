@@ -1,109 +1,86 @@
 /* ======================================================
    PATH: src/index.css
    Entrada global de estilos del frontend NominaCes
-
-   Responsabilidades:
-   - Importar Tailwind y variables base del sistema.
-   - Definir escala global de interfaz.
-   - Mantener fuente, fondo, layout base y sidebar.
-   - Permitir ajustar tamaño general desde un solo selector.
-
-   No debe:
-   - Contener estilos específicos de páginas.
-   - Definir reglas particulares de usuarios, roles o permisos.
-   - Importar temas exclusivos del login.
    ====================================================== */
 
-@import "tailwindcss";
+/**
+ * Responsabilidades:
+ * - Importar Tailwind y variables globales de colores.
+ * - Definir tokens globales de tipografía, controles y espaciado.
+ * - Mantener la escala predeterminada del navegador al 100%.
+ * - Definir reset, fuente, fondo y scrollbar general.
+ * - Preparar la aplicación para utilizar scroll interno por layout.
+ *
+ * No debe:
+ * - Definir estilos del sidebar o layout autenticado.
+ * - Definir estilos específicos de páginas.
+ * - Definir reglas particulares de usuarios, roles o permisos.
+ * - Importar temas exclusivos del login.
+ */
 
+@import "tailwindcss";
 @import "./styles/theme/colors.css";
 
 /* ======================================================
-   ESCALA GLOBAL DEL SISTEMA
-
-   Base visual:
-   - 80% equivale a ver el sistema como si usaras Ctrl + -
-     hasta 80%, pero aplicado desde el código.
-
-   Valores disponibles:
-   - compact
-   - normal
-   - comfortable
-   - large
-
-   Se aplican desde:
-   document.documentElement.dataset.uiScale
+   TOKENS GLOBALES
    ====================================================== */
 
 :root {
-  /*
-    Escala base real del sistema.
-    Cambia SOLO este valor si quieres que toda la app
-    arranque más grande o más pequeña.
-
-    100% = tamaño normal del navegador
-    90%  = compacto
-    85%  = muy compacto
-    80%  = equivalente visual aproximado a zoom 80%
-  */
-  --app-base-font-size: 80%;
-
-  /*
-    Escala interna adicional.
-    Esta se puede cambiar por selector:
-    html[data-ui-scale="compact"]
-    html[data-ui-scale="normal"]
-    html[data-ui-scale="comfortable"]
-    html[data-ui-scale="large"]
-  */
+  /**
+   * Controla la escala de componentes que utilicen los tokens
+   * globales definidos en este archivo.
+   *
+   * No modifica el zoom ni el tamaño raíz del navegador.
+   */
   --app-scale: 1;
 
-  /* Tipografía */
-  --font-size-xs: calc(0.75rem * var(--app-scale));
-  --font-size-sm: calc(0.875rem * var(--app-scale));
-  --font-size-md: calc(1rem * var(--app-scale));
-  --font-size-lg: calc(1.125rem * var(--app-scale));
-  --font-size-xl: calc(1.375rem * var(--app-scale));
-  --font-size-2xl: calc(1.625rem * var(--app-scale));
+  /* Tipografía global */
+  --font-size-xs: calc(0.68rem * var(--app-scale));
+  --font-size-sm: calc(0.78rem * var(--app-scale));
+  --font-size-md: calc(0.9rem * var(--app-scale));
+  --font-size-lg: calc(1.02rem * var(--app-scale));
+  --font-size-xl: calc(1.2rem * var(--app-scale));
+  --font-size-2xl: calc(1.45rem * var(--app-scale));
 
-  /* Controles */
-  --control-height-sm: calc(2rem * var(--app-scale));
-  --control-height-md: calc(2.5rem * var(--app-scale));
-  --control-height-lg: calc(2.875rem * var(--app-scale));
+  /* Alturas estándar de controles */
+  --control-height-sm: calc(1.8rem * var(--app-scale));
+  --control-height-md: calc(2.2rem * var(--app-scale));
+  --control-height-lg: calc(2.5rem * var(--app-scale));
 
-  /* Espaciado */
-  --space-2xs: calc(0.25rem * var(--app-scale));
-  --space-xs: calc(0.375rem * var(--app-scale));
-  --space-sm: calc(0.5rem * var(--app-scale));
-  --space-md: calc(0.75rem * var(--app-scale));
-  --space-lg: calc(1rem * var(--app-scale));
-  --space-xl: calc(1.5rem * var(--app-scale));
-  --space-2xl: calc(2rem * var(--app-scale));
+  /* Espaciado estándar */
+  --space-2xs: calc(0.2rem * var(--app-scale));
+  --space-xs: calc(0.3rem * var(--app-scale));
+  --space-sm: calc(0.42rem * var(--app-scale));
+  --space-md: calc(0.65rem * var(--app-scale));
+  --space-lg: calc(0.85rem * var(--app-scale));
+  --space-xl: calc(1.2rem * var(--app-scale));
+  --space-2xl: calc(1.6rem * var(--app-scale));
 
-  /* Layout */
-  --sidebar-width: calc(18rem * var(--app-scale));
-  --sidebar-collapsed-width: calc(6.8rem * var(--app-scale));
-  --app-header-height: calc(4.25rem * var(--app-scale));
+  /* Bordes redondeados */
+  --radius-sm: 0.42rem;
+  --radius-md: 0.62rem;
+  --radius-lg: 0.82rem;
+  --radius-xl: 1rem;
 
-  /* Bordes */
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.25rem;
+  /* Sombras reutilizables */
+  --shadow-soft: 0 0.65rem 1.8rem rgba(15, 23, 42, 0.07);
+  --shadow-card: 0 0.45rem 1.35rem rgba(15, 23, 42, 0.065);
 
-  /* Sombras */
-  --shadow-soft: 0 12px 32px rgba(15, 23, 42, 0.08);
-  --shadow-card: 0 8px 24px rgba(15, 23, 42, 0.07);
-  --shadow-sidebar: 5px 0 28px rgba(0, 0, 0, 0.34);
-
-  /*
-    Azul corporativo para selección/focus del sidebar.
-    El hover permanece gris para no saturar visualmente.
-  */
-  --sidebar-selected-blue: #0f2e5c;
-  --sidebar-selected-blue-soft: rgba(15, 46, 92, 0.72);
-  --sidebar-selected-blue-border: #93c5fd;
+  /* Scrollbar global discreto */
+  --scrollbar-size: 0.42rem;
+  --scrollbar-thumb: rgba(71, 85, 105, 0.2);
+  --scrollbar-thumb-hover: rgba(71, 85, 105, 0.38);
+  --scrollbar-track: transparent;
 }
+
+/* ======================================================
+   ESCALAS OPCIONALES
+   ====================================================== */
+
+/**
+ * Estas escalas solamente afectan componentes que utilicen
+ * tokens basados en --app-scale.
+ */
 
 html[data-ui-scale="compact"] {
   --app-scale: 0.92;
@@ -122,45 +99,60 @@ html[data-ui-scale="large"] {
 }
 
 /* ======================================================
-   BASE GLOBAL
+   RESET GLOBAL
    ====================================================== */
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
 html,
-body {
+body,
+#root {
   width: 100%;
-  min-width: 320px;
-  min-height: 100%;
+  height: 100%;
+  min-height: 0;
+
   margin: 0;
 }
 
 html {
-  /*
-    Aquí se aplica la reducción global real.
-    Esto hace que toda la app arranque visualmente como zoom 80%.
-  */
-  font-size: var(--app-base-font-size);
+  min-width: 320px;
+
+  overflow: hidden;
+
+  /**
+   * Mantiene el tamaño raíz predeterminado del navegador.
+   * No utilizar zoom ni transformaciones para compactar la interfaz.
+   */
+  font-size: 100%;
+
   text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;
 }
 
 body {
   overflow: hidden;
+
   color: var(--color-text-primary);
   background: var(--color-app-bg);
+
   font-family:
-    Inter,
+    "Inter",
     ui-sans-serif,
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
     sans-serif;
 
   font-size: var(--font-size-md);
+  font-weight: 400;
   line-height: 1.5;
 
   text-rendering: geometricPrecision;
@@ -168,14 +160,34 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+#root {
+  position: relative;
+
+  min-width: 0;
+  min-height: 0;
+
+  overflow: hidden;
+
+  isolation: isolate;
+}
+
+/* ======================================================
+   ELEMENTOS BASE
+   ====================================================== */
+
 button,
 input,
 select,
 textarea {
+  margin: 0;
+
+  color: inherit;
   font: inherit;
 }
 
 button {
+  border: 0;
+
   cursor: pointer;
 }
 
@@ -183,8 +195,19 @@ button:disabled {
   cursor: not-allowed;
 }
 
+input,
+select,
+textarea {
+  min-width: 0;
+}
+
+textarea {
+  resize: vertical;
+}
+
 a {
   color: inherit;
+  text-decoration: none;
 }
 
 img,
@@ -192,436 +215,97 @@ svg {
   display: block;
 }
 
-#root {
-  width: 100%;
-  min-height: 100vh;
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-top: 0;
+}
+
+table {
+  border-spacing: 0;
 }
 
 /* ======================================================
-   SCROLLBAR GENERAL
+   ESTADOS DE FOCO
    ====================================================== */
 
+:focus-visible {
+  outline: 2px solid rgba(37, 99, 235, 0.45);
+  outline-offset: 2px;
+}
+
+/* ======================================================
+   SELECCIÓN DE TEXTO
+   ====================================================== */
+
+::selection {
+  color: var(--color-text-primary);
+  background: rgba(148, 163, 184, 0.28);
+}
+
+/* ======================================================
+   SCROLLBAR GENERAL DISCRETO
+   ====================================================== */
+
+/**
+ * Firefox.
+ */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+/**
+ * Chrome, Edge y navegadores WebKit.
+ */
 *::-webkit-scrollbar {
-  width: 0.625rem;
-  height: 0.625rem;
+  width: var(--scrollbar-size);
+  height: var(--scrollbar-size);
 }
 
 *::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--scrollbar-track);
 }
 
 *::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border: 0.08rem solid transparent;
   border-radius: 999px;
-  background: rgba(17, 24, 39, 0.18);
+  background-clip: padding-box;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: rgba(17, 24, 39, 0.28);
+  background: var(--scrollbar-thumb-hover);
+  border: 0.05rem solid transparent;
+  background-clip: padding-box;
 }
 
-/* ======================================================
-   APP SHELL
-   ====================================================== */
-
-.app-shell {
-  min-height: 100vh;
-  background: var(--color-app-bg);
-  color: var(--color-text-primary);
-}
-
-.app-shell__main {
-  min-height: 100vh;
-  margin-left: var(--sidebar-width);
-  overflow: auto;
-  transition: margin-left 180ms ease;
-}
-
-.app-shell--collapsed .app-shell__main {
-  margin-left: var(--sidebar-collapsed-width);
-}
-
-/* ======================================================
-   SIDEBAR
-   ====================================================== */
-
-.sidebar {
-  position: fixed;
-  inset: 0 auto 0 0;
-  z-index: 40;
-
-  display: flex;
-  width: var(--sidebar-width);
-  height: 100vh;
-  flex-direction: column;
-
-  background: var(--color-sidebar-bg);
-  color: var(--color-sidebar-text);
-  border-right: 1px solid var(--color-sidebar-border);
-  box-shadow: var(--shadow-sidebar);
-
-  transition: width 180ms ease;
-}
-
-.sidebar--collapsed {
-  width: var(--sidebar-collapsed-width);
-}
-
-/* ======================================================
-   SIDEBAR BRAND
-   ====================================================== */
-
-.sidebar__brand {
-  display: flex;
-  min-height: calc(8.2rem * var(--app-scale));
-  align-items: center;
-  justify-content: center;
-  padding: calc(0.35rem * var(--app-scale)) var(--space-sm);
-}
-
-.sidebar__logo {
-  width: min(20rem, 96%);
-  height: auto;
-  max-height: calc(6.2rem * var(--app-scale));
-  object-fit: contain;
-}
-
-.sidebar__logo--iso {
-  width: min(7.8rem, 92%);
-  height: auto;
-  max-height: calc(7.8rem * var(--app-scale));
-  object-fit: contain;
-}
-
-/*
-  Al colapsar, el sidebar usa el isotipo.
-  Aquí se fuerza el tamaño grande dentro del ancho colapsado.
-*/
-.sidebar--collapsed .sidebar__brand {
-  min-height: calc(8.2rem * var(--app-scale));
-  padding: calc(0.3rem * var(--app-scale)) calc(0.18rem * var(--app-scale));
-}
-
-.sidebar--collapsed .sidebar__logo,
-.sidebar--collapsed .sidebar__logo--iso {
-  width: min(6.2rem, 94%);
-  max-width: 94%;
-  max-height: calc(6.2rem * var(--app-scale));
-  object-fit: contain;
-}
-
-/* ======================================================
-   SIDEBAR NAV
-   ====================================================== */
-
-.sidebar__nav {
-  flex: 1;
-  overflow-y: auto;
-  padding: var(--space-lg) var(--space-md);
-}
-
-.sidebar__section + .sidebar__section {
-  margin-top: var(--space-xl);
-}
-
-.sidebar__section-title {
-  margin-bottom: var(--space-sm);
-  padding: 0 var(--space-md);
-  color: var(--color-sidebar-muted);
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-.sidebar__section-items {
-  display: grid;
-  gap: var(--space-xs);
-}
-
-
-.sidebar__item {
-  position: relative;
-
-  display: flex;
-  min-height: var(--control-height-lg);
-  align-items: center;
-  gap: calc(1rem * var(--app-scale));
-
-  border-radius: var(--radius-md);
-
-  /*
-    Más espacio a la izquierda para separar:
-    línea azul -> ícono -> texto
-  */
-  padding: 0 var(--space-md) 0 calc(1.35rem * var(--app-scale));
-
-  color: var(--color-sidebar-text);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  text-decoration: none;
-
-  transition:
-    background-color 140ms ease,
-    color 140ms ease;
-}
-
-
-.sidebar__item:hover {
-  background: var(--color-sidebar-hover);
-  color: var(--color-white);
-}
-
-.sidebar__item:focus-visible {
-  outline: 1px solid var(--sidebar-selected-blue-border);
-  outline-offset: 2px;
-  background: var(--sidebar-selected-blue-soft);
-  color: var(--color-white);
-}
-
-.sidebar__item--active {
-  background: var(--sidebar-selected-blue);
-  color: var(--color-white);
-}
-
-.sidebar__item--active::before {
-  position: absolute;
-  left: 0.35rem;
-  top: 50%;
-
-  width: 0.2rem;
-  height: 1.45rem;
-
-  border-radius: 999px;
-  background: var(--sidebar-selected-blue-border);
-  content: "";
-
-  transform: translateY(-50%);
-}
-
-.sidebar__item--collapsed {
-  justify-content: center;
-  padding: 0;
-}
-
-.sidebar--collapsed .sidebar__item--active::before {
-  left: 0.18rem;
-  top: 50%;
-  height: 1.45rem;
-  transform: translateY(-50%);
-}
-
-.sidebar__item-icon {
-  width: calc(1.25rem * var(--app-scale));
-  height: calc(1.25rem * var(--app-scale));
-  flex: 0 0 auto;
-}
-
-.sidebar__item-label {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ======================================================
-   SIDEBAR ACTIONS
-   ====================================================== */
-
-.sidebar__collapse {
-  display: flex;
-  justify-content: center;
-  padding: var(--space-md);
-}
-
-.sidebar__icon-button {
-  display: inline-flex;
-  width: var(--control-height-md);
-  height: var(--control-height-md);
-  align-items: center;
-  justify-content: center;
-
-  border: 0;
-  border-radius: var(--radius-md);
+*::-webkit-scrollbar-corner {
   background: transparent;
-  color: var(--color-sidebar-text);
-
-  transition:
-    background-color 140ms ease,
-    color 140ms ease;
-}
-
-.sidebar__icon-button:hover {
-  background: var(--color-sidebar-hover);
-  color: var(--color-white);
-}
-
-.sidebar__icon-button:focus-visible {
-  outline: 1px solid var(--sidebar-selected-blue-border);
-  outline-offset: 2px;
-  background: var(--sidebar-selected-blue-soft);
-  color: var(--color-white);
-}
-
-.sidebar__icon-button--center {
-  margin-inline: auto;
-}
-
-.sidebar__collapse-icon,
-.sidebar__logout-icon {
-  width: calc(1.25rem * var(--app-scale));
-  height: calc(1.25rem * var(--app-scale));
-}
-
-.sidebar__collapse-icon {
-  transition: transform 180ms ease;
-}
-
-.sidebar__collapse-icon--collapsed {
-  transform: rotate(180deg);
 }
 
 /* ======================================================
-   SIDEBAR PROFILE
+   ACCESIBILIDAD
    ====================================================== */
 
-.sidebar__profile {
-  padding: var(--space-md);
-}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
 
-.sidebar__profile-card {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
 
-  border: 1px solid var(--color-sidebar-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-sidebar-surface);
-  padding: var(--space-md);
-}
-
-.sidebar__avatar {
-  display: inline-flex;
-  width: calc(2.35rem * var(--app-scale));
-  height: calc(2.35rem * var(--app-scale));
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 999px;
-  background: var(--color-sidebar-focus);
-  color: var(--color-white);
-
-  font-size: var(--font-size-sm);
-  font-weight: 800;
-}
-
-.sidebar__profile-text {
-  min-width: 0;
-  flex: 1;
-}
-
-.sidebar__profile-name {
-  overflow: hidden;
-  color: var(--color-white);
-  font-size: var(--font-size-sm);
-  font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.sidebar__profile-role {
-  overflow: hidden;
-  color: var(--color-sidebar-muted);
-  font-size: var(--font-size-xs);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ======================================================
-   COLLAPSED STATE
-   ====================================================== */
-
-.sidebar--collapsed .sidebar__nav {
-  padding-inline: var(--space-sm);
-}
-
-.sidebar--collapsed .sidebar__section-title,
-.sidebar--collapsed .sidebar__item-label,
-.sidebar--collapsed .sidebar__profile {
-  display: none;
-}
-
-.sidebar--collapsed .sidebar__item {
-  justify-content: center;
-  padding-inline: 0;
-}
-
-.sidebar--collapsed .sidebar__item--active::before {
-  left: 0.18rem;
-}
-
-/* ======================================================
-   RESPONSIVE
-   ====================================================== */
-
-@media (max-width: 900px) {
-  body {
-    overflow: hidden;
-  }
-
-  .sidebar {
-    position: fixed;
-    inset: 0 auto 0 0;
-
-    width: var(--sidebar-collapsed-width);
-    min-width: var(--sidebar-collapsed-width);
-    max-width: var(--sidebar-collapsed-width);
-
-    height: 100vh;
-    min-height: 100vh;
-
-    box-shadow: var(--shadow-sidebar);
-  }
-
-  .sidebar:not(.sidebar--collapsed),
-  .sidebar--collapsed {
-    width: var(--sidebar-collapsed-width);
-    min-width: var(--sidebar-collapsed-width);
-    max-width: var(--sidebar-collapsed-width);
-  }
-
-  .app-shell__main,
-  .app-shell--collapsed .app-shell__main {
-    margin-left: var(--sidebar-collapsed-width);
-    min-height: 100vh;
-    overflow: auto;
-  }
-
-  .sidebar__brand,
-  .sidebar--collapsed .sidebar__brand {
-    min-height: calc(7.2rem * var(--app-scale));
-    padding: var(--space-sm);
-  }
-
-  .sidebar__logo,
-  .sidebar--collapsed .sidebar__logo {
-    width: min(5.8rem, 92%);
-    max-width: 92%;
-    max-height: calc(5.8rem * var(--app-scale));
-    content: url("./components/img/Cesantoni_Blanco_Isotipo.png");
-  }
-
-  .sidebar__section-title,
-  .sidebar__item-label,
-  .sidebar__profile {
-    display: none;
-  }
-
-  .sidebar__nav {
-    padding: var(--space-md) var(--space-sm);
-  }
-
-  .sidebar__item {
-    justify-content: center;
-    padding: 0;
+    transition-duration: 0.01ms !important;
   }
 }

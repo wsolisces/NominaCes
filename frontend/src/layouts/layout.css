@@ -18,35 +18,40 @@
 
 :root {
   /*
-    Sidebar tipo corporativo.
-    Más ancho para que se parezca al ejemplo visual.
+    Sidebar expandido y colapsado con espacio suficiente
+    para mostrar correctamente los logotipos grandes.
   */
-  --sidebar-width: 14.8rem;
-  --sidebar-collapsed-width: 4rem;
+  --sidebar-width: 13.55rem;
+  --sidebar-collapsed-width: 4.8rem;
 
-  --sidebar-bg: #050505;
-  --sidebar-text: rgba(255, 255, 255, 0.9);
-  --sidebar-muted: rgba(255, 255, 255, 0.48);
+  --sidebar-bg: #05070c;
+  --sidebar-bg-soft: #07111f;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+
+  --sidebar-text: rgba(255, 255, 255, 0.92);
+  --sidebar-muted: rgba(255, 255, 255, 0.62);
 
   /*
-    Estados en gris sobrio.
-    El acento naranja queda únicamente como línea lateral activa.
+    Inicio, Administración y Operación utilizan
+    un tono discreto para no competir con los enlaces.
   */
-  --sidebar-hover: rgba(255, 255, 255, 0.08);
-  --sidebar-active: rgba(255, 255, 255, 0.12);
-  --sidebar-active-accent: #d67129;
+  --sidebar-section-text: rgba(255, 255, 255, 0.27);
 
-  --sidebar-radius: 0.65rem;
+  --sidebar-hover: rgba(255, 255, 255, 0.085);
+  --sidebar-active: rgba(37, 99, 235, 0.2);
+  --sidebar-active-accent: #2563eb;
+
+  --sidebar-radius: 0.638rem;
   --sidebar-transition: 180ms ease;
 
   /*
-    Escala visual compacta.
+    Tipografía amplia con pesos ligeros.
   */
-  --sidebar-font-section: 0.66rem;
-  --sidebar-font-item: 0.72rem;
-  --sidebar-font-profile-name: 0.7rem;
-  --sidebar-font-profile-role: 0.6rem;
-  --sidebar-font-avatar: 0.68rem;
+  --sidebar-font-section: 0.72rem;
+  --sidebar-font-item: 0.88rem;
+  --sidebar-font-profile-name: 0.84rem;
+  --sidebar-font-profile-role: 0.7rem;
+  --sidebar-font-avatar: 0.8rem;
 }
 
 /* ======================================================
@@ -54,15 +59,43 @@
    ====================================================== */
 
 .app-shell {
-  min-height: 100vh;
-  background: var(--app-bg, #f4f4f5);
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  min-width: 0;
+  min-height: 0;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(37, 99, 235, 0.045),
+      transparent 30.8rem
+    ),
+    linear-gradient(
+      180deg,
+      var(--color-app-bg, #f4f6fa) 0%,
+      #f8fafc 100%
+    );
 }
 
 .app-shell__main {
-  min-height: 100vh;
+  width: auto;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+
   margin-left: var(--sidebar-width);
-  background: var(--app-bg, #f4f4f5);
-  transition: margin-left var(--sidebar-transition);
+  padding: 0.935rem;
+
+  overflow: hidden;
+
+  background: transparent;
+
+  transition:
+    margin-left var(--sidebar-transition),
+    padding var(--sidebar-transition);
 }
 
 .app-shell--sidebar-collapsed .app-shell__main {
@@ -87,9 +120,20 @@
   flex-direction: column;
 
   color: var(--sidebar-text);
-  background: var(--sidebar-bg);
+
+  background:
+    linear-gradient(
+      180deg,
+      var(--sidebar-bg-soft) 0%,
+      var(--sidebar-bg) 42%,
+      #020408 100%
+    );
+
   border-right: 1px solid var(--sidebar-border);
-  box-shadow: 1.1rem 0 2.4rem rgba(0, 0, 0, 0.16);
+
+  box-shadow:
+    1.1rem 0 2.42rem rgba(15, 23, 42, 0.16),
+    inset -1px 0 0 rgba(255, 255, 255, 0.025);
 
   transition:
     width var(--sidebar-transition),
@@ -108,33 +152,32 @@
    ====================================================== */
 
 .sidebar__brand {
-  min-height: 7.35rem;
-  padding: 1.55rem 1rem 1.25rem;
+  min-height: 7.4rem;
+  padding: 0.6rem 0.3rem;
 
   display: flex;
   align-items: center;
   justify-content: center;
-
 }
 
 .sidebar__logo {
   display: block;
 
-  width: 5.1rem;
+  width: 11rem;
   max-width: 100%;
-  max-height: 2.35rem;
+  max-height: 4.8rem;
 
   object-fit: contain;
 }
 
 .sidebar__logo--iso {
-  width: 2.45rem;
-  max-width: 2.45rem;
-  max-height: 2.45rem;
+  width: 4.3rem;
+  max-width: 4.3rem;
+  max-height: 4.3rem;
 }
 
 /* ======================================================
-   NAV
+   NAVIGATION
    ====================================================== */
 
 .sidebar__nav {
@@ -142,78 +185,82 @@
   min-height: 0;
   overflow-y: auto;
 
-  padding: 0.72rem 0.62rem 0.65rem;
+  padding: 0.33rem 0.462rem 0.55rem;
 
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
 }
 
 .sidebar__nav::-webkit-scrollbar {
-  width: 0.28rem;
+  width: 0.264rem;
 }
 
 .sidebar__nav::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.18);
   border-radius: 999px;
 }
 
 .sidebar__section {
-  margin-bottom: 1.08rem;
+  margin-bottom: 0.8rem;
 }
 
 .sidebar__section-title {
-  padding: 0.22rem 0.42rem 0.42rem;
+  padding: 0.2rem 0.5rem 0.38rem;
+
+  color: var(--sidebar-section-text);
 
   font-size: var(--sidebar-font-section);
-  font-weight: 800;
-  line-height: 1.05;
-  letter-spacing: 0.22em;
+  font-weight: 300;
+  line-height: 1.1;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
-
-  color: var(--sidebar-muted);
 }
 
 .sidebar__section-items {
   display: grid;
-  gap: 0.26rem;
+  gap: 0.22rem;
 }
 
 .sidebar__item {
   position: relative;
 
-  min-height: 2.42rem;
-  padding: 0.56rem 0.7rem;
+  min-height: 2.35rem;
+  padding: 0.48rem 0.6rem;
 
   display: flex;
   align-items: center;
-  gap: 0.72rem;
+  gap: 0.62rem;
 
   border-radius: var(--sidebar-radius);
 
-  color: var(--sidebar-text);
+  color: var(--sidebar-muted);
   background: transparent;
   text-decoration: none;
 
   font-size: var(--sidebar-font-item);
-  font-weight: 750;
-  line-height: 1.1;
+  font-weight: 400;
+  line-height: 1.2;
 
   transition:
     background-color var(--sidebar-transition),
-    color var(--sidebar-transition);
+    color var(--sidebar-transition),
+    transform var(--sidebar-transition);
 }
 
 .sidebar__item::before {
   content: "";
-  position: absolute;
-  left: 0.18rem;
-  top: 0.45rem;
-  bottom: 0.45rem;
 
-  width: 0.16rem;
+  position: absolute;
+  left: 0.132rem;
+  top: 50%;
+
+  width: 0.143rem;
+  height: 1rem;
+
   border-radius: 999px;
 
   background: transparent;
+  transform: translateY(-50%);
 }
 
 .sidebar__item:hover,
@@ -234,13 +281,23 @@
 
 .sidebar__item--collapsed {
   justify-content: center;
-  padding-inline: 0.42rem;
+  padding-inline: 0.33rem;
 }
 
 .sidebar__item-icon {
   flex: 0 0 auto;
-  width: 0.92rem;
-  height: 0.92rem;
+
+  width: 1rem;
+  height: 1rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar__item-icon svg {
+  width: 1rem;
+  height: 1rem;
 }
 
 .sidebar__item-label {
@@ -256,35 +313,47 @@
    ====================================================== */
 
 .sidebar__collapse {
-  padding: 0.72rem 0.72rem;
+  padding: 0.72rem 0.6rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .sidebar__icon-button {
-  width: 1.78rem;
-  height: 1.78rem;
+  width: 100%;
+  min-height: 2.4rem;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  border: 0;
-  border-radius: 0.58rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.65rem;
 
-  color: var(--sidebar-text);
-  background: transparent;
+  color: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.075);
 
   cursor: pointer;
 
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.02),
+    0 0.25rem 0.75rem rgba(0, 0, 0, 0.18);
+
   transition:
     background-color var(--sidebar-transition),
-    color var(--sidebar-transition);
+    border-color var(--sidebar-transition),
+    color var(--sidebar-transition),
+    transform var(--sidebar-transition);
 }
 
 .sidebar__icon-button:hover,
 .sidebar__icon-button:focus-visible {
   color: #ffffff;
-  background: var(--sidebar-hover);
+  background: rgba(37, 99, 235, 0.2);
+  border-color: rgba(37, 99, 235, 0.55);
   outline: none;
+  transform: translateY(-1px);
 }
 
 .sidebar__icon-button--center {
@@ -292,8 +361,11 @@
 }
 
 .sidebar__collapse-icon {
-  width: 0.82rem;
-  height: 0.82rem;
+  width: 1.05rem;
+  height: 1.05rem;
+
+  stroke-width: 2.2;
+
   transition: transform var(--sidebar-transition);
 }
 
@@ -306,39 +378,47 @@
    ====================================================== */
 
 .sidebar__profile {
-  padding: 0.68rem 0.62rem;
-  border-top: 1px solid var(--sidebar-border);
+  padding: 0.528rem 0.462rem;
 }
 
 .sidebar__profile-card {
+  width: 100%;
+  margin-inline: auto;
+  padding: 0.5rem;
+
   display: grid;
-  grid-template-columns: 1.8rem minmax(0, 1fr) 1.55rem;
+  grid-template-columns: 1.85rem minmax(0, 1fr) 1.55rem;
   align-items: center;
   gap: 0.48rem;
 
-  width: 100%;
-  margin-inline: auto;
+  border-radius: 0.748rem;
 
-  padding: 0.54rem 0.56rem;
-  border-radius: 0.86rem;
-
-  background: rgba(255, 255, 255, 0.065);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
 .sidebar__avatar {
-  width: 1.8rem;
-  height: 1.8rem;
+  width: 1.85rem;
+  height: 1.85rem;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.14);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(37, 99, 235, 0.42),
+      rgba(15, 23, 42, 0.9)
+    ),
+    rgba(255, 255, 255, 0.12);
+
+  color: #ffffff;
 
   font-size: var(--sidebar-font-avatar);
-  font-weight: 850;
-  color: #ffffff;
+  font-weight: 500;
 }
 
 .sidebar__profile-text {
@@ -354,23 +434,23 @@
 
 .sidebar__profile-name {
   font-size: var(--sidebar-font-profile-name);
-  font-weight: 850;
-  line-height: 1.05;
+  font-weight: 500;
+  line-height: 1.1;
 }
 
 .sidebar__profile-role {
-  margin-top: 0.12rem;
-
-  font-size: var(--sidebar-font-profile-role);
-  font-weight: 650;
-  line-height: 1.05;
+  margin-top: 0.14rem;
 
   color: var(--sidebar-muted);
+
+  font-size: var(--sidebar-font-profile-role);
+  font-weight: 400;
+  line-height: 1.1;
 }
 
 .sidebar__logout-icon {
-  width: 0.78rem;
-  height: 0.78rem;
+  width: 0.9rem;
+  height: 0.9rem;
 }
 
 /* ======================================================
@@ -378,23 +458,26 @@
    ====================================================== */
 
 .sidebar--collapsed .sidebar__brand {
-  min-height: 5.4rem;
-  padding-inline: 0.42rem;
+  min-height: 6.2rem;
+  padding: 0.4rem 0.15rem;
 }
 
 .sidebar--collapsed .sidebar__logo--iso {
-  width: 2.45rem;
-  max-width: 2.45rem;
-  max-height: 2.45rem;
+  width: 4.3rem;
+  max-width: 4.3rem;
+  max-height: 4.3rem;
 }
 
-.sidebar--collapsed .sidebar__nav,
+.sidebar--collapsed .sidebar__nav {
+  padding-inline: 0.418rem;
+}
+
 .sidebar--collapsed .sidebar__collapse {
-  padding-inline: 0.5rem;
+  padding-inline: 0.42rem;
 }
 
 .sidebar--collapsed .sidebar__section {
-  margin-bottom: 0.55rem;
+  margin-bottom: 0.44rem;
 }
 
 .sidebar--collapsed .sidebar__section-title,
@@ -404,61 +487,98 @@
 }
 
 .sidebar--collapsed .sidebar__item {
+  min-height: 2.35rem;
+  padding-inline: 0.275rem;
+
   justify-content: center;
-  min-height: 2.42rem;
-  padding-inline: 0.35rem;
 }
 
 .sidebar--collapsed .sidebar__item::before {
-  left: 0.1rem;
+  left: 0.088rem;
+}
+
+.sidebar--collapsed .sidebar__icon-button {
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0;
+}
+
+.sidebar--collapsed .sidebar__collapse-icon {
+  width: 1.15rem;
+  height: 1.15rem;
 }
 
 /* ======================================================
-   RESPONSIVE
+   RESPONSIVE TABLET
    ====================================================== */
 
 @media (max-width: 900px) {
   :root {
-    --sidebar-width: 13.4rem;
-    --sidebar-collapsed-width: 3.8rem;
+    --sidebar-width: 12.65rem;
+    --sidebar-collapsed-width: 4.35rem;
 
-    --sidebar-font-section: 0.6rem;
-    --sidebar-font-item: 0.68rem;
-    --sidebar-font-profile-name: 0.66rem;
-    --sidebar-font-profile-role: 0.56rem;
-    --sidebar-font-avatar: 0.62rem;
+    --sidebar-font-section: 0.67rem;
+    --sidebar-font-item: 0.82rem;
+    --sidebar-font-profile-name: 0.79rem;
+    --sidebar-font-profile-role: 0.66rem;
+    --sidebar-font-avatar: 0.74rem;
+  }
+
+  .app-shell__main {
+    padding: 0.792rem;
   }
 
   .sidebar__brand {
-    min-height: 6.8rem;
+    min-height: 6.4rem;
   }
 
   .sidebar__logo {
-    width: 4.8rem;
-    max-height: 2.2rem;
+    width: 9rem;
+    max-height: 3.8rem;
+  }
+
+  .sidebar__logo--iso {
+    width: 3.9rem;
+    max-width: 3.9rem;
+    max-height: 3.9rem;
+  }
+
+  .sidebar--collapsed .sidebar__logo--iso {
+    width: 3.9rem;
+    max-width: 3.9rem;
+    max-height: 3.9rem;
   }
 
   .sidebar__item {
-    min-height: 2.28rem;
+    min-height: 2.25rem;
   }
 
-  .sidebar__item-icon {
-    width: 0.88rem;
-    height: 0.88rem;
+  .sidebar__item-icon,
+  .sidebar__item-icon svg {
+    width: 0.96rem;
+    height: 0.96rem;
   }
 
   .sidebar__profile-card {
-    grid-template-columns: 1.68rem minmax(0, 1fr) 1.45rem;
-    padding: 0.48rem;
+    grid-template-columns: 1.75rem minmax(0, 1fr) 1.45rem;
+    padding: 0.45rem;
   }
 
   .sidebar__avatar {
-    width: 1.68rem;
-    height: 1.68rem;
+    width: 1.75rem;
+    height: 1.75rem;
   }
 }
 
+/* ======================================================
+   RESPONSIVE MOBILE
+   ====================================================== */
+
 @media (max-width: 640px) {
+  :root {
+    --sidebar-collapsed-width: 4.1rem;
+  }
+
   .sidebar,
   .sidebar:not(.sidebar--collapsed) {
     width: var(--sidebar-collapsed-width);
@@ -469,6 +589,7 @@
   .app-shell__main,
   .app-shell--sidebar-collapsed .app-shell__main {
     margin-left: var(--sidebar-collapsed-width);
+    padding: 0.638rem;
   }
 
   .sidebar__section-title,
@@ -479,33 +600,43 @@
   }
 
   .sidebar__brand {
-    min-height: 4.8rem;
-    padding-inline: 0.36rem;
+    min-height: 5.6rem;
+    padding-inline: 0.1rem;
   }
 
   .sidebar__logo {
-    width: 2.7rem;
-    max-width: 2.7rem;
-    max-height: 2.7rem;
+    width: 3.8rem;
+    max-width: 3.8rem;
+    max-height: 3.8rem;
+
     content: url("../components/img/Cesantoni_Blanco_Isotipo.png");
   }
 
+  .sidebar__logo--iso,
+  .sidebar--collapsed .sidebar__logo--iso {
+    width: 3.8rem;
+    max-width: 3.8rem;
+    max-height: 3.8rem;
+  }
+
   .sidebar__nav {
-    padding: 0.6rem 0.46rem;
+    padding: 0.495rem 0.385rem;
   }
 
   .sidebar__section {
-    margin-bottom: 0.52rem;
+    margin-bottom: 0.418rem;
   }
 
   .sidebar__item {
-    min-height: 2.3rem;
+    min-height: 2.35rem;
+    padding-inline: 0.242rem;
+
     justify-content: center;
-    padding-inline: 0.28rem;
   }
 
-  .sidebar__item-icon {
-    width: 0.86rem;
-    height: 0.86rem;
+  .sidebar__item-icon,
+  .sidebar__item-icon svg {
+    width: 0.96rem;
+    height: 0.96rem;
   }
 }

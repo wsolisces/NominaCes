@@ -1,58 +1,70 @@
 // ======================================================
 // PATH: src/shared/ui/Badge/Badge.tsx
-// Badge reutilizable para estados y etiquetas
+// Badge reutilizable del sistema
 // ======================================================
 
+/**
+ * Responsabilidades:
+ * - Mostrar estados compactos dentro de tablas, cards y formularios.
+ * - Unificar colores para estados administrativos.
+ * - Evitar duplicar etiquetas de estado en cada módulo.
+ *
+ * No debe:
+ * - Calcular estados de negocio.
+ * - Consultar APIs.
+ * - Definir reglas específicas de usuarios, roles o permisos.
+ */
+
 import type { ReactNode } from "react";
+
 import "./badge.css";
 
 /**
- * Variantes visuales del badge.
- *
- * success:
- * - Estados correctos o activos.
- *
- * warning:
- * - Estados pendientes o que requieren atención.
- *
- * danger:
- * - Estados bloqueados, errores o riesgos.
- *
- * muted:
- * - Estados inactivos o neutrales.
- *
- * info:
- * - Información auxiliar.
+ * Variantes visuales disponibles para badges.
  */
 export type BadgeVariant =
+  | "neutral"
+  | "primary"
   | "success"
   | "warning"
   | "danger"
-  | "muted"
   | "info";
 
 /**
- * Props del badge.
+ * Props del badge reutilizable.
  */
 export type BadgeProps = {
-  variant?: BadgeVariant;
+  /**
+   * Contenido visible del badge.
+   */
   children: ReactNode;
+
+  /**
+   * Variante visual.
+   */
+  variant?: BadgeVariant;
+
+  /**
+   * Clase opcional para ajustes puntuales.
+   */
+  className?: string;
 };
 
 /**
- * Badge base del sistema.
- *
- * Responsabilidades:
- * - Homologar estados visuales.
- * - Evitar clases por módulo como users-status, roles-status, etc.
- *
- * No debe:
- * - Calcular reglas de negocio.
+ * Etiqueta visual compacta para estados y categorías.
  */
-export function Badge({ variant = "muted", children }: BadgeProps) {
-  return (
-    <span className={`app-badge app-badge--${variant}`}>
-      {children}
-    </span>
-  );
+export function Badge({
+  children,
+  variant = "neutral",
+  className
+}: BadgeProps) {
+  const badgeClassName = [
+    "app-badge",
+    `app-badge--${variant}`,
+    className ?? ""
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return <span className={badgeClassName}>{children}</span>;
 }
