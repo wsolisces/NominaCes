@@ -18,6 +18,7 @@
 //   - Validar reglas mínimas de contraseña antes de enviar.
 //   - Mostrar errores controlados del backend.
 //   - Redirigir al login cuando la contraseña se crea correctamente.
+//   - Mantener estructura compatible con el diseño monocromático.
 //
 // No debe:
 //   - Iniciar sesión automáticamente.
@@ -55,6 +56,7 @@ type PasswordValidation = {
  */
 function getStateUsername(state: unknown): string {
   const value = state as ResetPasswordLocationState;
+
   return typeof value?.username === "string" ? value.username : "";
 }
 
@@ -112,10 +114,13 @@ function validatePassword(password: string): PasswordValidation {
 
   return {
     valid: errors.length === 0,
-    errors,
+    errors
   };
 }
 
+/**
+ * Icono de usuario usado dentro del input.
+ */
 function ResetUserIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -134,6 +139,9 @@ function ResetUserIcon() {
   );
 }
 
+/**
+ * Icono de candado usado dentro de inputs de contraseña.
+ */
 function ResetLockIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -153,6 +161,9 @@ function ResetLockIcon() {
   );
 }
 
+/**
+ * Icono de código temporal usado dentro del input.
+ */
 function ResetCodeIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -172,6 +183,12 @@ function ResetCodeIcon() {
   );
 }
 
+/**
+ * Pantalla pública para crear contraseña definitiva.
+ *
+ * El diseño visual se controla desde ResetPassword.css.
+ * La pantalla no inicia sesión automáticamente después del cambio.
+ */
 export default function ResetPassword() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -273,15 +290,15 @@ export default function ResetPassword() {
         username: cleanUsername,
         code: cleanCode,
         newPassword,
-        confirmPassword,
+        confirmPassword
       });
 
       navigate("/login", {
         replace: true,
         state: {
           passwordCreated: true,
-          username: cleanUsername,
-        },
+          username: cleanUsername
+        }
       });
     } catch (error: unknown) {
       setError(getErrorMessage(error));
@@ -291,7 +308,7 @@ export default function ResetPassword() {
   }
 
   return (
-    <main className="reset-password-page login-theme-orange">
+    <main className="reset-password-page">
       <section className="reset-password-shell" aria-label="Crear contraseña">
         <aside className="reset-password-brand" aria-label="Cesantoni">
           <img
@@ -482,6 +499,7 @@ export default function ResetPassword() {
                 >
                   Mínimo 8 caracteres
                 </span>
+
                 <span
                   className={
                     /[A-ZÁÉÍÓÚÑ]/.test(newPassword)
@@ -491,6 +509,7 @@ export default function ResetPassword() {
                 >
                   Una mayúscula
                 </span>
+
                 <span
                   className={
                     /[a-záéíóúñ]/.test(newPassword)
@@ -500,6 +519,7 @@ export default function ResetPassword() {
                 >
                   Una minúscula
                 </span>
+
                 <span
                   className={
                     /\d/.test(newPassword)

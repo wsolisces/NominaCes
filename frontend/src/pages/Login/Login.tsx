@@ -16,7 +16,7 @@
 //   - Validar campos básicos del formulario.
 //   - Mostrar errores de autenticación.
 //   - Redirigir según el resultado de signIn().
-//   - Mantener el diseño visual del login.
+//   - Mantener estructura compatible con diseño monocromático.
 //
 // No debe:
 //   - Consultar directamente fetch/api.
@@ -36,14 +36,6 @@ import isotipoCesantoni from "../../components/img/Cesantoni_Blanco_Isotipo.png"
 
 import "./Login.css";
 
-/**
- * Ruta privada previa a la que el usuario intentó acceder.
- *
- * React Router puede mandar:
- * - string directo
- * - objeto location parcial
- * - null/undefined cuando no hay ruta previa
- */
 type RedirectFrom =
   | string
   | {
@@ -54,34 +46,12 @@ type RedirectFrom =
   | null
   | undefined;
 
-/**
- * Estado recibido desde React Router al redirigir al login.
- */
 type LoginLocationState = {
   from?: RedirectFrom;
 } | null;
 
-type LoginTheme = "orange" | "blue";
-
-/**
- * Tema visual del login.
- *
- * Cambiar aquí:
- * - "orange" para tema naranja
- * - "blue" para tema azul marino
- */
-const LOGIN_THEME: LoginTheme = "orange";
-
-const LOGIN_THEME_CLASS: Record<LoginTheme, string> = {
-  orange: "login-theme-orange",
-  blue: "login-theme-blue"
-};
-
 /**
  * Convierte errores desconocidos a mensaje legible.
- *
- * Se usa como respaldo para errores inesperados fuera del flujo normal
- * de signIn(), que ya devuelve errores controlados.
  */
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error && error.message) {
@@ -105,9 +75,6 @@ function getErrorMessage(error: unknown): string {
 
 /**
  * Valida el usuario antes de llamar al backend.
- *
- * Esta validación es solo de UX. La validación definitiva sigue
- * estando en backend.
  */
 function validateUsername(value: string): string | null {
   const cleanValue = value.trim();
@@ -119,10 +86,7 @@ function validateUsername(value: string): string | null {
 }
 
 /**
- * Normaliza la ruta a la que debe regresar el usuario después del login.
- *
- * Esto permite que si el usuario intentó entrar a una ruta privada,
- * después del login vuelva a esa ruta y no siempre a /panel.
+ * Normaliza la ruta de retorno posterior al login.
  */
 function normalizeRedirectTarget(from: RedirectFrom): string {
   if (!from) return "/panel";
@@ -148,12 +112,7 @@ function getRedirectTarget(state: unknown): string {
 }
 
 /**
- * Detecta si backend está indicando que el usuario debe crear
- * una contraseña nueva antes de iniciar sesión.
- *
- * Señales soportadas:
- * - details.passwordResetRequired = true
- * - mensaje textual del backend
+ * Detecta si backend indica que el usuario debe crear contraseña.
  */
 function isPasswordResetRequired(details: unknown, message?: string): boolean {
   if (
@@ -169,6 +128,9 @@ function isPasswordResetRequired(details: unknown, message?: string): boolean {
   return Boolean(message?.toLowerCase().includes("crear una nueva contraseña"));
 }
 
+/**
+ * Icono de usuario para el input.
+ */
 function LoginUserIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -187,6 +149,9 @@ function LoginUserIcon() {
   );
 }
 
+/**
+ * Icono de candado para el input.
+ */
 function LoginLockIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -206,6 +171,9 @@ function LoginLockIcon() {
   );
 }
 
+/**
+ * Pantalla pública de inicio de sesión.
+ */
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -236,11 +204,6 @@ export default function Login() {
 
   /**
    * Envía credenciales al AuthProvider.
-   *
-   * Regla importante:
-   * - Solo redirige al sistema si result.ok === true.
-   * - Si result.ok === false, nunca debe mandar al panel.
-   * - Si backend indica contraseña pendiente, manda a /crear-password.
    */
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -301,13 +264,13 @@ export default function Login() {
   }
 
   return (
-    <main className={`login-page ${LOGIN_THEME_CLASS[LOGIN_THEME]}`}>
+    <main className="login-page">
       <section className="login-shell" aria-label="Inicio de sesión">
         <aside className="login-brand" aria-label="Cesantoni">
           <img
             src={isotipoCesantoni}
             alt=""
-            className="login-brand-watermark"
+            className="login-brand-symbol"
             draggable={false}
             aria-hidden="true"
           />

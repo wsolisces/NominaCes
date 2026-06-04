@@ -3,22 +3,20 @@
    Entrada global de estilos del frontend NominaCes
 
    Responsabilidades:
-   - Importar Tailwind y temas base.
-   - Definir variables globales de escala.
-   - Mantener fuente, fondo y proporciones del sistema.
-   - Permitir que toda la interfaz crezca o se compacte
-     desde un solo selector.
+   - Importar Tailwind y variables base del sistema.
+   - Definir escala global de interfaz.
+   - Mantener fuente, fondo, layout base y sidebar.
+   - Permitir ajustar tamaño general desde un solo selector.
 
    No debe:
    - Contener estilos específicos de páginas.
    - Definir reglas particulares de usuarios, roles o permisos.
-   - Tener colores duplicados fuera de variables.
+   - Importar temas exclusivos del login.
    ====================================================== */
 
 @import "tailwindcss";
 
 @import "./styles/theme/colors.css";
-@import "./styles/theme/loginTheme.css";
 
 /* ======================================================
    ESCALA GLOBAL DEL SISTEMA
@@ -95,10 +93,15 @@ html[data-ui-scale="large"] {
    BASE GLOBAL
    ====================================================== */
 
+* {
+  box-sizing: border-box;
+}
+
 html,
 body {
   width: 100%;
   min-width: 320px;
+  min-height: 100%;
   margin: 0;
 }
 
@@ -137,18 +140,23 @@ button:disabled {
   cursor: not-allowed;
 }
 
+a {
+  color: inherit;
+}
+
+img,
+svg {
+  display: block;
+}
+
 #root {
-  min-height: 100vh;
   width: 100%;
+  min-height: 100vh;
 }
 
 /* ======================================================
    SCROLLBAR GENERAL
    ====================================================== */
-
-* {
-  box-sizing: border-box;
-}
 
 *::-webkit-scrollbar {
   width: 0.625rem;
@@ -168,35 +176,26 @@ button:disabled {
   background: rgba(17, 24, 39, 0.28);
 }
 
-
-
-
-
-
-
 /* ======================================================
    APP SHELL
    ====================================================== */
 
 .app-shell {
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top right, rgba(214, 113, 41, 0.05), transparent 32rem),
-    var(--color-app-bg);
+  background: var(--color-app-bg);
   color: var(--color-text-primary);
 }
 
 .app-shell__main {
   min-height: 100vh;
-  transition: margin-left 180ms ease;
+  margin-left: var(--sidebar-width);
   overflow: auto;
+  transition: margin-left 180ms ease;
 }
 
-
-
-
-
-
+.app-shell--collapsed .app-shell__main {
+  margin-left: var(--sidebar-collapsed-width);
+}
 
 /* ======================================================
    SIDEBAR
@@ -206,20 +205,27 @@ button:disabled {
   position: fixed;
   inset: 0 auto 0 0;
   z-index: 40;
+
   display: flex;
   width: var(--sidebar-width);
   height: 100vh;
   flex-direction: column;
+
   background: var(--color-sidebar-bg);
   color: var(--color-sidebar-text);
   border-right: 1px solid var(--color-sidebar-border);
   box-shadow: var(--shadow-sidebar);
+
   transition: width 180ms ease;
 }
 
 .sidebar--collapsed {
   width: var(--sidebar-collapsed-width);
 }
+
+/* ======================================================
+   SIDEBAR BRAND
+   ====================================================== */
 
 .sidebar__brand {
   display: flex;
@@ -239,6 +245,10 @@ button:disabled {
 .sidebar__logo--iso {
   width: min(4.5rem, 72%);
 }
+
+/* ======================================================
+   SIDEBAR NAV
+   ====================================================== */
 
 .sidebar__nav {
   flex: 1;
@@ -267,16 +277,20 @@ button:disabled {
 
 .sidebar__item {
   position: relative;
+
   display: flex;
   min-height: var(--control-height-lg);
   align-items: center;
   gap: var(--space-md);
+
   border-radius: var(--radius-md);
   padding: 0 var(--space-md);
+
   color: var(--color-sidebar-text);
   font-size: var(--font-size-sm);
   font-weight: 600;
   text-decoration: none;
+
   transition:
     background-color 140ms ease,
     color 140ms ease;
@@ -331,6 +345,10 @@ button:disabled {
   white-space: nowrap;
 }
 
+/* ======================================================
+   SIDEBAR ACTIONS
+   ====================================================== */
+
 .sidebar__collapse {
   display: flex;
   justify-content: center;
@@ -344,10 +362,12 @@ button:disabled {
   height: var(--control-height-md);
   align-items: center;
   justify-content: center;
+
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--color-sidebar-text);
+
   transition:
     background-color 140ms ease,
     color 140ms ease;
@@ -382,6 +402,10 @@ button:disabled {
   transform: rotate(180deg);
 }
 
+/* ======================================================
+   SIDEBAR PROFILE
+   ====================================================== */
+
 .sidebar__profile {
   padding: var(--space-md);
 }
@@ -390,6 +414,7 @@ button:disabled {
   display: flex;
   align-items: center;
   gap: var(--space-md);
+
   border: 1px solid var(--color-sidebar-border);
   border-radius: var(--radius-lg);
   background: var(--color-sidebar-surface);
@@ -402,9 +427,11 @@ button:disabled {
   height: calc(2.35rem * var(--app-scale));
   align-items: center;
   justify-content: center;
+
   border-radius: 999px;
   background: var(--color-sidebar-focus);
   color: var(--color-white);
+
   font-size: var(--font-size-sm);
   font-weight: 800;
 }
@@ -429,4 +456,31 @@ button:disabled {
   font-size: var(--font-size-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ======================================================
+   RESPONSIVE
+   ====================================================== */
+
+@media (max-width: 900px) {
+  body {
+    overflow: auto;
+  }
+
+  .sidebar {
+    position: relative;
+    width: 100%;
+    height: auto;
+    min-height: auto;
+    box-shadow: none;
+  }
+
+  .sidebar--collapsed {
+    width: 100%;
+  }
+
+  .app-shell__main,
+  .app-shell--collapsed .app-shell__main {
+    margin-left: 0;
+  }
 }
