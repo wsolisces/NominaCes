@@ -2,33 +2,65 @@
 // PATH: src/auth/auth.types.ts
 // Módulo: Autenticación frontend
 // Capa: Tipos / contratos
-// Descripción:
-//   Define los contratos TypeScript usados por el frontend
-//   para iniciar sesión, validar sesión, cerrar sesión y crear
-//   contraseña mediante código temporal.
-//
-// Responsabilidades:
-//   - Centralizar tipos reutilizables de autenticación.
-//   - Evitar que Login, ResetPassword, Sidebar o Layout dependan
-//     directamente de la forma exacta de respuesta del backend.
-//   - Mantener compatibilidad con respuestas flexibles del API.
-//
-// No debe:
-//   - Ejecutar peticiones HTTP.
-//   - Guardar estado global.
-//   - Contener lógica visual.
-//   - Contener reglas de navegación.
 // ======================================================
+
+/**
+ * Responsabilidades:
+ * - Centralizar tipos reutilizables de autenticación.
+ * - Definir el contrato del usuario autenticado.
+ * - Definir helpers públicos para autorización visual por permisos.
+ * - Evitar que componentes dependan del JSON crudo del backend.
+ * - Mantener contratos compartidos entre Login, Layout y rutas.
+ *
+ * No debe:
+ * - Ejecutar peticiones HTTP.
+ * - Guardar estado global.
+ * - Contener lógica visual.
+ * - Autorizar operaciones del backend.
+ * - Contener reglas específicas de módulos.
+ */
+
+/**
+ * Clave técnica de un permiso.
+ *
+ * Se mantiene como string porque el catálogo puede crecer sin obligar
+ * al frontend a modificar este contrato general.
+ */
+export type PermissionKey = string;
+
+/**
+ * Configuración reutilizable para elementos protegidos por permisos.
+ *
+ * Puede utilizarse en:
+ * - rutas
+ * - elementos del sidebar
+ * - botones
+ * - acciones administrativas
+ */
+export type PermissionRequirement = {
+  /**
+   * Permiso único obligatorio.
+   */
+  requiredPermission?: PermissionKey;
+
+  /**
+   * El usuario debe contar con al menos uno de estos permisos.
+   */
+  anyPermissions?: PermissionKey[];
+
+  /**
+   * El usuario debe contar con todos estos permisos.
+   */
+  allPermissions?: PermissionKey[];
+};
 
 /**
  * Usuario autenticado normalizado para uso interno del frontend.
  *
- * Este tipo acepta campos flexibles porque el backend puede devolver
- * datos adicionales del usuario, rol o permisos.
- *
  * Regla:
  * - Los componentes deben consumir AuthUser.
- * - Los componentes no deben depender directamente del JSON crudo del backend.
+ * - Los componentes no deben depender directamente del JSON crudo.
+ * - permissions debe ser normalizado por extractAuthUser().
  */
 export type AuthUser = {
   id?: number | string;
@@ -46,7 +78,10 @@ export type AuthUser = {
   role_name?: string;
   role?: string;
 
-  permissions?: string[];
+  /**
+   * Permisos activos asignados al usuario autenticado.
+   */
+  permissions?: PermissionKey[];
 
   status?: string;
   is_active?: boolean;
@@ -70,10 +105,7 @@ export type LoginRequest = {
 /**
  * Resultado controlado para pantallas de login.
  *
- * Importante:
- * - signIn() no debe lanzar errores hacia la pantalla.
- * - Login.tsx debe poder decidir con ok=true/false si redirige,
- *   muestra error o manda a crear contraseña.
+ * signIn() no debe lanzar errores hacia la pantalla.
  */
 export type LoginResult = {
   ok: boolean;
@@ -85,10 +117,7 @@ export type LoginResult = {
 };
 
 /**
- * Payload para crear contraseña definitiva usando código temporal.
- *
- * Se usa cuando backend detecta:
- * - password_reset_required = true
+ * Payload para crear contraseña definitiva mediante código temporal.
  */
 export type CreatePasswordRequest = {
   username: string;
@@ -98,8 +127,7 @@ export type CreatePasswordRequest = {
 };
 
 /**
- * Respuesta esperada cuando el backend crea correctamente
- * la nueva contraseña del usuario.
+ * Respuesta esperada al crear correctamente una contraseña.
  */
 export type CreatePasswordResponse = {
   username: string;
@@ -109,8 +137,9 @@ export type CreatePasswordResponse = {
 /**
  * Contrato público del contexto de autenticación.
  *
- * Cualquier componente que use useAuth() debe depender solo
- * de estas propiedades y funciones.
+ * Importante:
+ * - Los helpers de permisos controlan únicamente la interfaz.
+ * - El backend debe continuar validando cada operación protegida.
  */
 export type AuthContextValue = {
   user: AuthUser | null;
@@ -127,12 +156,27 @@ export type AuthContextValue = {
 
   refreshSession: () => Promise<AuthUser | null>;
   refreshUser: () => Promise<AuthUser | null>;
+
+  /**
+   * Indica si el usuario cuenta con un permiso específico.
+   */
+  hasPermission: (permission: PermissionKey) => boolean;
+
+  /**
+   * Indica si el usuario cuenta con al menos uno de los permisos.
+   */
+  hasAnyPermission: (permissions: PermissionKey[]) => boolean;
+
+  /**
+   * Indica si el usuario cuenta con todos los permisos.
+   */
+  hasAllPermissions: (permissions: PermissionKey[]) => boolean;
 };
 
 /**
  * Forma flexible de respuesta del backend.
  *
- * Se mantiene porque el backend puede responder en diferentes formatos:
+ * Formatos compatibles:
  * - { user }
  * - { data: { user } }
  * - { ok, data }

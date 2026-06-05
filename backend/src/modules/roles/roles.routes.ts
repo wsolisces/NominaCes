@@ -3,25 +3,41 @@
 // Rutas HTTP del módulo Roles
 // ======================================================
 
+/**
+ * Responsabilidades:
+ * - Declarar los endpoints del módulo Roles.
+ * - Aplicar autenticación.
+ * - Aplicar autorización por permiso.
+ * - Conectar rutas con controladores.
+ *
+ * No debe:
+ * - Ejecutar consultas SQL.
+ * - Aplicar reglas de negocio.
+ * - Construir respuestas manualmente.
+ */
+
 import { Router } from "express";
 
 import { asyncHandler } from "../../shared/errors/asyncHandler.js";
+
 import { authRequired } from "../login/auth.middleware.js";
+
 import { APP_PERMISSIONS } from "../permisos/app.permissions.js";
 import { requirePermission } from "../permisos/permission.middleware.js";
+
 import * as rolesController from "./roles.controller.js";
 
 export const rolesRoutes = Router();
 
 /**
- * Todas las rutas de Roles requieren sesión válida.
+ * Todas las rutas del módulo requieren sesión válida.
  */
 rolesRoutes.use(authRequired);
 
 /**
  * GET /roles
  *
- * Lista roles disponibles para mantenimiento y selects.
+ * Lista todos los roles.
  */
 rolesRoutes.get(
   "/",
@@ -32,7 +48,7 @@ rolesRoutes.get(
 /**
  * GET /roles/:id
  *
- * Consulta detalle de un rol específico.
+ * Consulta el detalle de un rol.
  */
 rolesRoutes.get(
   "/:id",
@@ -43,7 +59,7 @@ rolesRoutes.get(
 /**
  * POST /roles
  *
- * Crea un nuevo rol con permisos.
+ * Crea un rol nuevo.
  */
 rolesRoutes.post(
   "/",
@@ -54,7 +70,7 @@ rolesRoutes.post(
 /**
  * PATCH /roles/:id
  *
- * Edita nombre, descripción y permisos de un rol.
+ * Modifica nombre, descripción o permisos.
  */
 rolesRoutes.patch(
   "/:id",
@@ -82,4 +98,18 @@ rolesRoutes.post(
   "/:id/activate",
   requirePermission(APP_PERMISSIONS.ROLES_EDIT),
   asyncHandler(rolesController.activateRole)
+);
+
+/**
+ * DELETE /roles/:id
+ *
+ * Elimina permanentemente un rol sin usuarios asignados.
+ *
+ * Actualmente utiliza ROLES_EDIT porque ROLES_DELETE todavía
+ * no está registrado en el catálogo central de permisos.
+ */
+rolesRoutes.delete(
+  "/:id",
+  requirePermission(APP_PERMISSIONS.ROLES_DELETE),
+  asyncHandler(rolesController.deleteRole)
 );

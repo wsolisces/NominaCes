@@ -1,79 +1,252 @@
 /* ======================================================
    PATH: src/styles/theme/colors.css
    Paleta oficial del sistema NominaCes
-
-   Responsabilidades:
-   - Centralizar colores del sistema.
-   - Mantener negro obligatorio para sidebar.
-   - Definir colores corporativos y estados.
-   - Evitar colores escritos directamente en componentes.
-
-   No debe:
-   - Contener estilos de componentes.
-   - Contener reglas específicas de páginas.
    ====================================================== */
 
+/**
+ * Responsabilidades:
+ * - Centralizar todos los colores utilizados por el sistema.
+ * - Mantener negro obligatorio para el sidebar.
+ * - Definir colores corporativos, semánticos y de estado.
+ * - Proporcionar variables reutilizables para componentes.
+ * - Evitar colores escritos directamente fuera de este archivo.
+ *
+ * No debe:
+ * - Contener estilos de componentes.
+ * - Contener reglas específicas de páginas.
+ * - Definir tamaños, espacios, bordes o tipografías.
+ */
+
 :root {
-  /* Base */
+  /* ======================================================
+     COLORES BASE
+     ====================================================== */
+
   --color-white: #ffffff;
   --color-black: #000000;
+  --color-transparent: transparent;
 
-  /* Neutros */
+  /* ======================================================
+     ESCALA NEUTRA
+     ====================================================== */
+
+  --color-neutral-25: #fcfcfb;
+  --color-neutral-50: #f7f7f5;
+  --color-neutral-100: #f1f0ed;
+  --color-neutral-200: #e5e0db;
+  --color-neutral-300: #d8d1ca;
+  --color-neutral-400: #b5aaa0;
+  --color-neutral-500: #8b8178;
+  --color-neutral-600: #6b625b;
+  --color-neutral-700: #4b4540;
+  --color-neutral-800: #292623;
+  --color-neutral-900: #171513;
+
+  /* ======================================================
+     ESCALA AZUL CORPORATIVA
+     ====================================================== */
+
+  --color-blue-25: #f7fafc;
+  --color-blue-50: #edf3f8;
+  --color-blue-100: #dfeaf4;
+  --color-blue-200: #cfdbe7;
+  --color-blue-300: #a9c3da;
+  --color-blue-400: #78a7d1;
+  --color-blue-500: #5f91bf;
+  --color-blue-600: #3e628a;
+  --color-blue-700: #294f7d;
+  --color-blue-800: #23456f;
+  --color-blue-900: #17345f;
+  --color-blue-950: #1d2635;
+
+  /* ======================================================
+     ESCALA NARANJA CORPORATIVA
+     ====================================================== */
+
+  --color-orange-50: #fff7f0;
+  --color-orange-100: #ffead8;
+  --color-orange-200: #f8cfad;
+  --color-orange-300: #efa870;
+  --color-orange-400: #e4863d;
+  --color-orange-500: #d67129;
+  --color-orange-600: #bd5f1f;
+  --color-orange-700: #994817;
+  --color-orange-800: #773815;
+  --color-orange-900: #612f16;
+
+  /* ======================================================
+     ESCALA VERDE
+     ====================================================== */
+
+  --color-green-50: #f0f7f2;
+  --color-green-100: #e0eee4;
+  --color-green-200: #bfdcc8;
+  --color-green-300: #96c1a3;
+  --color-green-400: #68a17a;
+  --color-green-500: #47875d;
+  --color-green-600: #2f7d46;
+  --color-green-700: #29633b;
+  --color-green-800: #244f32;
+  --color-green-900: #21231e;
+
+  /* ======================================================
+     ESCALA ROJA
+     ====================================================== */
+
+  --color-red-50: #fef2f2;
+  --color-red-100: #fee2e2;
+  --color-red-200: #fecaca;
+  --color-red-500: #ef4444;
+  --color-red-600: #dc2626;
+  --color-red-700: #b91c1c;
+  --color-red-800: #991b1b;
+
+  /* ======================================================
+     IDENTIDAD CORPORATIVA
+     ====================================================== */
+
   --color-cream: #f1e6da;
-  --color-warm-gray: #b5aaa0;
-  --color-app-bg: #f7f7f5;
-  --color-surface: #ffffff;
-  --color-surface-soft: #fbfaf8;
-  --color-border: #e5e0db;
-  --color-border-strong: #d8d1ca;
+  --color-warm-gray: var(--color-neutral-400);
+  --color-coffee: #4b392a;
 
-  /* Texto */
+  --color-orange: var(--color-orange-500);
+  --color-blue-dark: var(--color-blue-950);
+  --color-green-soft: #8ca082;
+  --color-green-dark: var(--color-green-900);
+
+  /* ======================================================
+     FONDOS Y SUPERFICIES
+     ====================================================== */
+
+  --color-app-bg: var(--color-neutral-50);
+
+  --color-surface: var(--color-white);
+  --color-surface-soft: var(--color-neutral-25);
+  --color-surface-muted: var(--color-neutral-100);
+
+  --color-surface-blue: var(--color-blue-50);
+  --color-surface-blue-hover: var(--color-blue-100);
+  --color-surface-blue-active: var(--color-blue-200);
+
+  /* ======================================================
+     BORDES
+     ====================================================== */
+
+  --color-border-soft: var(--color-neutral-100);
+  --color-border: var(--color-neutral-200);
+  --color-border-strong: var(--color-neutral-300);
+
+  --color-border-blue-soft: var(--color-blue-100);
+  --color-border-blue: var(--color-blue-200);
+  --color-border-blue-strong: var(--color-blue-400);
+
+  /* ======================================================
+     TEXTO
+     ====================================================== */
+
   --color-text-primary: #111827;
   --color-text-secondary: #6b7280;
   --color-text-muted: #9ca3af;
-  --color-text-inverse: #ffffff;
+  --color-text-disabled: #b8bec7;
+  --color-text-inverse: var(--color-white);
 
-  /* Corporativos */
-  --color-orange: #d67129;
-  --color-coffee: #4b392a;
-  --color-green-soft: #8ca082;
-  --color-green-dark: #21231e;
-  --color-blue-dark: #1d2635;
+  --color-text-blue: var(--color-blue-700);
+  --color-text-blue-strong: var(--color-blue-900);
 
-  /* Sidebar */
-  --color-sidebar-bg: #000000;
+  /* ======================================================
+     ACCIONES PRINCIPALES
+     ====================================================== */
+
+  --color-primary: var(--color-blue-950);
+  --color-primary-hover: var(--color-blue-900);
+  --color-primary-active: var(--color-blue-800);
+
+  --color-primary-soft: var(--color-blue-50);
+  --color-primary-soft-hover: var(--color-blue-100);
+
+  --color-primary-border: var(--color-blue-300);
+  --color-primary-contrast: var(--color-white);
+
+  /* ======================================================
+     ACENTOS
+     ====================================================== */
+
+  --color-accent: var(--color-blue-500);
+  --color-accent-hover: var(--color-blue-600);
+  --color-accent-active: var(--color-blue-700);
+
+  --color-accent-soft: var(--color-blue-50);
+  --color-accent-soft-hover: var(--color-blue-100);
+  --color-accent-border: var(--color-blue-300);
+
+  /* Naranja disponible únicamente para detalles corporativos. */
+  --color-corporate-accent: var(--color-orange-500);
+  --color-corporate-accent-hover: var(--color-orange-600);
+  --color-corporate-accent-soft: var(--color-orange-50);
+
+  /* ======================================================
+     SIDEBAR
+     ====================================================== */
+
+  --color-sidebar-bg: var(--color-black);
   --color-sidebar-surface: #0d0d0d;
   --color-sidebar-hover: #1a1a1a;
   --color-sidebar-focus: #2a2a2a;
-  --color-sidebar-active: #21231e;
+  --color-sidebar-active: var(--color-green-dark);
+
   --color-sidebar-border: rgba(255, 255, 255, 0.1);
   --color-sidebar-text: rgba(255, 255, 255, 0.88);
   --color-sidebar-muted: rgba(255, 255, 255, 0.58);
-  --color-sidebar-accent: #d67129;
 
-  /* Acciones */
-  --color-primary: #1d2635;
-  --color-primary-hover: #111827;
-  --color-primary-soft: rgba(29, 38, 53, 0.1);
+  --color-sidebar-accent: var(--color-blue-400);
 
-  --color-accent: #d67129;
-  --color-accent-hover: #bd5f1f;
-  --color-accent-soft: rgba(214, 113, 41, 0.12);
+  /* ======================================================
+     ESTADO: ÉXITO
+     ====================================================== */
 
-  /* Estados */
-  --color-success: #2f7d46;
-  --color-success-soft: #e8f3eb;
+  --color-success: var(--color-green-600);
+  --color-success-hover: var(--color-green-700);
+  --color-success-soft: var(--color-green-50);
+  --color-success-border: var(--color-green-200);
 
-  --color-warning: #d67129;
-  --color-warning-soft: #fff1e6;
+  /* ======================================================
+     ESTADO: ADVERTENCIA
+     ====================================================== */
 
-  --color-danger: #dc2626;
-  --color-danger-hover: #b91c1c;
-  --color-danger-soft: #fee2e2;
+  --color-warning: var(--color-orange-500);
+  --color-warning-hover: var(--color-orange-600);
+  --color-warning-soft: var(--color-orange-50);
+  --color-warning-border: var(--color-orange-200);
 
-  --color-info: #1d4ed8;
-  --color-info-soft: #eaf1ff;
+  /* ======================================================
+     ESTADO: ERROR
+     ====================================================== */
 
-  /* Focus accesible */
-  --focus-ring: 0 0 0 3px rgba(29, 38, 53, 0.18);
+  --color-danger: var(--color-red-600);
+  --color-danger-hover: var(--color-red-700);
+  --color-danger-soft: var(--color-red-50);
+  --color-danger-border: var(--color-red-200);
+
+  /* ======================================================
+     ESTADO: INFORMACIÓN
+     ====================================================== */
+
+  --color-info: var(--color-blue-700);
+  --color-info-hover: var(--color-blue-800);
+  --color-info-soft: var(--color-blue-50);
+  --color-info-border: var(--color-blue-200);
+
+  /* ======================================================
+     TRANSPARENCIAS Y FOCUS
+     ====================================================== */
+
+  --color-overlay-soft: rgba(15, 23, 42, 0.18);
+  --color-overlay: rgba(15, 23, 42, 0.38);
+  --color-overlay-strong: rgba(15, 23, 42, 0.55);
+
+  --color-focus-soft: rgba(95, 145, 191, 0.14);
+  --color-focus: rgba(95, 145, 191, 0.32);
+  --color-focus-strong: rgba(62, 98, 138, 0.48);
+
+  --focus-ring: 0 0 0 3px var(--color-focus-soft);
 }

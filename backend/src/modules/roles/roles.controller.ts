@@ -6,15 +6,15 @@
 /**
  * Responsabilidades:
  * - Leer parámetros y body de Express.
- * - Validar datos mínimos de entrada.
+ * - Validar parámetros básicos de las rutas.
  * - Llamar al service del módulo.
  * - Responder usando el formato estándar del backend.
  *
  * No debe:
- * - Hacer queries SQL.
+ * - Ejecutar consultas SQL.
  * - Validar cookies o permisos.
- * - Contener reglas de negocio complejas.
- * - Repetir try/catch; eso lo hace asyncHandler.
+ * - Aplicar reglas de negocio complejas.
+ * - Repetir try/catch; eso lo realiza asyncHandler.
  */
 
 import type { Request, Response } from "express";
@@ -25,15 +25,15 @@ import { created, ok } from "../../shared/http/responses.js";
 import * as rolesService from "./roles.service.js";
 
 /**
- * Obtiene y valida el id del rol desde params.
- *
- * Regla:
- * - Debe ser entero positivo.
- * - Se usa number porque el repository de roles trabaja con id numérico.
+ * Obtiene y valida el id del rol recibido en params.
  */
 function getRoleIdParam(req: Request): number {
   const rawId = req.params.id;
-  const normalizedId = Array.isArray(rawId) ? rawId[0] : rawId;
+
+  const normalizedId = Array.isArray(rawId)
+    ? rawId[0]
+    : rawId;
+
   const id = Number(normalizedId);
 
   if (!Number.isInteger(id) || id <= 0) {
@@ -66,13 +66,15 @@ export async function listRoles(
 /**
  * GET /roles/:id
  *
- * Consulta un rol por id.
+ * Consulta el detalle de un rol.
  */
 export async function getRole(
   req: Request,
   res: Response
 ): Promise<void> {
-  const role = await rolesService.getRole(getRoleIdParam(req));
+  const role = await rolesService.getRole(
+    getRoleIdParam(req)
+  );
 
   if (!role) {
     throw new AppError({
@@ -110,13 +112,16 @@ export async function createRole(
 /**
  * PATCH /roles/:id
  *
- * Edita un rol existente.
+ * Modifica un rol existente.
  */
 export async function updateRole(
   req: Request,
   res: Response
 ): Promise<void> {
-  const role = await rolesService.updateRole(getRoleIdParam(req), req.body);
+  const role = await rolesService.updateRole(
+    getRoleIdParam(req),
+    req.body
+  );
 
   ok(
     res,
@@ -136,7 +141,9 @@ export async function deactivateRole(
   req: Request,
   res: Response
 ): Promise<void> {
-  const role = await rolesService.deactivateRole(getRoleIdParam(req));
+  const role = await rolesService.deactivateRole(
+    getRoleIdParam(req)
+  );
 
   ok(
     res,
@@ -156,7 +163,9 @@ export async function activateRole(
   req: Request,
   res: Response
 ): Promise<void> {
-  const role = await rolesService.activateRole(getRoleIdParam(req));
+  const role = await rolesService.activateRole(
+    getRoleIdParam(req)
+  );
 
   ok(
     res,
@@ -164,5 +173,27 @@ export async function activateRole(
       role
     },
     "Rol activado correctamente."
+  );
+}
+
+/**
+ * DELETE /roles/:id
+ *
+ * Elimina permanentemente un rol sin usuarios asignados.
+ */
+export async function deleteRole(
+  req: Request,
+  res: Response
+): Promise<void> {
+  const role = await rolesService.deleteRole(
+    getRoleIdParam(req)
+  );
+
+  ok(
+    res,
+    {
+      role
+    },
+    "Rol eliminado correctamente."
   );
 }

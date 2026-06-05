@@ -52,6 +52,7 @@ export type ColumnDef<T> = {
   width?: number | string;
   align?: Align;
   cell?: (row: T, rowIndex: number) => ReactNode;
+  filterValue?: (row: T) => string;
   disableSort?: boolean;
   isTotal?: boolean;
   wrap?: boolean;

@@ -9,6 +9,7 @@
  * - Renderizar permisos mediante el DataTable reutilizable.
  * - Mostrar las acciones disponibles para cada permiso.
  * - Presentar estados, fechas y valores de forma consistente.
+ * - Definir los textos utilizados por los filtros.
  *
  * No debe:
  * - Consultar directamente el backend.
@@ -20,10 +21,9 @@
 import {
   useMemo,
   type MouseEvent,
-  type ReactNode
+  type ReactNode,
+  type SVGProps
 } from "react";
-
-import { Button } from "../../../shared/ui";
 
 import DataTable, {
   type ColumnDef
@@ -51,8 +51,14 @@ type PermissionActionButtonProps = {
   children: ReactNode;
   ariaLabel: string;
   disabled?: boolean;
+  variant?: "default" | "success" | "danger";
   onClick: () => void;
 };
+
+/**
+ * Props compartidas por los iconos internos.
+ */
+type ActionIconProps = SVGProps<SVGSVGElement>;
 
 /**
  * Formateador compartido para fechas del catálogo.
@@ -63,7 +69,7 @@ const dateTimeFormatter = new Intl.DateTimeFormat("es-MX", {
 });
 
 /**
- * Normaliza texto opcional antes de mostrarlo en la tabla.
+ * Normaliza texto opcional antes de mostrarlo o filtrarlo.
  */
 function normalizeDisplayText(
   value: string | null | undefined,
@@ -75,9 +81,11 @@ function normalizeDisplayText(
 }
 
 /**
- * Formatea una fecha para mostrarla dentro de la tabla.
+ * Formatea una fecha para mostrarla y utilizarla en filtros.
  */
-function formatDateTime(value: string | null | undefined): string {
+function formatDateTime(
+  value: string | null | undefined
+): string {
   if (!value) {
     return "Sin fecha";
   }
@@ -94,7 +102,9 @@ function formatDateTime(value: string | null | undefined): string {
 /**
  * Convierte una fecha válida a formato ISO para el atributo dateTime.
  */
-function getIsoDateTime(value: string | null | undefined): string | undefined {
+function getIsoDateTime(
+  value: string | null | undefined
+): string | undefined {
   if (!value) {
     return undefined;
   }
@@ -109,26 +119,164 @@ function getIsoDateTime(value: string | null | undefined): string | undefined {
 }
 
 /**
+ * Obtiene el texto mostrado y utilizado para filtrar el estado.
+ */
+function getPermissionStatusText(
+  permission: PermissionDto
+): string {
+  return permission.isActive ? "Activo" : "Inactivo";
+}
+
+/**
+ * Obtiene el nombre visible de un permiso.
+ */
+function getPermissionName(
+  permission: PermissionDto
+): string {
+  return normalizeDisplayText(
+    permission.permissionName,
+    "Permiso sin nombre"
+  );
+}
+
+/**
+ * Obtiene el módulo visible de un permiso.
+ */
+function getPermissionModule(
+  permission: PermissionDto
+): string {
+  return normalizeDisplayText(
+    permission.moduleKey,
+    "Sin módulo"
+  );
+}
+
+/**
+ * Obtiene la descripción visible de un permiso.
+ */
+function getPermissionDescription(
+  permission: PermissionDto
+): string {
+  return normalizeDisplayText(
+    permission.description,
+    "Sin descripción"
+  );
+}
+
+/**
  * Evita que las acciones internas activen eventos asociados a la fila.
  */
-function stopRowInteraction(event: MouseEvent<HTMLElement>): void {
+function stopRowInteraction(
+  event: MouseEvent<HTMLElement>
+): void {
   event.stopPropagation();
 }
 
 /**
- * Botón estándar utilizado dentro de las acciones de una fila.
+ * Icono utilizado para editar un permiso.
+ */
+function EditIcon(props: ActionIconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z" />
+    </svg>
+  );
+}
+
+/**
+ * Icono utilizado para activar un permiso.
+ */
+function ActivateIcon(props: ActionIconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="M9 12l2 2 4-4" />
+      <circle cx="12" cy="12" r="9" />
+    </svg>
+  );
+}
+
+/**
+ * Icono utilizado para inactivar un permiso.
+ */
+function DeactivateIcon(props: ActionIconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      {...props}
+    >
+      <circle cx="12" cy="12" r="9" />
+      <path d="M8 12h8" />
+    </svg>
+  );
+}
+
+/**
+ * Icono utilizado para consultar la auditoría de un permiso.
+ */
+function AuditIcon(props: ActionIconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="M9 5h6" />
+      <path d="M9 9h6" />
+      <path d="M9 13h3" />
+      <path d="M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" />
+      <circle cx="16" cy="16" r="2.5" />
+      <path d="m18 18 2 2" />
+    </svg>
+  );
+}
+
+/**
+ * Botón compacto utilizado dentro de las acciones de una fila.
  */
 function PermissionActionButton({
   children,
   ariaLabel,
   disabled = false,
+  variant = "default",
   onClick
 }: PermissionActionButtonProps) {
   return (
-    <Button
+    <button
       type="button"
-      size="sm"
-      variant="secondary"
+      className={[
+        "security-action-icon-button",
+        `security-action-icon-button--${variant}`
+      ].join(" ")}
       aria-label={ariaLabel}
       title={ariaLabel}
       disabled={disabled}
@@ -138,7 +286,7 @@ function PermissionActionButton({
       }}
     >
       {children}
-    </Button>
+    </button>
   );
 }
 
@@ -154,8 +302,8 @@ export function PermissionsTable({
   onAudit
 }: PermissionsTableProps) {
   /**
-   * Las columnas se memorizan para evitar reconstrucciones innecesarias
-   * durante el renderizado de la tabla.
+   * Las columnas se memorizan para evitar reconstrucciones
+   * innecesarias durante el renderizado.
    */
   const columns = useMemo<ColumnDef<PermissionDto>[]>(
     () => [
@@ -164,21 +312,14 @@ export function PermissionsTable({
         header: "Permiso",
         width: "17rem",
         wrap: true,
+
+        filterValue: getPermissionName,
+
         cell: (permission) => (
           <div className="security-main-text">
             <span className="security-main-text__title">
-              {normalizeDisplayText(
-                permission.permissionName,
-                "Permiso sin nombre"
-              )}
+              {getPermissionName(permission)}
             </span>
-
-            <code className="security-main-text__key">
-              {normalizeDisplayText(
-                permission.permissionKey,
-                "Sin clave"
-              )}
-            </code>
           </div>
         )
       },
@@ -186,9 +327,12 @@ export function PermissionsTable({
         key: "moduleKey",
         header: "Módulo",
         width: "11rem",
+
+        filterValue: getPermissionModule,
+
         cell: (permission) => (
           <span className="security-module-key">
-            {normalizeDisplayText(permission.moduleKey, "Sin módulo")}
+            {getPermissionModule(permission)}
           </span>
         )
       },
@@ -197,12 +341,12 @@ export function PermissionsTable({
         header: "Descripción",
         width: "24rem",
         wrap: true,
+
+        filterValue: getPermissionDescription,
+
         cell: (permission) => (
           <span className="security-description">
-            {normalizeDisplayText(
-              permission.description,
-              "Sin descripción"
-            )}
+            {getPermissionDescription(permission)}
           </span>
         )
       },
@@ -211,6 +355,9 @@ export function PermissionsTable({
         header: "Estado",
         width: "8rem",
         align: "center",
+
+        filterValue: getPermissionStatusText,
+
         cell: (permission) => (
           <span
             className={[
@@ -220,7 +367,7 @@ export function PermissionsTable({
                 : "security-status--inactive"
             ].join(" ")}
           >
-            {permission.isActive ? "Activo" : "Inactivo"}
+            {getPermissionStatusText(permission)}
           </span>
         )
       },
@@ -228,16 +375,28 @@ export function PermissionsTable({
         key: "updatedAt",
         header: "Actualización",
         width: "13rem",
+
+        filterValue: (permission) =>
+          formatDateTime(permission.updatedAt),
+
         cell: (permission) => {
-          const formattedDate = formatDateTime(permission.updatedAt);
-          const isoDateTime = getIsoDateTime(permission.updatedAt);
+          const formattedDate = formatDateTime(
+            permission.updatedAt
+          );
+
+          const isoDateTime = getIsoDateTime(
+            permission.updatedAt
+          );
 
           if (!isoDateTime) {
             return <span>{formattedDate}</span>;
           }
 
           return (
-            <time dateTime={isoDateTime} title={isoDateTime}>
+            <time
+              dateTime={isoDateTime}
+              title={isoDateTime}
+            >
               {formattedDate}
             </time>
           );
@@ -246,9 +405,10 @@ export function PermissionsTable({
       {
         key: "actions",
         header: "Acciones",
-        width: "19rem",
+        width: "9rem",
         align: "right",
         disableSort: true,
+
         cell: (permission) => {
           const permissionName = normalizeDisplayText(
             permission.permissionName,
@@ -265,27 +425,17 @@ export function PermissionsTable({
                 disabled={isLoading}
                 onClick={() => onEdit(permission)}
               >
-                Editar
+                <EditIcon />
               </PermissionActionButton>
 
-              <PermissionActionButton
-                ariaLabel={
-                  permission.isActive
-                    ? `Inactivar permiso ${permissionName}`
-                    : `Activar permiso ${permissionName}`
-                }
-                disabled={isLoading}
-                onClick={() => onToggleStatus(permission)}
-              >
-                {permission.isActive ? "Inactivar" : "Activar"}
-              </PermissionActionButton>
+              
 
               <PermissionActionButton
                 ariaLabel={`Consultar auditoría del permiso ${permissionName}`}
                 disabled={isLoading}
                 onClick={() => onAudit(permission)}
               >
-                Auditoría
+                <AuditIcon />
               </PermissionActionButton>
             </div>
           );

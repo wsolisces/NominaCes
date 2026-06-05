@@ -2,38 +2,49 @@
 // PATH: src/auth/useAuth.ts
 // Módulo: Autenticación frontend
 // Capa: Hook
-// Descripción:
-//   Expone un hook reutilizable para consumir el contexto global
-//   de autenticación desde cualquier componente React.
-//
-// Responsabilidades:
-//   - Leer AuthContext.
-//   - Validar que el hook se use dentro de AuthProvider.
-//   - Entregar el contrato AuthContextValue a pantallas y layouts.
-//
-// No debe:
-//   - Ejecutar peticiones HTTP.
-//   - Guardar estado propio.
-//   - Redirigir rutas.
-//   - Contener lógica visual.
 // ======================================================
 
+/**
+ * Responsabilidades:
+ * - Leer el contexto global de autenticación.
+ * - Validar que el hook se utilice dentro de AuthProvider.
+ * - Exponer sesión, autenticación y helpers de permisos.
+ * - Entregar un contrato fuertemente tipado a los componentes.
+ *
+ * No debe:
+ * - Ejecutar peticiones HTTP.
+ * - Guardar estado propio.
+ * - Redirigir rutas.
+ * - Aplicar reglas específicas de módulos.
+ * - Sustituir las validaciones de permisos del backend.
+ */
+
 import { useContext } from "react";
+
 import { AuthContext } from "./AuthProvider";
 
+import type { AuthContextValue } from "./auth.types";
+
 /**
- * Hook principal para consumir autenticación.
+ * Hook principal para consumir autenticación y permisos.
  *
  * Regla:
- * - Solo debe usarse dentro de componentes envueltos por AuthProvider.
- * - Si se usa fuera del provider, lanza un error claro para detectar
- *   problemas de estructura en main.tsx o AppRoutes.tsx.
+ * - Solo debe utilizarse dentro de componentes envueltos
+ *   por AuthProvider.
+ *
+ * Incluye:
+ * - Usuario y estado de sesión.
+ * - Login y logout.
+ * - Actualización de sesión.
+ * - Validación visual de permisos.
  */
-export function useAuth() {
+export function useAuth(): AuthContextValue {
   const context = useContext(AuthContext);
 
   if (!context) {
-    throw new Error("useAuth debe usarse dentro de AuthProvider.");
+    throw new Error(
+      "useAuth debe utilizarse dentro de AuthProvider."
+    );
   }
 
   return context;

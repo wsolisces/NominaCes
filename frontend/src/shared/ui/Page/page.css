@@ -48,7 +48,8 @@
   overscroll-behavior-y: contain;
   scrollbar-gutter: stable;
 
-  background: #f4f6f8;
+  padding-bottom: calc(2rem + 5px);
+
 }
    
 
@@ -214,7 +215,6 @@
 
   padding: 0;
 
-  background: transparent;
 }
 
 .app-page__content > :last-child {

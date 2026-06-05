@@ -1,110 +1,481 @@
 /* ======================================================
    PATH: src/shared/ui/Modal/modal.css
    Estilos reutilizables para modales
+   ====================================================== */
 
-   Responsabilidades:
-     - Unificar modales del sistema.
-     - Manejar backdrop, tamaños, header, body y footer.
+/**
+ * Responsabilidades:
+ * - Unificar la apariencia de los modales del sistema.
+ * - Manejar backdrop, tamaños, encabezado, contenido y acciones.
+ * - Permitir desplazamiento únicamente dentro del contenido.
+ * - Mantener una presentación responsive.
+ *
+ * No debe:
+ * - Definir estilos específicos de módulos.
+ * - Modificar estilos globales de botones o formularios.
+ */
 
-   No debe:
-     - Tener lógica específica por módulo.
+/* ======================================================
+   BACKDROP
    ====================================================== */
 
 .app-modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 80;
+  z-index: 1000;
+
   display: grid;
   place-items: center;
-  padding: 20px;
-  background: rgba(17, 24, 39, 0.38);
-  backdrop-filter: blur(3px);
+
+  padding: 1.5rem;
+
+  background: rgba(15, 23, 42, 0.48);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+
+  animation: app-modal-backdrop-enter 160ms ease-out;
 }
 
+/* ======================================================
+   CONTENEDOR PRINCIPAL
+   ====================================================== */
+
 .app-modal {
-  width: min(100%, 560px);
-  max-height: calc(100vh - 40px);
-  overflow: auto;
-  padding: 22px;
-  border-radius: 20px;
+  width: min(100%, 35rem);
+  max-height: calc(100dvh - 3rem);
+
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+
+  overflow: hidden;
+
   background: #ffffff;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 30px 70px rgba(17, 24, 39, 0.24);
+  border: 1px solid #dfe3e8;
+  border-radius: 0.9rem;
+
+  box-shadow:
+    0 1.5rem 4rem rgba(15, 23, 42, 0.2),
+    0 0.25rem 1rem rgba(15, 23, 42, 0.08);
+
+  animation: app-modal-enter 180ms ease-out;
 }
 
 .app-modal--sm {
-  width: min(100%, 420px);
+  width: min(100%, 27rem);
 }
 
 .app-modal--md {
-  width: min(100%, 560px);
+  width: min(100%, 38rem);
 }
 
 .app-modal--lg {
-  width: min(100%, 860px);
+  width: min(100%, 61rem);
 }
 
+/* ======================================================
+   ENCABEZADO
+   ====================================================== */
+
 .app-modal__header {
+  min-width: 0;
+
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: 1rem;
+
+  padding: 1.15rem 1.35rem 1.05rem;
+
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.app-modal__heading {
+  min-width: 0;
+  display: grid;
+  gap: 0.2rem;
 }
 
 .app-modal__eyebrow {
-  margin: 0 0 4px;
-  font-size: 0.72rem;
-  font-weight: 800;
+  margin: 0;
+
+  color: #7a828d;
+  font-size: 0.68rem;
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: #6b7280;
 }
 
 .app-modal__title {
   margin: 0;
-  color: #111827;
-  font-size: 1.25rem;
-  font-weight: 850;
-  letter-spacing: -0.03em;
+
+  color: #16181d;
+  font-size: 1.16rem;
+  font-weight: 650;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+
+  overflow-wrap: anywhere;
 }
 
+/* ======================================================
+   BOTÓN CERRAR
+   ====================================================== */
+
 .app-modal__close {
-  width: 34px;
-  height: 34px;
-  border: 0;
-  border-radius: 999px;
-  background: #f3f4f6;
-  color: #111827;
+  flex: 0 0 auto;
+
+  width: 2.15rem;
+  height: 2.15rem;
+
+  display: grid;
+  place-items: center;
+
+  padding: 0;
+
+  border: 1px solid #d8dde3;
+  border-radius: 0.55rem;
+
+  background: #f7f8fa;
+  color: #434a54;
+
+  font-family: inherit;
   font-size: 1.35rem;
+  font-weight: 400;
   line-height: 1;
+
   cursor: pointer;
+
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
 }
 
 .app-modal__close:hover {
-  background: #e5e7eb;
+  color: #ffffff;
+  background: #252930;
+  border-color: #252930;
+
+  box-shadow: 0 0.3rem 0.75rem rgba(15, 23, 42, 0.2);
+  transform: translateY(-1px);
 }
+
+.app-modal__close:active {
+  transform: translateY(0);
+}
+
+.app-modal__close:focus-visible {
+  outline: 2px solid #374151;
+  outline-offset: 2px;
+}
+
+/* ======================================================
+   CONTENIDO
+   ====================================================== */
 
 .app-modal__body {
+  min-width: 0;
+  min-height: 0;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
   display: grid;
-  gap: 14px;
+  align-content: start;
+  gap: 1rem;
+
+  padding: 1.3rem 1.35rem;
+
+  background: #ffffff;
+
+  scrollbar-width: thin;
+  scrollbar-color: #c9ced5 transparent;
 }
 
+/**
+ * Distribuye verticalmente los componentes interiores del modal.
+ */
+/* ======================================================
+   COMPONENTES INTERIORES
+   ====================================================== */
+
+.app-modal-content-grid {
+  width: 100%;
+  min-width: 0;
+
+  display: grid;
+  align-content: start;
+  gap: 0.85rem;
+}
+
+.app-modal-inline-row {
+  width: 100%;
+  min-width: 0;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 1rem;
+}
+
+.app-modal-field,
+.app-modal-switch-control {
+  min-width: 0;
+
+  display: grid;
+  align-content: start;
+  gap: 0.4rem;
+}
+
+.app-modal-field__label {
+  color: #374151;
+  font-size: 0.76rem;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.app-modal-select,
+.app-modal-textarea {
+  width: 100%;
+  min-width: 0;
+
+  padding: 0.68rem 0.75rem;
+
+  border: 1px solid #d8dde3;
+  border-radius: 0.55rem;
+
+  background: #ffffff;
+  color: #16181d;
+
+  font: inherit;
+  font-size: 0.85rem;
+
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.app-modal-select {
+  height: 2.65rem;
+  cursor: pointer;
+}
+
+.app-modal-textarea {
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.app-modal-select:focus,
+.app-modal-textarea:focus {
+  outline: none;
+  border-color: #6b7280;
+  box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.14);
+}
+
+.app-modal-switch-row {
+  height: 2.65rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+
+  position: relative;
+
+  padding: 0 0.7rem;
+
+  border: 1px solid #d8dde3;
+  border-radius: 0.55rem;
+
+  background: #f8f9fa;
+
+  cursor: pointer;
+}
+
+.app-modal-switch-text {
+  min-width: 3.4rem;
+
+  color: #434a54;
+  font-size: 0.78rem;
+  font-weight: 650;
+  text-align: right;
+}
+
+.app-modal-switch-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.app-modal-switch {
+  position: relative;
+
+  width: 2.65rem;
+  height: 1.45rem;
+
+  flex: 0 0 auto;
+
+  border-radius: 999px;
+  background: #aeb4bc;
+
+  transition:
+    background-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.app-modal-switch__thumb {
+  position: absolute;
+  top: 0.18rem;
+  left: 0.18rem;
+
+  width: 1.09rem;
+  height: 1.09rem;
+
+  border-radius: 50%;
+  background: #ffffff;
+
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.25);
+
+  transition: transform 150ms ease;
+}
+
+.app-modal-switch-input:checked + .app-modal-switch {
+  background: #252930;
+}
+
+.app-modal-switch-input:checked
+  + .app-modal-switch
+  .app-modal-switch__thumb {
+  transform: translateX(1.2rem);
+}
+
+.app-modal-switch-input:focus-visible + .app-modal-switch {
+  outline: 2px solid #374151;
+  outline-offset: 2px;
+}
+
+@media (max-width: 560px) {
+  .app-modal-inline-row {
+    grid-template-columns: 1fr;
+  }
+
+  .app-modal-switch-row {
+    justify-content: space-between;
+  }
+}
+
+.app-modal__body::-webkit-scrollbar {
+  width: 0.42rem;
+}
+
+.app-modal__body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.app-modal__body::-webkit-scrollbar-thumb {
+  background: #c9ced5;
+  border-radius: 999px;
+}
+
+/* ======================================================
+   FOOTER Y ACCIONES
+   ====================================================== */
+
 .app-modal__footer {
-  margin-top: 18px;
+  padding: 0.9rem 1.35rem;
+
+  background: #f8f9fa;
+  border-top: 1px solid #e5e7eb;
 }
 
 .app-modal-actions {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 0.65rem;
 }
 
+/* ======================================================
+   ANIMACIONES
+   ====================================================== */
+
+@keyframes app-modal-backdrop-enter {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes app-modal-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ======================================================
+   RESPONSIVE
+   ====================================================== */
+
 @media (max-width: 760px) {
+  .app-modal-backdrop {
+    place-items: end center;
+    padding: 0.75rem;
+  }
+
+  .app-modal,
+  .app-modal--sm,
+  .app-modal--md,
+  .app-modal--lg {
+    width: 100%;
+    max-height: calc(100dvh - 1.5rem);
+    border-radius: 0.85rem;
+  }
+
+  .app-modal__header {
+    padding: 1rem;
+  }
+
+  .app-modal__body {
+    padding: 1rem;
+  }
+
+  .app-modal__footer {
+    padding: 0.85rem 1rem;
+  }
+
   .app-modal-actions {
-    flex-direction: column-reverse;
+    display: grid;
+    grid-template-columns: 1fr;
   }
 
   .app-modal-actions > * {
     width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-modal-backdrop,
+  .app-modal {
+    animation: none;
+  }
+
+  .app-modal__close {
+    transition: none;
   }
 }

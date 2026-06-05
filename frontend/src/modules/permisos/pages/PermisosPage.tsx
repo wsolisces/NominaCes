@@ -9,6 +9,7 @@
  * - Permitir edición de metadata autorizada.
  * - Permitir activar o inactivar permisos.
  * - Mostrar auditoría por permiso.
+ * - Resaltar únicamente los valores modificados en auditoría.
  * - Usar estructura visual reutilizable del sistema.
  *
  * No debe:
@@ -21,7 +22,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { Button, InputField, Modal, Page } from "../../../shared/ui";
+import {
+  Button,
+  InputField,
+  Modal,
+  Page
+} from "../../../shared/ui";
 
 import { PermissionsTable } from "../components/PermissionsTable";
 
@@ -38,7 +44,7 @@ import type {
   PermissionsSummary
 } from "../permisos.types";
 
-import "../../security/security-pages.css";
+import "../permisos.css";
 
 /**
  * Estado inicial del formulario de edición.
@@ -57,13 +63,17 @@ function getPermissionsSummary(
   permissions: PermissionDto[]
 ): PermissionsSummary {
   const modules = new Set(
-    permissions.map((permission) => permission.moduleKey)
+    permissions
+      .map((permission) => permission.moduleKey.trim())
+      .filter(Boolean)
   );
 
   return {
     total: permissions.length,
-    active: permissions.filter((permission) => permission.isActive).length,
-    inactive: permissions.filter((permission) => !permission.isActive).length,
+    active: permissions.filter((permission) => permission.isActive)
+      .length,
+    inactive: permissions.filter((permission) => !permission.isActive)
+      .length,
     modules: modules.size
   };
 }
@@ -71,7 +81,9 @@ function getPermissionsSummary(
 /**
  * Convierte un permiso en estado editable.
  */
-function toFormState(permission: PermissionDto): PermissionFormState {
+function toFormState(
+  permission: PermissionDto
+): PermissionFormState {
   return {
     permissionName: permission.permissionName,
     moduleKey: permission.moduleKey,
@@ -81,7 +93,7 @@ function toFormState(permission: PermissionDto): PermissionFormState {
 }
 
 /**
- * Formatea fecha y hora para lectura.
+ * Formatea una fecha y hora para lectura.
  */
 function formatDateTime(value: string): string {
   const date = new Date(value);
@@ -108,6 +120,42 @@ function formatStatus(value: boolean | null): string {
 }
 
 /**
+ * Obtiene el texto visible de un valor nullable.
+ */
+function formatAuditText(value: string | null): string {
+  const normalizedValue = value?.trim();
+
+  return normalizedValue || "Sin dato";
+}
+
+/**
+ * Normaliza un texto de auditoría antes de compararlo.
+ */
+function normalizeAuditText(value: string | null): string {
+  return value?.trim() ?? "";
+}
+
+/**
+ * Determina si dos textos de auditoría son diferentes.
+ */
+function hasAuditTextChanged(
+  oldValue: string | null,
+  newValue: string | null
+): boolean {
+  return normalizeAuditText(oldValue) !== normalizeAuditText(newValue);
+}
+
+/**
+ * Determina si un estado de auditoría cambió.
+ */
+function hasAuditStatusChanged(
+  oldValue: boolean | null,
+  newValue: boolean | null
+): boolean {
+  return oldValue !== newValue;
+}
+
+/**
  * Pantalla principal de administración de permisos.
  */
 export default function PermisosPage() {
@@ -115,9 +163,13 @@ export default function PermisosPage() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [isChangingStatus, setIsChangingStatus] = useState(false);
 
-  const [errorMessage, setErrorMessage] = useState("");
+  const [changingStatusKey, setChangingStatusKey] = useState<
+    string | null
+  >(null);
+
+  const [pageErrorMessage, setPageErrorMessage] = useState("");
+  const [editErrorMessage, setEditErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
   const [selectedPermission, setSelectedPermission] =
@@ -134,12 +186,35 @@ export default function PermisosPage() {
   const [auditErrorMessage, setAuditErrorMessage] = useState("");
 
   /**
-   * Carga permisos desde el backend.
+   * Obtiene los módulos existentes sin valores repetidos.
+   */
+  const moduleOptions = useMemo(() => {
+    return Array.from(
+      new Set(
+        permissions
+          .map((permission) => permission.moduleKey.trim())
+          .filter(Boolean)
+      )
+    ).sort((firstModule, secondModule) =>
+      firstModule.localeCompare(secondModule, "es")
+    );
+  }, [permissions]);
+
+  /**
+   * Calcula el resumen visible de permisos.
+   */
+  const summary = useMemo(
+    () => getPermissionsSummary(permissions),
+    [permissions]
+  );
+
+  /**
+   * Carga los permisos desde el backend.
    */
   async function loadPermissions(): Promise<void> {
     try {
       setIsLoading(true);
-      setErrorMessage("");
+      setPageErrorMessage("");
       setSuccessMessage("");
 
       const result = await getPermissionsRequest();
@@ -151,7 +226,7 @@ export default function PermisosPage() {
           ? error.message
           : "No fue posible consultar permisos.";
 
-      setErrorMessage(message);
+      setPageErrorMessage(message);
       setPermissions([]);
     } finally {
       setIsLoading(false);
@@ -164,7 +239,7 @@ export default function PermisosPage() {
   function openEditModal(permission: PermissionDto): void {
     setSelectedPermission(permission);
     setFormState(toFormState(permission));
-    setErrorMessage("");
+    setEditErrorMessage("");
     setSuccessMessage("");
   }
 
@@ -178,18 +253,30 @@ export default function PermisosPage() {
 
     setSelectedPermission(null);
     setFormState(EMPTY_FORM_STATE);
+    setEditErrorMessage("");
   }
 
   /**
    * Valida la información editable antes de enviarla.
    */
   function validateForm(): string {
-    if (!formState.permissionName.trim()) {
+    const permissionName = formState.permissionName.trim();
+    const moduleKey = formState.moduleKey.trim();
+
+    if (!permissionName) {
       return "El nombre del permiso es obligatorio.";
     }
 
-    if (!formState.moduleKey.trim()) {
+    if (permissionName.length < 3) {
+      return "El nombre del permiso debe contener al menos 3 caracteres.";
+    }
+
+    if (!moduleKey) {
       return "El módulo es obligatorio.";
+    }
+
+    if (formState.description.trim().length > 500) {
+      return "La descripción no puede superar los 500 caracteres.";
     }
 
     return "";
@@ -199,20 +286,20 @@ export default function PermisosPage() {
    * Guarda los cambios autorizados del permiso seleccionado.
    */
   async function handleSubmitEdit(): Promise<void> {
-    if (!selectedPermission) {
+    if (!selectedPermission || isSaving) {
       return;
     }
 
     const validationMessage = validateForm();
 
     if (validationMessage) {
-      setErrorMessage(validationMessage);
+      setEditErrorMessage(validationMessage);
       return;
     }
 
     try {
       setIsSaving(true);
-      setErrorMessage("");
+      setEditErrorMessage("");
       setSuccessMessage("");
 
       const updated = await updatePermissionRequest(
@@ -242,7 +329,7 @@ export default function PermisosPage() {
           ? error.message
           : "No fue posible actualizar el permiso.";
 
-      setErrorMessage(message);
+      setEditErrorMessage(message);
     } finally {
       setIsSaving(false);
     }
@@ -254,13 +341,13 @@ export default function PermisosPage() {
   async function handleToggleStatus(
     permission: PermissionDto
   ): Promise<void> {
-    if (isChangingStatus) {
+    if (changingStatusKey) {
       return;
     }
 
     try {
-      setIsChangingStatus(true);
-      setErrorMessage("");
+      setChangingStatusKey(permission.permissionKey);
+      setPageErrorMessage("");
       setSuccessMessage("");
 
       const updated = await updatePermissionRequest(
@@ -292,9 +379,9 @@ export default function PermisosPage() {
           ? error.message
           : "No fue posible cambiar el estado del permiso.";
 
-      setErrorMessage(message);
+      setPageErrorMessage(message);
     } finally {
-      setIsChangingStatus(false);
+      setChangingStatusKey(null);
     }
   }
 
@@ -340,11 +427,6 @@ export default function PermisosPage() {
     void loadPermissions();
   }, []);
 
-  const summary = useMemo(
-    () => getPermissionsSummary(permissions),
-    [permissions]
-  );
-
   return (
     <Page
       breadcrumb="Administración / Permisos"
@@ -362,33 +444,45 @@ export default function PermisosPage() {
       }
     >
       <section
-        className="security-kpis"
+        className="permissions-kpis"
         aria-label="Resumen de permisos"
       >
-        <article className="security-kpi">
-          <span className="security-kpi__label">Total</span>
-          <strong className="security-kpi__value">
+        <article className="permissions-kpi">
+          <span className="permissions-kpi__label">
+            Total de permisos
+          </span>
+
+          <strong className="permissions-kpi__value">
             {summary.total}
           </strong>
         </article>
 
-        <article className="security-kpi">
-          <span className="security-kpi__label">Activos</span>
-          <strong className="security-kpi__value">
+        <article className="permissions-kpi">
+          <span className="permissions-kpi__label">
+            Permisos activos
+          </span>
+
+          <strong className="permissions-kpi__value">
             {summary.active}
           </strong>
         </article>
 
-        <article className="security-kpi">
-          <span className="security-kpi__label">Inactivos</span>
-          <strong className="security-kpi__value">
+        <article className="permissions-kpi">
+          <span className="permissions-kpi__label">
+            Permisos inactivos
+          </span>
+
+          <strong className="permissions-kpi__value">
             {summary.inactive}
           </strong>
         </article>
 
-        <article className="security-kpi">
-          <span className="security-kpi__label">Módulos</span>
-          <strong className="security-kpi__value">
+        <article className="permissions-kpi">
+          <span className="permissions-kpi__label">
+            Módulos registrados
+          </span>
+
+          <strong className="permissions-kpi__value">
             {summary.modules}
           </strong>
         </article>
@@ -396,30 +490,42 @@ export default function PermisosPage() {
 
       {successMessage ? (
         <div
-          className="security-alert security-alert--success"
+          className="permissions-alert permissions-alert--success"
           role="status"
+          aria-live="polite"
         >
-          {successMessage}
+          <span>{successMessage}</span>
+
+          <button
+            type="button"
+            className="permissions-alert__close"
+            aria-label="Cerrar mensaje"
+            onClick={() => setSuccessMessage("")}
+          >
+            ×
+          </button>
         </div>
       ) : null}
 
-      <section className="security-panel">
+      <section className="permissions-panel">
         <PermissionsTable
           permissions={permissions}
           isLoading={isLoading}
-          errorMessage={errorMessage}
+          errorMessage={pageErrorMessage}
           onEdit={openEditModal}
           onToggleStatus={(permission) =>
             void handleToggleStatus(permission)
           }
-          onAudit={(permission) => void openAuditModal(permission)}
+          onAudit={(permission) =>
+            void openAuditModal(permission)
+          }
         />
       </section>
 
       <Modal
         open={Boolean(selectedPermission)}
         title="Editar permiso"
-        eyebrow="Catálogo controlado"
+        eyebrow="Configuración del permiso"
         size="md"
         onClose={closeEditModal}
         footer={
@@ -444,24 +550,44 @@ export default function PermisosPage() {
         }
       >
         {selectedPermission ? (
-          <div className="security-form-grid">
-            <div className="security-main-text">
-              <strong>{selectedPermission.permissionKey}</strong>
-              <span>La clave técnica no se puede modificar.</span>
+          <div className="app-modal-content-grid">
+            <div className="permissions-edit-summary">
+              <div className="permissions-edit-summary__content">
+                <span className="permissions-edit-summary__label">
+                  Clave técnica
+                </span>
+
+                <strong className="permissions-edit-summary__key">
+                  {selectedPermission.permissionKey}
+                </strong>
+              </div>
+
+              <span
+                className={
+                  formState.isActive
+                    ? "permissions-edit-summary__status permissions-edit-summary__status--active"
+                    : "permissions-edit-summary__status permissions-edit-summary__status--inactive"
+                }
+              >
+                {formState.isActive ? "Activo" : "Inactivo"}
+              </span>
             </div>
 
-            {errorMessage ? (
+            {editErrorMessage ? (
               <div
-                className="security-alert security-alert--error"
+                className="permissions-alert permissions-alert--error"
                 role="alert"
               >
-                {errorMessage}
+                {editErrorMessage}
               </div>
             ) : null}
 
             <InputField
-              label="Nombre del permiso"
+              label="Nombre visible"
               value={formState.permissionName}
+              placeholder="Ejemplo: Consultar usuarios"
+              maxLength={120}
+              disabled={isSaving}
               onChange={(event) =>
                 setFormState((currentState) => ({
                   ...currentState,
@@ -470,26 +596,83 @@ export default function PermisosPage() {
               }
             />
 
-            <InputField
-              label="Módulo"
-              value={formState.moduleKey}
-              onChange={(event) =>
-                setFormState((currentState) => ({
-                  ...currentState,
-                  moduleKey: event.target.value
-                }))
-              }
-            />
+            <div className="app-modal-inline-row">
+              <label className="app-modal-field">
+                <span className="app-modal-field__label">
+                  Módulo
+                </span>
 
-            <label className="security-field">
-              <span className="security-field__label">
+                <select
+                  className="app-modal-select"
+                  value={formState.moduleKey}
+                  disabled={isSaving}
+                  onChange={(event) =>
+                    setFormState((currentState) => ({
+                      ...currentState,
+                      moduleKey: event.target.value
+                    }))
+                  }
+                >
+                  <option value="" disabled>
+                    Selecciona un módulo
+                  </option>
+
+                  {moduleOptions.map((module) => (
+                    <option key={module} value={module}>
+                      {module}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="app-modal-switch-control">
+                <span className="app-modal-field__label">
+                  Estado del permiso
+                </span>
+
+                <span className="app-modal-switch-row">
+                  <span className="app-modal-switch-text">
+                    {formState.isActive
+                      ? "Permiso activo"
+                      : "Permiso inactivo"}
+                  </span>
+
+                  <input
+                    className="app-modal-switch-input"
+                    type="checkbox"
+                    checked={formState.isActive}
+                    disabled={isSaving}
+                    aria-label="Cambiar estado del permiso"
+                    onChange={(event) =>
+                      setFormState((currentState) => ({
+                        ...currentState,
+                        isActive: event.target.checked
+                      }))
+                    }
+                  />
+
+                  <span
+                    className="app-modal-switch"
+                    aria-hidden="true"
+                  >
+                    <span className="app-modal-switch__thumb" />
+                  </span>
+                </span>
+              </label>
+            </div>
+
+            <label className="app-modal-field">
+              <span className="app-modal-field__label">
                 Descripción
               </span>
 
               <textarea
-                className="security-textarea"
+                className="app-modal-textarea"
                 value={formState.description}
-                rows={4}
+                rows={3}
+                maxLength={500}
+                disabled={isSaving}
+                placeholder="Describe brevemente qué acceso concede este permiso."
                 onChange={(event) =>
                   setFormState((currentState) => ({
                     ...currentState,
@@ -497,21 +680,10 @@ export default function PermisosPage() {
                   }))
                 }
               />
-            </label>
 
-            <label className="security-check">
-              <input
-                type="checkbox"
-                checked={formState.isActive}
-                onChange={(event) =>
-                  setFormState((currentState) => ({
-                    ...currentState,
-                    isActive: event.target.checked
-                  }))
-                }
-              />
-
-              <span>Permiso activo</span>
+              <span className="app-modal-field__helper">
+                {formState.description.length} de 500 caracteres
+              </span>
             </label>
           </div>
         ) : null}
@@ -519,7 +691,7 @@ export default function PermisosPage() {
 
       <Modal
         open={Boolean(auditPermission)}
-        title="Auditoría"
+        title="Auditoría del permiso"
         eyebrow="Historial de cambios"
         size="lg"
         onClose={closeAuditModal}
@@ -534,25 +706,28 @@ export default function PermisosPage() {
         }
       >
         {auditPermission ? (
-          <div className="security-form-grid">
-            <div className="security-main-text">
-              <strong>{auditPermission.permissionKey}</strong>
-              <span>
-                Registro de cambios realizados al permiso.
+          <div className="app-modal-content-grid">
+            <div className="permissions-audit-info">
+              <span className="permissions-audit-info__label">
+                Permiso consultado
               </span>
+
+              <strong className="permissions-audit-info__key">
+                {auditPermission.permissionKey}
+              </strong>
             </div>
 
             {auditErrorMessage ? (
               <div
-                className="security-alert security-alert--error"
+                className="permissions-alert permissions-alert--error"
                 role="alert"
               >
                 {auditErrorMessage}
               </div>
             ) : null}
 
-            <div className="security-table-wrapper">
-              <table className="security-table">
+            <div className="permissions-table-wrapper">
+              <table className="permissions-table">
                 <thead>
                   <tr>
                     <th>Fecha</th>
@@ -568,61 +743,144 @@ export default function PermisosPage() {
                     <tr>
                       <td
                         colSpan={5}
-                        className="security-table__empty"
+                        className="permissions-table__empty"
                       >
                         Cargando auditoría...
                       </td>
                     </tr>
-                  ) : auditRows.length === 0 ? (
+                  ) : auditErrorMessage ? null : auditRows.length === 0 ? (
                     <tr>
                       <td
                         colSpan={5}
-                        className="security-table__empty"
+                        className="permissions-table__empty"
                       >
                         Este permiso aún no tiene auditoría.
                       </td>
                     </tr>
                   ) : (
-                    auditRows.map((audit) => (
-                      <tr key={audit.id}>
-                        <td>{formatDateTime(audit.changedAt)}</td>
+                    auditRows.map((audit) => {
+                      const permissionNameChanged =
+                        hasAuditTextChanged(
+                          audit.oldPermissionName,
+                          audit.newPermissionName
+                        );
 
-                        <td>
-                          {audit.changedByFullName ||
-                            audit.changedByUsername ||
-                            "Sistema"}
-                        </td>
+                      const moduleChanged = hasAuditTextChanged(
+                        audit.oldModuleKey,
+                        audit.newModuleKey
+                      );
 
-                        <td>
-                          <div className="security-main-text">
-                            <span>
-                              {audit.oldPermissionName || "Sin dato"}
-                            </span>
+                      const statusChanged = hasAuditStatusChanged(
+                        audit.oldIsActive,
+                        audit.newIsActive
+                      );
 
-                            <strong>
-                              {audit.newPermissionName || "Sin dato"}
-                            </strong>
-                          </div>
-                        </td>
+                      return (
+                        <tr key={audit.id}>
+                          <td>
+                            {formatDateTime(audit.changedAt)}
+                          </td>
 
-                        <td>
-                          <div className="security-main-text">
-                            <span>
-                              {audit.oldModuleKey || "Sin dato"}
-                            </span>
+                          <td>
+                            {audit.changedByFullName ||
+                              audit.changedByUsername ||
+                              "Sistema"}
+                          </td>
 
-                            <strong>
-                              {audit.newModuleKey || "Sin dato"}
-                            </strong>
-                          </div>
-                        </td>
+                          <td>
+                            {permissionNameChanged ? (
+                              <div className="permissions-audit-change">
+                                <span className="permissions-audit-change__old">
+                                  {formatAuditText(
+                                    audit.oldPermissionName
+                                  )}
+                                </span>
 
-                        <td>
-                          {formatStatus(audit.oldIsActive)} →{" "}
-                          {formatStatus(audit.newIsActive)}
-                        </td>
-                      </tr>
-                    ))
+                                <span
+                                  className="permissions-audit-change__arrow"
+                                  aria-hidden="true"
+                                >
+                                  →
+                                </span>
+
+                                <span className="permissions-audit-change__new">
+                                  {formatAuditText(
+                                    audit.newPermissionName
+                                  )}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="permissions-audit-change__same">
+                                {formatAuditText(
+                                  audit.newPermissionName ??
+                                    audit.oldPermissionName
+                                )}
+                              </span>
+                            )}
+                          </td>
+
+                          <td>
+                            {moduleChanged ? (
+                              <div className="permissions-audit-change">
+                                <span className="permissions-audit-change__old">
+                                  {formatAuditText(
+                                    audit.oldModuleKey
+                                  )}
+                                </span>
+
+                                <span
+                                  className="permissions-audit-change__arrow"
+                                  aria-hidden="true"
+                                >
+                                  →
+                                </span>
+
+                                <span className="permissions-audit-change__new">
+                                  {formatAuditText(
+                                    audit.newModuleKey
+                                  )}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="permissions-audit-change__same">
+                                {formatAuditText(
+                                  audit.newModuleKey ??
+                                    audit.oldModuleKey
+                                )}
+                              </span>
+                            )}
+                          </td>
+
+                          <td>
+                            {statusChanged ? (
+                              <div className="permissions-audit-status-change">
+                                <span className="permissions-audit-status">
+                                  {formatStatus(audit.oldIsActive)}
+                                </span>
+
+                                <span
+                                  className="permissions-audit-status-change__arrow"
+                                  aria-hidden="true"
+                                >
+                                  →
+                                </span>
+
+                                <span className="permissions-audit-status permissions-audit-status--changed">
+                                  {formatStatus(audit.newIsActive)}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="permissions-audit-status">
+                                {formatStatus(
+                                  audit.newIsActive ??
+                                    audit.oldIsActive
+                                )}
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>

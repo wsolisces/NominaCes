@@ -9,6 +9,7 @@
  * - Procesar filas sin modificar los datos originales.
  * - Persistir temporalmente la configuración por ruta y columnas.
  * - Calcular valores disponibles para filtros y totales.
+ * - Utilizar los valores visuales definidos por cada columna.
  *
  * No debe:
  * - Renderizar componentes visuales.
@@ -47,8 +48,22 @@ export type SortItem = {
 /**
  * Definición mínima necesaria para procesar una columna.
  */
-export type DataTableProcessColumn<T> = {
+export type DataTableProcessColumn<
+  T extends Record<string, unknown>
+> = {
   key: keyof T | string;
+
+  /**
+   * Devuelve el texto que será utilizado por:
+   * - La búsqueda global.
+   * - La tarjeta de filtros.
+   * - La comparación de filtros activos.
+   *
+   * Permite transformar valores internos como true/false
+   * en textos visibles como Activo/Inactivo.
+   */
+  filterValue?: (row: T) => string;
+
   disableSort?: boolean;
   isTotal?: boolean;
 };
@@ -114,7 +129,7 @@ function toComparable(value: unknown): string | number {
 }
 
 /**
- * Obtiene el valor de una columna usando una clave dinámica.
+ * Obtiene el valor original de una columna usando una clave dinámica.
  */
 function getCellValue<T extends Record<string, unknown>>(
   row: T,
@@ -127,23 +142,57 @@ function getCellValue<T extends Record<string, unknown>>(
  * Convierte valores vacíos en una etiqueta filtrable consistente.
  */
 function getFilterValue(value: unknown): string {
-  if (value === null || value === undefined || value === "") {
+  if (
+    value === null ||
+    value === undefined ||
+    String(value).trim() === ""
+  ) {
     return "(Vacío)";
   }
 
-  return String(value);
+  return String(value).trim();
+}
+
+/**
+ * Obtiene el valor visible y filtrable de una columna.
+ *
+ * Cuando la columna define filterValue, utiliza ese valor.
+ * En caso contrario, utiliza directamente el valor original.
+ */
+function getColumnFilterValue<
+  T extends Record<string, unknown>
+>(
+  row: T,
+  column: DataTableProcessColumn<T>
+): string {
+  if (column.filterValue) {
+    return getFilterValue(column.filterValue(row));
+  }
+
+  return getFilterValue(
+    getCellValue(row, String(column.key))
+  );
 }
 
 /**
  * Construye el texto completo utilizado por la búsqueda global.
  */
-function getRowSearchText<T extends Record<string, unknown>>(
+function getRowSearchText<
+  T extends Record<string, unknown>
+>(
   row: T,
   columns: DataTableProcessColumn<T>[]
 ): string {
   return columns
     .map((column) => {
-      const value = getCellValue(row, String(column.key));
+      if (column.filterValue) {
+        return column.filterValue(row);
+      }
+
+      const value = getCellValue(
+        row,
+        String(column.key)
+      );
 
       if (value === null || value === undefined) {
         return "";
@@ -154,7 +203,9 @@ function getRowSearchText<T extends Record<string, unknown>>(
       }
 
       if (typeof value === "boolean") {
-        return value ? "true si sí" : "false no";
+        return value
+          ? "true si sí activo"
+          : "false no inactivo";
       }
 
       return String(value);
@@ -176,12 +227,21 @@ function readStoredState(storageKey: string): DataTableState {
     const parsed = JSON.parse(raw) as Partial<DataTableState>;
 
     return {
-      search: typeof parsed.search === "string" ? parsed.search : "",
+      search:
+        typeof parsed.search === "string"
+          ? parsed.search
+          : "",
+
       filters:
-        parsed.filters && typeof parsed.filters === "object"
+        parsed.filters &&
+        typeof parsed.filters === "object"
           ? parsed.filters
           : {},
-      sorts: Array.isArray(parsed.sorts) ? parsed.sorts : []
+
+      sorts:
+        Array.isArray(parsed.sorts)
+          ? parsed.sorts
+          : []
     };
   } catch {
     sessionStorage.removeItem(storageKey);
@@ -193,7 +253,9 @@ function readStoredState(storageKey: string): DataTableState {
 /**
  * Hook reutilizable para búsqueda, filtros y ordenamiento.
  */
-export function useDataTable<T extends Record<string, unknown>>(
+export function useDataTable<
+  T extends Record<string, unknown>
+>(
   sourceRows: T[] | undefined,
   columns: DataTableProcessColumn<T>[] | undefined
 ) {
@@ -210,17 +272,33 @@ export function useDataTable<T extends Record<string, unknown>>(
   );
 
   const columnsSignature = useMemo(
-    () => safeColumns.map((column) => String(column.key)).join("|"),
+    () =>
+      safeColumns
+        .map((column) => String(column.key))
+        .join("|"),
     [safeColumns]
   );
 
-  const storageKey = `datatable:${pathname}:${columnsSignature || "default"}`;
+  const storageKey =
+    `datatable:${pathname}:${columnsSignature || "default"}`;
 
   const [state, setState] = useState<DataTableState>(() =>
     readStoredState(storageKey)
   );
 
   const { search, filters, sorts } = state;
+
+  /**
+   * Mapa reutilizable para localizar columnas por clave.
+   */
+  const columnMap = useMemo(() => {
+    return new Map(
+      safeColumns.map((column) => [
+        String(column.key),
+        column
+      ])
+    );
+  }, [safeColumns]);
 
   /**
    * Actualiza únicamente el texto de búsqueda.
@@ -240,6 +318,7 @@ export function useDataTable<T extends Record<string, unknown>>(
   > = useCallback((value) => {
     setState((current) => ({
       ...current,
+
       filters:
         typeof value === "function"
           ? value(current.filters)
@@ -250,18 +329,18 @@ export function useDataTable<T extends Record<string, unknown>>(
   /**
    * Actualiza ordenamientos aceptando valor directo o función.
    */
-  const setSorts: Dispatch<SetStateAction<SortItem[]>> = useCallback(
-    (value) => {
-      setState((current) => ({
-        ...current,
-        sorts:
-          typeof value === "function"
-            ? value(current.sorts)
-            : value
-      }));
-    },
-    []
-  );
+  const setSorts: Dispatch<
+    SetStateAction<SortItem[]>
+  > = useCallback((value) => {
+    setState((current) => ({
+      ...current,
+
+      sorts:
+        typeof value === "function"
+          ? value(current.sorts)
+          : value
+    }));
+  }, []);
 
   /**
    * Elimina configuraciones pertenecientes a columnas inexistentes.
@@ -269,7 +348,9 @@ export function useDataTable<T extends Record<string, unknown>>(
   useEffect(() => {
     setState((current) => {
       const validColumnKeys = new Set(
-        safeColumns.map((column) => String(column.key))
+        safeColumns.map((column) =>
+          String(column.key)
+        )
       );
 
       const nextFilters = Object.fromEntries(
@@ -301,9 +382,16 @@ export function useDataTable<T extends Record<string, unknown>>(
    * Persiste temporalmente búsqueda, filtros y ordenamientos.
    */
   useEffect(() => {
-    sessionStorage.setItem(storageKey, JSON.stringify(state));
+    sessionStorage.setItem(
+      storageKey,
+      JSON.stringify(state)
+    );
   }, [state, storageKey]);
 
+  /**
+   * Aplica la búsqueda global utilizando los valores visibles
+   * definidos por las columnas.
+   */
   const searchedRows = useMemo(() => {
     const normalizedSearch = normalizeText(search);
 
@@ -320,9 +408,14 @@ export function useDataTable<T extends Record<string, unknown>>(
     });
   }, [safeRows, safeColumns, search]);
 
+  /**
+   * Aplica los filtros activos utilizando los valores visibles
+   * definidos mediante filterValue.
+   */
   const filteredRows = useMemo(() => {
     const activeFilters = Object.entries(filters).filter(
-      ([, values]) => Array.isArray(values) && values.length > 0
+      ([, values]) =>
+        Array.isArray(values) && values.length > 0
     );
 
     if (activeFilters.length === 0) {
@@ -331,31 +424,39 @@ export function useDataTable<T extends Record<string, unknown>>(
 
     return searchedRows.filter((row) =>
       activeFilters.every(([key, values]) => {
-        const value = getFilterValue(getCellValue(row, key));
+        const column = columnMap.get(key);
+
+        if (!column) {
+          return true;
+        }
+
+        const value = getColumnFilterValue(
+          row,
+          column
+        );
 
         return values.includes(value);
       })
     );
-  }, [searchedRows, filters]);
+  }, [searchedRows, filters, columnMap]);
 
-  const columnMap = useMemo(() => {
-    return new Map(
-      safeColumns.map((column) => [
-        String(column.key),
-        column
-      ])
-    );
-  }, [safeColumns]);
-
+  /**
+   * Ordena utilizando los valores originales de cada propiedad.
+   *
+   * Se conservan los valores originales para mantener ordenamientos
+   * numéricos, booleanos y de fecha consistentes.
+   */
   const orderedRows = useMemo(() => {
     if (sorts.length === 0) {
       return filteredRows;
     }
 
-    const indexedRows = filteredRows.map((row, index) => ({
-      row,
-      index
-    }));
+    const indexedRows = filteredRows.map(
+      (row, index) => ({
+        row,
+        index
+      })
+    );
 
     indexedRows.sort((first, second) => {
       for (const sort of sorts) {
@@ -388,30 +489,50 @@ export function useDataTable<T extends Record<string, unknown>>(
     return indexedRows.map(({ row }) => row);
   }, [filteredRows, sorts, columnMap]);
 
+  /**
+   * Calcula los valores disponibles para cada tarjeta de filtro.
+   *
+   * Cada columna ignora temporalmente su propio filtro para permitir
+   * modificar sus selecciones sin perder valores disponibles.
+   */
   const columnValues = useMemo(() => {
     const result: Record<string, string[]> = {};
 
     safeColumns.forEach((column) => {
       const columnKey = String(column.key);
 
-      const rowsAvailableForColumn = searchedRows.filter((row) =>
-        Object.entries(filters).every(([filterKey, values]) => {
-          if (filterKey === columnKey || values.length === 0) {
-            return true;
-          }
+      const rowsAvailableForColumn = searchedRows.filter(
+        (row) =>
+          Object.entries(filters).every(
+            ([filterKey, values]) => {
+              if (
+                filterKey === columnKey ||
+                values.length === 0
+              ) {
+                return true;
+              }
 
-          const value = getFilterValue(
-            getCellValue(row, filterKey)
-          );
+              const filterColumn =
+                columnMap.get(filterKey);
 
-          return values.includes(value);
-        })
+              if (!filterColumn) {
+                return true;
+              }
+
+              const value = getColumnFilterValue(
+                row,
+                filterColumn
+              );
+
+              return values.includes(value);
+            }
+          )
       );
 
       result[columnKey] = Array.from(
         new Set(
           rowsAvailableForColumn.map((row) =>
-            getFilterValue(getCellValue(row, columnKey))
+            getColumnFilterValue(row, column)
           )
         )
       ).sort((first, second) =>
@@ -423,8 +544,16 @@ export function useDataTable<T extends Record<string, unknown>>(
     });
 
     return result;
-  }, [safeColumns, searchedRows, filters]);
+  }, [
+    safeColumns,
+    searchedRows,
+    filters,
+    columnMap
+  ]);
 
+  /**
+   * Calcula totales utilizando los valores originales.
+   */
   const totals = useMemo(() => {
     const result: Record<string, number> = {};
 
@@ -435,11 +564,20 @@ export function useDataTable<T extends Record<string, unknown>>(
 
       const columnKey = String(column.key);
 
-      result[columnKey] = orderedRows.reduce((total, row) => {
-        const value = Number(getCellValue(row, columnKey));
+      result[columnKey] = orderedRows.reduce(
+        (total, row) => {
+          const value = Number(
+            getCellValue(row, columnKey)
+          );
 
-        return total + (Number.isFinite(value) ? value : 0);
-      }, 0);
+          return total + (
+            Number.isFinite(value)
+              ? value
+              : 0
+          );
+        },
+        0
+      );
     });
 
     return result;
@@ -463,25 +601,44 @@ export function useDataTable<T extends Record<string, unknown>>(
 
         if (event.ctrlKey || event.metaKey) {
           if (!existing) {
-            return [...currentSorts, { key, dir: "asc" }];
+            return [
+              ...currentSorts,
+              {
+                key,
+                dir: "asc"
+              }
+            ];
           }
 
           return currentSorts.map((sort) =>
             sort.key === key
               ? {
                   ...sort,
-                  dir: sort.dir === "asc" ? "desc" : "asc"
+                  dir:
+                    sort.dir === "asc"
+                      ? "desc"
+                      : "asc"
                 }
               : sort
           );
         }
 
         if (!existing) {
-          return [{ key, dir: "asc" }];
+          return [
+            {
+              key,
+              dir: "asc"
+            }
+          ];
         }
 
         if (existing.dir === "asc") {
-          return [{ key, dir: "desc" }];
+          return [
+            {
+              key,
+              dir: "desc"
+            }
+          ];
         }
 
         return [];

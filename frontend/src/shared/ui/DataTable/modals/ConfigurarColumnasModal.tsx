@@ -1,6 +1,6 @@
 // ======================================================
 // PATH: src/shared/ui/DataTable/modals/ConfigurarColumnasModal.tsx
-// Modal de configuración de columnas del DataTable
+// Modal compacto de configuración de columnas
 // ======================================================
 
 /**
@@ -16,7 +16,7 @@
  * - Consultar APIs.
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type ColumnItem = {
   key: string;
@@ -47,18 +47,15 @@ type ColumnsModalProps = {
 };
 
 /**
- * Obtiene la etiqueta de una columna por key.
+ * Mueve un elemento dentro de un arreglo.
  */
-function getColumnHeader(columns: ColumnItem[], key: string) {
-  return columns.find((column) => column.key === key)?.header ?? key;
-}
-
-/**
- * Mueve un elemento de una posición a otra dentro de un arreglo.
- */
-function moveItem<T>(items: T[], fromIndex: number, toIndex: number) {
+function moveItem<T>(items: T[], fromIndex: number, toIndex: number): T[] {
   const copy = [...items];
   const [item] = copy.splice(fromIndex, 1);
+
+  if (item === undefined) {
+    return copy;
+  }
 
   copy.splice(toIndex, 0, item);
 
@@ -66,7 +63,16 @@ function moveItem<T>(items: T[], fromIndex: number, toIndex: number) {
 }
 
 /**
- * Modal de configuración del DataTable.
+ * Construye una cadena de clases válida.
+ */
+function classNames(
+  ...classes: Array<string | false | null | undefined>
+): string {
+  return classes.filter(Boolean).join(" ");
+}
+
+/**
+ * Modal compacto para configurar las columnas del DataTable.
  */
 export default function ColumnsModal({
   open,
@@ -89,10 +95,42 @@ export default function ColumnsModal({
   const [hoverColumn, setHoverColumn] = useState<string | null>(null);
 
   const orderedColumns = useMemo(() => {
-    return columnOrder
-      .map((key) => columns.find((column) => column.key === key))
-      .filter(Boolean) as ColumnItem[];
+    const columnsByKey = new Map(
+      columns.map((column) => [column.key, column])
+    );
+
+    const configured = columnOrder
+      .map((key) => columnsByKey.get(key))
+      .filter((column): column is ColumnItem => Boolean(column));
+
+    const configuredKeys = new Set(
+      configured.map((column) => column.key)
+    );
+
+    const missing = columns.filter(
+      (column) => !configuredKeys.has(column.key)
+    );
+
+    return [...configured, ...missing];
   }, [columns, columnOrder]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open, onClose]);
 
   if (!open) {
     return null;
@@ -109,18 +147,24 @@ export default function ColumnsModal({
     if (existing.dir === "asc") {
       onChangeSorts(
         sorts.map((sort) =>
-          sort.key === key ? { ...sort, dir: "desc" } : sort
+          sort.key === key
+            ? { ...sort, dir: "desc" }
+            : sort
         )
       );
       return;
     }
 
-    onChangeSorts(sorts.filter((sort) => sort.key !== key));
+    onChangeSorts(
+      sorts.filter((sort) => sort.key !== key)
+    );
   }
 
   function toggleUnique(key: string) {
     if (uniqueColumns.includes(key)) {
-      onChangeUniqueColumns(uniqueColumns.filter((item) => item !== key));
+      onChangeUniqueColumns(
+        uniqueColumns.filter((columnKey) => columnKey !== key)
+      );
       return;
     }
 
@@ -134,11 +178,17 @@ export default function ColumnsModal({
       return;
     }
 
-    const fromIndex = columnOrder.indexOf(draggedColumn);
-    const toIndex = columnOrder.indexOf(targetKey);
+    const currentOrder = orderedColumns.map(
+      (column) => column.key
+    );
+
+    const fromIndex = currentOrder.indexOf(draggedColumn);
+    const toIndex = currentOrder.indexOf(targetKey);
 
     if (fromIndex >= 0 && toIndex >= 0) {
-      onReorderColumns(moveItem(columnOrder, fromIndex, toIndex));
+      onReorderColumns(
+        moveItem(currentOrder, fromIndex, toIndex)
+      );
     }
 
     setDraggedColumn(null);
@@ -152,7 +202,7 @@ export default function ColumnsModal({
       onMouseDown={onClose}
     >
       <section
-        className="data-table-modal"
+        className="data-table-modal data-table-modal--columns"
         role="dialog"
         aria-modal="true"
         aria-label="Configurar columnas"
@@ -163,131 +213,27 @@ export default function ColumnsModal({
             <h3 className="data-table-modal__title">
               Configurar columnas
             </h3>
+
             <p className="data-table-modal__subtitle">
-              Muestra, oculta, ordena y define reglas visuales de la tabla.
+              Selecciona, ordena y configura las columnas.
             </p>
           </div>
 
           <button
             type="button"
-            className="data-table-button data-table-button--icon"
+            className="data-table-button data-table-button--icon data-table-button--close"
             onClick={onClose}
             aria-label="Cerrar"
+            title="Cerrar"
           >
             ×
           </button>
         </header>
 
-        <div className="data-table-modal__body">
-          <section className="data-table-modal__section data-table-modal__section--fluid">
-            <header className="data-table-modal__section-header">
-              <h4 className="data-table-modal__section-title">
-                Columnas visibles y orden
-              </h4>
-              <p className="data-table-modal__section-subtitle">
-                Arrastra para reordenar. Marca para mostrar u ocultar.
-              </p>
-            </header>
-
-            <div className="data-table-modal__scroll">
-              {orderedColumns.map((column, index) => {
-                const isDragging = draggedColumn === column.key;
-                const isHover = hoverColumn === column.key;
-                const isVisible = visibleColumns.includes(column.key);
-                const isUnique = uniqueColumns.includes(column.key);
-                const sort = sorts.find((item) => item.key === column.key);
-                const sortIndex = sorts.findIndex((item) => item.key === column.key);
-
-                return (
-                  <div
-                    key={column.key}
-                    className={[
-                      "data-table-modal-row",
-                      "data-table-modal-row--column",
-                      isDragging ? "data-table-modal-row--dragging" : "",
-                      isHover ? "data-table-modal-row--hover" : ""
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
-                    draggable
-                    onDragStart={() => setDraggedColumn(column.key)}
-                    onDragOver={(event) => {
-                      event.preventDefault();
-                      setHoverColumn(column.key);
-                    }}
-                    onDrop={() => handleDrop(column.key)}
-                    onDragEnd={() => {
-                      setDraggedColumn(null);
-                      setHoverColumn(null);
-                    }}
-                  >
-                    {isHover && draggedColumn !== column.key ? (
-                      <span className="data-table-modal-row__line" />
-                    ) : null}
-
-                    <button
-                      type="button"
-                      className="data-table-drag-handle"
-                      aria-label="Mover columna"
-                    >
-                      ⋮⋮
-                    </button>
-
-                    <input
-                      type="checkbox"
-                      checked={isVisible}
-                      onChange={() => onToggleColumn(column.key)}
-                      className="data-table-modal-checkbox"
-                    />
-
-                    <span className="data-table-modal-label">
-                      {column.header}
-                    </span>
-
-                    <span className="data-table-modal-pill">
-                      {index + 1}
-                    </span>
-
-                    <button
-                      type="button"
-                      className={[
-                        "data-table-button",
-                        sort ? "data-table-button--primary" : ""
-                      ]
-                        .filter(Boolean)
-                        .join(" ")}
-                      onClick={() => toggleSort(column.key)}
-                      title="Ordenar columna"
-                    >
-                      {sort
-                        ? `${sort.dir === "asc" ? "▲" : "▼"} ${sortIndex + 1}`
-                        : "Orden"}
-                    </button>
-
-                    <button
-                      type="button"
-                      className={[
-                        "data-table-button",
-                        isUnique ? "data-table-button--primary" : ""
-                      ]
-                        .filter(Boolean)
-                        .join(" ")}
-                      onClick={() => toggleUnique(column.key)}
-                      title="Agrupar como único"
-                    >
-                      Único
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        </div>
-
-        <footer className="data-table-modal__footer">
+        <div className="data-table-modal__quick-actions">
           <button
             type="button"
-            className="data-table-button"
+            className="data-table-button data-table-button--small"
             onClick={onSelectAll}
           >
             Mostrar todas
@@ -295,7 +241,7 @@ export default function ColumnsModal({
 
           <button
             type="button"
-            className="data-table-button"
+            className="data-table-button data-table-button--small"
             onClick={onClearAll}
           >
             Ocultar todas
@@ -303,12 +249,110 @@ export default function ColumnsModal({
 
           <button
             type="button"
-            className="data-table-button"
+            className="data-table-button data-table-button--small"
             onClick={onClearSorts}
+            disabled={sorts.length === 0}
           >
             Limpiar orden
           </button>
+        </div>
 
+        <div className="data-table-modal__body">
+          <div className="data-table-modal__scroll">
+            {orderedColumns.map((column, index) => {
+              const isVisible = visibleColumns.includes(column.key);
+              const isUnique = uniqueColumns.includes(column.key);
+              const sort = sorts.find(
+                (item) => item.key === column.key
+              );
+              const sortIndex = sorts.findIndex(
+                (item) => item.key === column.key
+              );
+
+              return (
+                <div
+                  key={column.key}
+                  className={classNames(
+                    "data-table-modal-row",
+                    "data-table-modal-row--column",
+                    !isVisible && "data-table-modal-row--hidden",
+                    draggedColumn === column.key &&
+                      "data-table-modal-row--dragging",
+                    hoverColumn === column.key &&
+                      draggedColumn !== column.key &&
+                      "data-table-modal-row--hover"
+                  )}
+                  draggable
+                  onDragStart={() => setDraggedColumn(column.key)}
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                    setHoverColumn(column.key);
+                  }}
+                  onDrop={() => handleDrop(column.key)}
+                  onDragEnd={() => {
+                    setDraggedColumn(null);
+                    setHoverColumn(null);
+                  }}
+                >
+                  <span
+                    className="data-table-drag-handle"
+                    title="Arrastrar para mover"
+                  >
+                    ⋮⋮
+                  </span>
+
+                  <input
+                    type="checkbox"
+                    checked={isVisible}
+                    onChange={() => onToggleColumn(column.key)}
+                    className="data-table-modal-checkbox"
+                    aria-label={`Mostrar columna ${column.header}`}
+                  />
+
+                  <span className="data-table-modal-pill">
+                    {index + 1}
+                  </span>
+
+                  <span className="data-table-modal-label">
+                    {column.header}
+                  </span>
+
+                  <button
+                    type="button"
+                    className={classNames(
+                      "data-table-button",
+                      "data-table-button--small",
+                      sort && "data-table-button--primary"
+                    )}
+                    onClick={() => toggleSort(column.key)}
+                    title="Cambiar orden"
+                  >
+                    {sort
+                      ? `${
+                          sort.dir === "asc" ? "↑" : "↓"
+                        } ${sortIndex + 1}`
+                      : "Orden"}
+                  </button>
+
+                  <button
+                    type="button"
+                    className={classNames(
+                      "data-table-button",
+                      "data-table-button--small",
+                      isUnique && "data-table-button--primary"
+                    )}
+                    onClick={() => toggleUnique(column.key)}
+                    title="Mostrar valores únicos"
+                  >
+                    Único
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <footer className="data-table-modal__footer">
           <button
             type="button"
             className="data-table-button data-table-button--danger"

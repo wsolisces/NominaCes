@@ -1,0 +1,782 @@
+/* ======================================================
+   PATH: src/modules/roles/roles.css
+   Estilos específicos del módulo de roles
+   ====================================================== */
+
+/**
+ * Responsabilidades:
+ * - Definir la presentación visual de la página de roles.
+ * - Estilizar indicadores, estados, tabla y modales.
+ * - Presentar permisos asignados de forma compacta.
+ * - Mantener acentos azules discretos y consistentes.
+ *
+ * No debe:
+ * - Definir estilos globales del sistema.
+ * - Modificar componentes reutilizables.
+ * - Contener estilos específicos de otros módulos.
+ */
+
+/* ======================================================
+   INDICADORES SUPERIORES
+   ====================================================== */
+
+.roles-kpis {
+  width: 100%;
+
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-md);
+}
+
+.roles-kpi {
+  min-width: 0;
+
+  display: grid;
+  gap: 0.35rem;
+
+  padding: var(--space-lg);
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--color-surface);
+
+  box-shadow: 0 0.3rem 1rem rgba(15, 23, 42, 0.04);
+}
+
+.roles-kpi__label {
+  overflow: hidden;
+
+  color: var(--color-text-secondary);
+
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.055em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.roles-kpi__value {
+  overflow: hidden;
+
+  color: var(--color-text-primary);
+
+  font-size: calc(1.55rem * var(--app-scale));
+  font-weight: 750;
+  line-height: 1;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ======================================================
+   CONTENEDOR PRINCIPAL
+   ====================================================== */
+
+.roles-panel {
+  width: 100%;
+  min-width: 0;
+
+  display: grid;
+  gap: var(--space-lg);
+
+  padding: var(--space-lg);
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--color-surface);
+}
+
+/* ======================================================
+   MENSAJES
+   ====================================================== */
+
+.roles-alert {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+
+  padding: var(--space-md) var(--space-lg);
+
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.roles-alert--success {
+  border-color: #bfdbfe;
+
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.roles-alert--error {
+  border-color: #fecaca;
+
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.roles-alert__close {
+  flex: 0 0 auto;
+
+  width: calc(1.8rem * var(--app-scale));
+  height: calc(1.8rem * var(--app-scale));
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: transparent;
+  color: currentColor;
+
+  cursor: pointer;
+
+  font-size: calc(1.25rem * var(--app-scale));
+  line-height: 1;
+
+  opacity: 0.7;
+
+  transition:
+    background-color 160ms ease,
+    opacity 160ms ease;
+}
+
+.roles-alert__close:hover {
+  background: rgba(15, 23, 42, 0.08);
+  opacity: 1;
+}
+
+.roles-alert__close:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* ======================================================
+   INFORMACIÓN PRINCIPAL DE TABLA
+   ====================================================== */
+
+.roles-main-text {
+  min-width: 0;
+
+  display: grid;
+  gap: 0.2rem;
+}
+
+.roles-main-text__title {
+  overflow: hidden;
+
+  color: var(--color-text-primary);
+
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roles-module-key {
+  max-width: 100%;
+
+  display: inline-flex;
+  align-items: center;
+
+  overflow: hidden;
+
+  padding: 0.25rem 0.55rem;
+
+  border: 1px solid #dbeafe;
+  border-radius: var(--radius-sm);
+
+  background: #f8fbff;
+  color: #2563eb;
+
+  font-family:
+    "Cascadia Code",
+    "Segoe UI Mono",
+    Consolas,
+    monospace;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roles-description {
+  display: block;
+
+  overflow: hidden;
+
+  color: var(--color-text-secondary);
+
+  font-size: var(--font-size-sm);
+  line-height: 1.45;
+
+  text-overflow: ellipsis;
+}
+
+/* ======================================================
+   ESTADOS
+   ====================================================== */
+
+.roles-status {
+  min-width: 4.6rem;
+  min-height: calc(1.75rem * var(--app-scale));
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 var(--space-md);
+
+  border: 1px solid transparent;
+  border-radius: 999px;
+
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.roles-status--active {
+  border-color: #bfdbfe;
+
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.roles-status--inactive {
+  border-color: #d1d5db;
+
+  background: #f8fafc;
+  color: var(--color-text-secondary);
+}
+
+/* ======================================================
+   PERMISOS MOSTRADOS EN TABLA
+   ====================================================== */
+
+.roles-permission-list {
+  min-width: 0;
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.roles-permission-chip {
+  max-width: 11rem;
+
+  display: inline-flex;
+  align-items: center;
+
+  overflow: hidden;
+
+  padding: 0.22rem 0.5rem;
+
+  border: 1px solid #dbeafe;
+  border-radius: 999px;
+
+  background: #f8fbff;
+  color: #2563eb;
+
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ======================================================
+   ACCIONES DE TABLA
+   ====================================================== */
+
+.roles-table-actions {
+  min-width: max-content;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+}
+
+.roles-action-icon-button {
+  flex: 0 0 auto;
+
+  width: calc(2rem * var(--app-scale));
+  height: calc(2rem * var(--app-scale));
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+
+  cursor: pointer;
+
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease,
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.roles-action-icon-button svg {
+  width: calc(1rem * var(--app-scale));
+  height: calc(1rem * var(--app-scale));
+
+  pointer-events: none;
+}
+
+.roles-action-icon-button:hover:not(:disabled) {
+  border-color: #93c5fd;
+
+  background: #eff6ff;
+  color: #2563eb;
+
+  transform: translateY(-1px);
+}
+
+.roles-action-icon-button--success:hover:not(:disabled) {
+  border-color: #93c5fd;
+
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.roles-action-icon-button--danger:hover:not(:disabled) {
+  border-color: #fecaca;
+
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.roles-action-icon-button:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.roles-action-icon-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+  transform: none;
+}
+
+/* ======================================================
+   FORMULARIO DEL MODAL
+   ====================================================== */
+
+.roles-form-grid {
+  width: 100%;
+
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-lg);
+}
+
+/* ======================================================
+   CONTENEDOR DE PERMISOS DEL FORMULARIO
+   ====================================================== */
+
+.roles-permissions {
+  width: 100%;
+  min-width: 0;
+
+  display: grid;
+  gap: var(--space-md);
+
+  padding-top: var(--space-md);
+
+  border-top: 1px solid var(--color-border);
+}
+
+.roles-permissions__header {
+  width: 100%;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-lg);
+}
+
+.roles-permissions__header > div {
+  min-width: 0;
+}
+
+.roles-permissions__title {
+  margin: 0;
+
+  color: var(--color-text-primary);
+
+  font-size: var(--font-size-md);
+  font-weight: 750;
+  line-height: 1.25;
+}
+
+.roles-permissions__description {
+  margin: 0.3rem 0 0;
+
+  color: var(--color-text-secondary);
+
+  font-size: var(--font-size-sm);
+  line-height: 1.45;
+}
+
+.roles-permissions__summary {
+  min-height: calc(1.75rem * var(--app-scale));
+
+  display: flex;
+  align-items: center;
+
+  color: #2563eb;
+
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+.roles-permissions__groups {
+  max-height: min(46vh, 32rem);
+  overflow-y: auto;
+
+  display: grid;
+  gap: var(--space-md);
+
+  padding-right: 0.3rem;
+  padding-bottom: 0.3rem;
+}
+
+.roles-permissions__empty {
+  padding: var(--space-xl);
+
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+
+  background: #f8fafc;
+  color: var(--color-text-secondary);
+
+  font-size: var(--font-size-sm);
+  text-align: center;
+}
+
+/* ======================================================
+   GRUPOS DE PERMISOS
+   ====================================================== */
+
+.roles-permission-group {
+  overflow: hidden;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  background: var(--color-surface);
+}
+
+.roles-permission-group__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+
+  padding: var(--space-md);
+
+  border-bottom: 1px solid var(--color-border);
+
+  background: #f8fbff;
+}
+
+.roles-permission-group__title {
+  overflow: hidden;
+
+  color: var(--color-text-primary);
+
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  letter-spacing: 0.045em;
+
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.roles-permission-group__count {
+  flex: 0 0 auto;
+
+  min-width: calc(1.6rem * var(--app-scale));
+  min-height: calc(1.6rem * var(--app-scale));
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 0.4rem;
+
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+
+  background: #eff6ff;
+  color: #1d4ed8;
+
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+.roles-permission-group__list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+
+  background: var(--color-border);
+}
+
+/* ======================================================
+   OPCIONES DE PERMISO
+   ====================================================== */
+
+.roles-permission-option {
+  min-width: 0;
+
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+
+  padding: var(--space-md);
+
+  background: var(--color-surface);
+
+  cursor: pointer;
+
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.roles-permission-option:hover {
+  background: #f8fbff;
+}
+
+.roles-permission-option:has(input:checked) {
+  background: #eff6ff;
+  box-shadow: inset 0.18rem 0 #60a5fa;
+}
+
+.roles-permission-option:has(input:disabled) {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.roles-permission-option input {
+  flex: 0 0 auto;
+
+  width: calc(1rem * var(--app-scale));
+  height: calc(1rem * var(--app-scale));
+
+  margin: 0.15rem 0 0;
+
+  accent-color: #2563eb;
+  cursor: pointer;
+}
+
+.roles-permission-option input:disabled {
+  cursor: not-allowed;
+}
+
+.roles-permission-option__content {
+  min-width: 0;
+
+  display: grid;
+  gap: 0.2rem;
+}
+
+.roles-permission-option__name {
+  overflow: hidden;
+
+  color: var(--color-text-primary);
+
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roles-permission-option__key {
+  overflow: hidden;
+
+  color: #2563eb;
+
+  font-family:
+    "Cascadia Code",
+    "Segoe UI Mono",
+    Consolas,
+    monospace;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roles-permission-option__description {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+
+  color: var(--color-text-secondary);
+
+  font-size: var(--font-size-xs);
+  line-height: 1.4;
+}
+
+/* ======================================================
+   CONFIRMACIÓN DE ELIMINACIÓN
+   ====================================================== */
+
+.roles-delete-summary {
+  display: grid;
+  gap: 0.35rem;
+
+  padding: var(--space-lg);
+
+  border: 1px solid #dbeafe;
+  border-radius: var(--radius-md);
+
+  background: #f8fbff;
+}
+
+.roles-delete-summary__label {
+  color: var(--color-text-secondary);
+
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.roles-delete-summary__name {
+  color: var(--color-text-primary);
+
+  font-size: var(--font-size-md);
+  font-weight: 750;
+}
+
+.roles-delete-summary__key {
+  overflow: hidden;
+
+  color: #2563eb;
+
+  font-family:
+    "Cascadia Code",
+    "Segoe UI Mono",
+    Consolas,
+    monospace;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roles-delete-warning {
+  margin: 0;
+
+  color: var(--color-text-secondary);
+
+  font-size: var(--font-size-sm);
+  line-height: 1.55;
+}
+
+/* ======================================================
+   SCROLLBAR DEL SELECTOR DE PERMISOS
+   ====================================================== */
+
+.roles-permissions__groups::-webkit-scrollbar {
+  width: 0.45rem;
+}
+
+.roles-permissions__groups::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.roles-permissions__groups::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+
+  background: #cbd5e1;
+}
+
+.roles-permissions__groups::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ======================================================
+   RESPONSIVE
+   ====================================================== */
+
+@media (max-width: 1100px) {
+  .roles-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .roles-permission-group__list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .roles-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .roles-permissions__header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .roles-permissions__header > button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 620px) {
+  .roles-kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .roles-kpi,
+  .roles-panel {
+    padding: var(--space-md);
+  }
+
+  .roles-table-actions {
+    gap: 0.35rem;
+  }
+
+  .roles-action-icon-button {
+    width: calc(1.9rem * var(--app-scale));
+    height: calc(1.9rem * var(--app-scale));
+  }
+
+  .roles-permissions__groups {
+    max-height: min(52vh, 28rem);
+  }
+}

@@ -3,6 +3,7 @@
 // Encabezado del DataTable
 // ======================================================
 
+import { IconColumnsSettings } from "../../../../components/icons/Icons";
 /**
  * Responsabilidades:
  * - Mostrar búsqueda global.
@@ -88,13 +89,16 @@ export default function DataTableHeader({
           </select>
         </div>
 
+        
         {showColumnsButton ? (
           <button
             type="button"
+            className="data-table-button data-table-button--icon"
             onClick={onOpenColumns}
-            className="data-table-button"
+            aria-label="Configurar columnas"
+            title="Configurar columnas"
           >
-            Columnas
+            <IconColumnsSettings className="data-table-button__icon" />
           </button>
         ) : null}
       </div>

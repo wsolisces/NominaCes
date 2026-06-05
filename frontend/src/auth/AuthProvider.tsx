@@ -2,23 +2,23 @@
 // PATH: src/auth/AuthProvider.tsx
 // Módulo: Autenticación frontend
 // Capa: Provider / estado global
-// Descripción:
-//   Mantiene en memoria el estado de sesión del usuario autenticado
-//   y expone funciones reutilizables para login, logout y refresh.
-//
-// Responsabilidades:
-//   - Cargar sesión inicial con /login/me.
-//   - Guardar usuario autenticado en memoria React.
-//   - Exponer login(), signIn(), logout() y refreshSession().
-//   - Convertir errores técnicos del API en resultados controlados.
-//   - Evitar que las pantallas llamen directamente al API.
-//
-// No debe:
-//   - Renderizar pantallas de login.
-//   - Definir rutas.
-//   - Manejar permisos visuales del menú.
-//   - Contener estilos.
 // ======================================================
+
+/**
+ * Responsabilidades:
+ * - Cargar la sesión inicial mediante /login/me.
+ * - Mantener al usuario autenticado en memoria.
+ * - Exponer funciones reutilizables de autenticación.
+ * - Exponer helpers para controlar elementos visuales por permiso.
+ * - Convertir errores técnicos del API en resultados controlados.
+ *
+ * No debe:
+ * - Renderizar pantallas de login.
+ * - Definir rutas.
+ * - Decidir qué elementos específicos debe mostrar cada módulo.
+ * - Sustituir la autorización obligatoria del backend.
+ * - Contener estilos.
+ */
 
 import {
   createContext,
@@ -26,7 +26,7 @@ import {
   useEffect,
   useMemo,
   useState,
-  type ReactNode,
+  type ReactNode
 } from "react";
 
 import { ApiClientError } from "../api/api.types";
@@ -35,7 +35,7 @@ import {
   extractAuthUser,
   loginRequest,
   logoutRequest,
-  meRequest,
+  meRequest
 } from "./auth.api";
 
 import type {
@@ -43,25 +43,45 @@ import type {
   AuthUser,
   LoginRequest,
   LoginResult,
+  PermissionKey
 } from "./auth.types";
 
-export const AuthContext = createContext<AuthContextValue | null>(null);
+export const AuthContext =
+  createContext<AuthContextValue | null>(null);
 
 type AuthProviderProps = {
   children: ReactNode;
 };
 
 /**
- * Convierte errores técnicos del cliente HTTP en un resultado simple
- * que la pantalla Login.tsx pueda usar sin try/catch complejo.
+ * Normaliza una clave técnica de permiso.
  *
- * Casos esperados:
- * - usuario incorrecto
- * - contraseña incorrecta
- * - usuario bloqueado
- * - usuario inactivo
- * - rol inactivo
- * - contraseña temporal requerida
+ * Reglas:
+ * - Elimina espacios laterales.
+ * - Convierte la clave a mayúsculas.
+ */
+function normalizePermission(permission: PermissionKey): PermissionKey {
+  return permission.trim().toUpperCase();
+}
+
+/**
+ * Obtiene una lista normalizada y sin permisos repetidos.
+ */
+function normalizePermissions(
+  permissions: PermissionKey[]
+): PermissionKey[] {
+  return Array.from(
+    new Set(
+      permissions
+        .map(normalizePermission)
+        .filter(Boolean)
+    )
+  );
+}
+
+/**
+ * Convierte errores técnicos del cliente HTTP en un resultado
+ * controlado que pueda utilizar la pantalla de acceso.
  */
 function getLoginError(error: unknown): Omit<LoginResult, "ok"> {
   if (error instanceof ApiClientError) {
@@ -69,19 +89,19 @@ function getLoginError(error: unknown): Omit<LoginResult, "ok"> {
       error: error.message || "No se pudo iniciar sesión.",
       code: error.code,
       status: error.status,
-      details: error.details,
+      details: error.details
     };
   }
 
   if (error instanceof Error && error.message) {
     return {
-      error: error.message,
+      error: error.message
     };
   }
 
   if (typeof error === "string" && error.trim()) {
     return {
-      error,
+      error
     };
   }
 
@@ -90,61 +110,126 @@ function getLoginError(error: unknown): Omit<LoginResult, "ok"> {
 
     if (typeof message === "string" && message.trim()) {
       return {
-        error: message,
+        error: message
       };
     }
   }
 
   return {
-    error: "No se pudo iniciar sesión.",
+    error: "No se pudo iniciar sesión."
   };
 }
 
 /**
- * Provider global de autenticación.
+ * Provider global de autenticación y permisos.
  *
- * Debe envolver al router completo para que Login, RequireAuth,
- * AppLayout, Sidebar y cualquier pantalla privada puedan usar useAuth().
+ * Debe envolver al router completo para permitir que Login,
+ * RequireAuth, AppLayout, Sidebar y páginas privadas utilicen
+ * la sesión y los permisos del usuario.
  */
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   /**
-   * Consulta la sesión vigente contra backend.
-   *
-   * Se usa para:
-   * - validar sesión al abrir la aplicación
-   * - refrescar usuario después de cambios administrativos
-   * - limpiar frontend si la sesión ya no es válida
+   * Permisos normalizados del usuario autenticado.
    */
-  const refreshSession = useCallback(async (): Promise<AuthUser | null> => {
-    try {
-      const response = await meRequest();
-      const nextUser = response.user ? extractAuthUser(response.user) : null;
+  const userPermissions = useMemo<PermissionKey[]>(
+    () => normalizePermissions(user?.permissions ?? []),
+    [user]
+  );
 
-      setUser(nextUser);
-      return nextUser;
-    } catch {
-      setUser(null);
-      return null;
-    }
-  }, []);
+  /**
+   * Determina si el usuario posee un permiso específico.
+   *
+   * Este helper controla únicamente la interfaz.
+   * El backend debe continuar validando cada operación.
+   */
+  const hasPermission = useCallback(
+    (permission: PermissionKey): boolean => {
+      const normalizedPermission = normalizePermission(permission);
 
+      if (!normalizedPermission) {
+        return false;
+      }
+
+      return userPermissions.includes(normalizedPermission);
+    },
+    [userPermissions]
+  );
+
+  /**
+   * Determina si el usuario posee al menos uno de los permisos.
+   */
+  const hasAnyPermission = useCallback(
+    (permissions: PermissionKey[]): boolean => {
+      if (permissions.length === 0) {
+        return false;
+      }
+
+      return permissions.some(hasPermission);
+    },
+    [hasPermission]
+  );
+
+  /**
+   * Determina si el usuario posee todos los permisos indicados.
+   */
+  const hasAllPermissions = useCallback(
+    (permissions: PermissionKey[]): boolean => {
+      if (permissions.length === 0) {
+        return false;
+      }
+
+      return permissions.every(hasPermission);
+    },
+    [hasPermission]
+  );
+
+  /**
+   * Consulta nuevamente la sesión vigente contra backend.
+   *
+   * Se utiliza para:
+   * - Validar la sesión actual.
+   * - Actualizar datos y permisos del usuario.
+   * - Limpiar el estado local cuando la sesión dejó de ser válida.
+   */
+  const refreshSession = useCallback(
+    async (): Promise<AuthUser | null> => {
+      try {
+        const response = await meRequest();
+
+        const nextUser = response.user
+          ? extractAuthUser(response.user)
+          : null;
+
+        setUser(nextUser);
+
+        return nextUser;
+      } catch {
+        setUser(null);
+        return null;
+      }
+    },
+    []
+  );
+
+  /**
+   * Carga inicialmente la sesión del usuario.
+   *
+   * Mientras la petición no finalice, loading permanece activo
+   * para evitar redirecciones prematuras desde RequireAuth.
+   */
   useEffect(() => {
     let mounted = true;
 
-    /**
-     * Carga inicial de sesión.
-     *
-     * Regla:
-     * - Mientras esto no termina, RequireAuth no debe decidir si redirige.
-     * - Por eso se mantiene loading=true hasta finalizar.
-     */
-    async function loadSession() {
+    async function loadSession(): Promise<void> {
       try {
         const response = await meRequest();
-        const nextUser = response.user ? extractAuthUser(response.user) : null;
+
+        const nextUser = response.user
+          ? extractAuthUser(response.user)
+          : null;
 
         if (mounted) {
           setUser(nextUser);
@@ -168,28 +253,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   /**
-   * Ejecuta login directo.
+   * Ejecuta inicio de sesión directo.
    *
-   * Esta función sí puede lanzar error.
-   * Para pantallas visuales se recomienda usar signIn(),
-   * porque signIn devuelve { ok, error }.
+   * Puede lanzar errores. Para componentes visuales se recomienda
+   * utilizar signIn(), que devuelve un resultado controlado.
    */
-  const login = useCallback(async (payload: LoginRequest): Promise<AuthUser> => {
-    const response = await loginRequest(payload);
-    const nextUser = extractAuthUser(response.user);
+  const login = useCallback(
+    async (payload: LoginRequest): Promise<AuthUser> => {
+      const response = await loginRequest(payload);
+      const nextUser = extractAuthUser(response.user);
 
-    setUser(nextUser);
-    return nextUser;
-  }, []);
+      setUser(nextUser);
+
+      return nextUser;
+    },
+    []
+  );
 
   /**
-   * Login seguro para UI.
-   *
-   * No lanza errores hacia el componente.
-   * Devuelve un resultado controlado para que Login.tsx pueda:
-   * - mostrar mensaje
-   * - redirigir al panel
-   * - redirigir a crear contraseña
+   * Ejecuta inicio de sesión controlado para componentes visuales.
    */
   const signIn = useCallback(
     async (payload: LoginRequest): Promise<LoginResult> => {
@@ -198,14 +280,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         return {
           ok: true,
-          user: nextUser,
+          user: nextUser
         };
       } catch (error) {
         setUser(null);
 
         return {
           ok: false,
-          ...getLoginError(error),
+          ...getLoginError(error)
         };
       }
     },
@@ -213,10 +295,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   );
 
   /**
-   * Cierra sesión local y remota.
+   * Cierra la sesión local y remota.
    *
-   * Aunque el backend falle o la sesión ya no exista, el frontend
-   * debe limpiar el usuario local para sacar al usuario del sistema.
+   * Aunque la petición remota falle, el usuario local se limpia
+   * para evitar mantener una sesión inválida en la interfaz.
    */
   const logout = useCallback(async (): Promise<void> => {
     try {
@@ -243,9 +325,28 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       refreshSession,
       refreshUser: refreshSession,
+
+      hasPermission,
+      hasAnyPermission,
+      hasAllPermissions
     }),
-    [user, loading, initialized, login, signIn, logout, refreshSession]
+    [
+      user,
+      loading,
+      initialized,
+      login,
+      signIn,
+      logout,
+      refreshSession,
+      hasPermission,
+      hasAnyPermission,
+      hasAllPermissions
+    ]
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 }

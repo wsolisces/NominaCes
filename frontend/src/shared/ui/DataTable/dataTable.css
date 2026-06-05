@@ -28,20 +28,43 @@
   --data-table-control-height: 2.7rem;
   --data-table-row-height: 3.25rem;
 
-  --data-table-header-bg: #f7f8fa;
-  --data-table-hover-bg: #f8f9fb;
-  --data-table-selected-bg: #f2f5f9;
+  --data-table-header-bg: var(--color-surface-blue);
+  --data-table-header-hover-bg: var(--color-surface-blue-hover);
+  --data-table-header-border: var(--color-border-blue);
+  --data-table-header-text: var(--color-text-blue);
+  --data-table-header-hover-text: var(--color-text-blue-strong);
 
-  --data-table-focus: rgba(30, 64, 175, 0.14);
-  --data-table-focus-border: rgba(30, 64, 175, 0.48);
+  --data-table-sort-bg: var(--color-blue-700);
+  --data-table-sort-hover-bg: var(--color-blue-800);
+  --data-table-sort-accent: var(--color-blue-400);
+  --data-table-sort-badge-bg: var(--color-blue-500);
+  --data-table-sort-badge-hover-bg: var(--color-blue-600);
+
+  --data-table-hover-bg: var(--color-surface-blue);
+  --data-table-selected-bg: var(--color-surface-blue-hover);
+
+  --data-table-focus: var(--color-focus-soft);
+  --data-table-focus-border: var(--color-focus-strong);
 
   --data-table-shadow:
-    0 0.2rem 0.55rem rgba(15, 23, 42, 0.035),
-    0 1rem 2.4rem rgba(15, 23, 42, 0.045);
+    0 0.2rem 0.55rem color-mix(
+      in srgb,
+      var(--color-text-primary) 4%,
+      transparent
+    ),
+    0 1rem 2.4rem color-mix(
+      in srgb,
+      var(--color-text-primary) 5%,
+      transparent
+    );
 
   --data-table-floating-shadow:
-    0 1.4rem 3.8rem rgba(15, 23, 42, 0.18),
-    0 0.2rem 0.8rem rgba(15, 23, 42, 0.1);
+    0 1.4rem 3.8rem var(--color-overlay-soft),
+    0 0.2rem 0.8rem color-mix(
+      in srgb,
+      var(--color-text-primary) 10%,
+      transparent
+    );
 
   width: 100%;
   min-width: 0;
@@ -100,7 +123,7 @@
 
 .data-table * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(71, 85, 105, 0.2) transparent;
+  scrollbar-color: color-mix(in srgb, var(--color-text-secondary) 20%, transparent) transparent;
 }
 
 .data-table *::-webkit-scrollbar {
@@ -113,14 +136,14 @@
 }
 
 .data-table *::-webkit-scrollbar-thumb {
-  background: rgba(71, 85, 105, 0.2);
+  background: color-mix(in srgb, var(--color-text-secondary) 20%, transparent);
   border: 0.08rem solid transparent;
   border-radius: 999px;
   background-clip: padding-box;
 }
 
 .data-table *::-webkit-scrollbar-thumb:hover {
-  background: rgba(71, 85, 105, 0.4);
+  background: color-mix(in srgb, var(--color-text-secondary) 40%, transparent);
   border: 0.05rem solid transparent;
   background-clip: padding-box;
 }
@@ -137,14 +160,6 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.9rem;
-
-  padding: 0.85rem;
-
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--data-table-radius-lg);
-
-  box-shadow: var(--data-table-shadow);
 }
 
 .data-table-header__left {
@@ -172,22 +187,23 @@
 .data-table-search {
   position: relative;
 
-  width: min(100%, 28rem);
-  min-width: 14rem;
-  height: var(--data-table-control-height);
+  width: min(100%, 25rem);
+  min-width: 12rem;
+  height: 2.15rem;
 
   display: flex;
   align-items: center;
 }
 
+
 .data-table-search__icon {
   position: absolute;
   top: 50%;
-  left: 0.85rem;
+  left: 0.7rem;
   z-index: 1;
 
-  width: 1.05rem;
-  height: 1.05rem;
+  width: 0.9rem;
+  height: 0.9rem;
 
   display: inline-flex;
   align-items: center;
@@ -199,28 +215,30 @@
   pointer-events: none;
 }
 
+
 .data-table-search__icon svg,
 .data-table-search__clear svg,
 .data-table-page-size__icon svg,
 .data-table-button__icon svg {
-  width: 1rem;
-  height: 1rem;
+  width: 0.9rem;
+  height: 0.9rem;
 
   fill: currentColor;
 }
+
 
 .data-table-search__input {
   width: 100%;
   height: 100%;
 
-  padding: 0 2.75rem 0 2.45rem;
+  padding: 0 2.25rem 0 2rem;
 
   color: var(--color-text-primary);
-  background: var(--color-surface-soft);
   border: 1px solid var(--color-border);
-  border-radius: var(--data-table-radius-md);
+  border-radius: var(--data-table-radius-sm);
+  background: var(--color-surface);
 
-  font-size: 0.82rem;
+  font-size: 0.75rem;
   font-weight: 500;
 
   transition:
@@ -229,8 +247,10 @@
     box-shadow 160ms ease;
 }
 
+
+
 .data-table-search__input:hover {
-  border-color: var(--color-border-strong, #cbd0d8);
+  border-color: var(--color-border-strong);
 }
 
 .data-table-search__input:focus {
@@ -248,13 +268,14 @@
   display: none;
 }
 
+
 .data-table-search__clear {
   position: absolute;
   top: 50%;
-  right: 0.55rem;
+  right: 0.35rem;
 
-  width: 1.8rem;
-  height: 1.8rem;
+  width: 1.65rem;
+  height: 1.65rem;
 
   display: inline-flex;
   align-items: center;
@@ -275,9 +296,10 @@
     background-color 160ms ease;
 }
 
+
 .data-table-search__clear:hover {
   color: var(--color-text-primary);
-  background: #e9ebef;
+  background: var(--color-surface-muted);
 }
 
 /* ======================================================
@@ -326,27 +348,16 @@
    ====================================================== */
 
 .data-table-page-size {
-  height: var(--data-table-control-height);
-
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
-
-  padding: 0 0.55rem 0 0.75rem;
-
-  background: var(--color-surface-soft);
-  border: 1px solid var(--color-border);
-  border-radius: var(--data-table-radius-md);
 
   transition:
     background-color 160ms ease,
     border-color 160ms ease;
 }
 
-.data-table-page-size:hover {
-  background: var(--color-surface);
-  border-color: var(--color-border-strong, #cbd0d8);
-}
+
 
 .data-table-page-size__label {
   display: inline-flex;
@@ -436,8 +447,8 @@
 
 .data-table-button:hover:not(:disabled) {
   background: var(--color-surface-soft);
-  border-color: var(--color-border-strong, #cbd0d8);
-  box-shadow: 0 0.25rem 0.65rem rgba(15, 23, 42, 0.06);
+  border-color: var(--color-border-strong);
+  box-shadow: 0 0.25rem 0.65rem color-mix(in srgb, var(--color-text-primary) 6%, transparent);
 
   transform: translateY(-1px);
 }
@@ -453,30 +464,30 @@
 }
 
 .data-table-button--primary {
-  color: #ffffff;
-  background: #111827;
-  border-color: #111827;
+  color: var(--color-text-inverse);
+  background: var(--color-primary);
+  border-color: var(--color-primary);
 }
 
 .data-table-button--primary .data-table-button__icon {
-  color: #ffffff;
+  color: var(--color-text-inverse);
 }
 
 .data-table-button--primary:hover:not(:disabled) {
-  color: #ffffff;
-  background: #020617;
-  border-color: #020617;
+  color: var(--color-text-inverse);
+  background: var(--color-black);
+  border-color: var(--color-black);
 }
 
 .data-table-button--danger {
-  color: var(--color-danger, #b91c1c);
-  background: var(--color-danger-soft, #fef2f2);
-  border-color: rgba(185, 28, 28, 0.18);
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  border-color: color-mix(in srgb, var(--color-danger) 18%, transparent);
 }
 
 .data-table-button--danger:hover:not(:disabled) {
-  background: #fee2e2;
-  border-color: rgba(185, 28, 28, 0.3);
+  background: var(--color-danger-soft);
+  border-color: color-mix(in srgb, var(--color-danger) 30%, transparent);
 }
 
 .data-table-button--icon {
@@ -485,6 +496,41 @@
   height: 2.15rem;
 
   padding: 0;
+}
+
+.data-table-button--close {
+  color: var(--color-text-secondary);
+  background: transparent;
+  border-color: transparent;
+
+  font-size: 1.2rem;
+  font-weight: 500;
+
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+
+.data-table-button--close:hover:not(:disabled) {
+  color: var(--color-text-inverse);
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+
+  box-shadow: 0 0.35rem 0.8rem var(--color-overlay-soft);
+
+  transform: scale(1.06);
+}
+
+.data-table-button--close:active:not(:disabled) {
+  background: var(--color-black);
+  border-color: var(--color-black);
+
+  box-shadow: none;
+
+  transform: scale(0.96);
 }
 
 /* ======================================================
@@ -543,7 +589,7 @@
 .data-table-filter-chip:hover {
   color: var(--color-text-primary);
   background: var(--color-surface-soft);
-  border-color: var(--color-border-strong, #cbd0d8);
+  border-color: var(--color-border-strong);
 }
 
 .data-table-filter-chip__count {
@@ -557,7 +603,7 @@
   padding: 0 0.35rem;
 
   color: var(--color-text-primary);
-  background: #e8ebf0;
+  background: var(--color-surface-muted);
   border-radius: 999px;
 
   font-size: 0.62rem;
@@ -631,7 +677,7 @@
   overscroll-behavior-x: contain;
 
   scrollbar-width: thin;
-  scrollbar-color: rgba(71, 85, 105, 0.2) transparent;
+  scrollbar-color: color-mix(in srgb, var(--color-text-secondary) 20%, transparent) transparent;
 }
 
 .data-table-table__scroll--fit {
@@ -654,20 +700,20 @@
 }
 
 .data-table-table__scroll::-webkit-scrollbar-thumb {
-  background: rgba(71, 85, 105, 0.18);
+  background: color-mix(in srgb, var(--color-text-secondary) 18%, transparent);
   border: 0.08rem solid transparent;
   border-radius: 999px;
   background-clip: padding-box;
 }
 
 .data-table-table__scroll:hover::-webkit-scrollbar-thumb {
-  background: rgba(71, 85, 105, 0.3);
+  background: color-mix(in srgb, var(--color-text-secondary) 30%, transparent);
   border: 0.06rem solid transparent;
   background-clip: padding-box;
 }
 
 .data-table-table__scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(51, 65, 85, 0.45);
+  background: color-mix(in srgb, var(--color-text-primary) 45%, transparent);
   border: 0.04rem solid transparent;
   background-clip: padding-box;
 }
@@ -702,8 +748,6 @@
   min-width: 0;
   table-layout: fixed;
 }
-
-
 /* ======================================================
    ENCABEZADOS DE TABLA
    ====================================================== */
@@ -716,16 +760,18 @@
 }
 
 .data-table-table__th {
-  padding: 0.8rem 0.78rem;
+  position: relative;
 
-  color: var(--color-text-secondary);
+  padding: 0.82rem 0.78rem;
+
+  color: var(--data-table-header-text);
   background: var(--data-table-header-bg);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--data-table-header-border);
 
-  font-size: 0.68rem;
+  font-size: 0.69rem;
   font-weight: 700;
   line-height: 1.2;
-  letter-spacing: 0.045em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 
   cursor: pointer;
@@ -733,12 +779,15 @@
 
   transition:
     color 160ms ease,
-    background-color 160ms ease;
+    background-color 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .data-table-table__th:hover {
-  color: var(--color-text-primary);
-  background: #eef1f5;
+  color: var(--data-table-header-hover-text);
+  background: var(--data-table-header-hover-bg);
+
+  box-shadow: inset 0 -2px 0 var(--color-focus);
 }
 
 .data-table-table__th:first-child {
@@ -769,26 +818,80 @@
   justify-content: flex-end;
 }
 
+/* ======================================================
+   COLUMNA ORDENADA
+   ====================================================== */
+
+.data-table-table__th[aria-sort="ascending"],
+.data-table-table__th[aria-sort="descending"] {
+  color: var(--color-text-inverse);
+  background: var(--data-table-sort-bg);
+
+  box-shadow: inset 0 -3px 0 var(--data-table-sort-accent);
+}
+
+.data-table-table__th[aria-sort="ascending"]:hover,
+.data-table-table__th[aria-sort="descending"]:hover {
+  color: var(--color-text-inverse);
+  background: var(--data-table-sort-hover-bg);
+}
+
+/* ======================================================
+   INDICADOR DE ORDEN
+   ====================================================== */
+
 .data-table-table__sort-badge {
   flex: 0 0 auto;
 
-  min-width: 1.45rem;
-  height: 1.15rem;
+  min-width: 1.32rem;
+  height: 1.08rem;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  padding: 0 0.3rem;
+  padding: 0 0.28rem;
 
-  color: #ffffff;
-  background: #111827;
+  color: var(--color-text-inverse);
+  background: var(--data-table-sort-badge-bg);
   border-radius: 999px;
 
-  font-size: 0.56rem;
+  font-size: 0.54rem;
   font-weight: 700;
   line-height: 1;
+
+  transition:
+    background-color 160ms ease,
+    transform 160ms ease;
 }
+
+.data-table-table__th:hover .data-table-table__sort-badge {
+  background: var(--data-table-sort-badge-hover-bg);
+  transform: translateY(-1px);
+}
+
+.data-table-table__th[aria-sort="ascending"]
+  .data-table-table__sort-badge,
+.data-table-table__th[aria-sort="descending"]
+  .data-table-table__sort-badge {
+  color: var(--color-text-inverse);
+  background: var(--data-table-sort-accent);
+}
+
+/* ======================================================
+   ENCABEZADOS NO ORDENABLES
+   ====================================================== */
+
+.data-table-table__th[data-sortable="false"] {
+  cursor: default;
+}
+
+.data-table-table__th[data-sortable="false"]:hover {
+  color: var(--data-table-header-text);
+  background: var(--data-table-header-bg);
+  box-shadow: none;
+}
+
 
 /* ======================================================
    FILAS Y CELDAS
@@ -815,7 +918,7 @@
 }
 
 .data-table-table__tr--clickable:hover {
-  box-shadow: inset 0.18rem 0 #111827;
+  box-shadow: inset 0.18rem 0 var(--color-primary);
 }
 
 .data-table-table__td {
@@ -824,7 +927,7 @@
   padding: 0.78rem;
 
   color: var(--color-text-primary);
-  border-bottom: 1px solid var(--color-border-soft, #edf0f4);
+  border-bottom: 1px solid var(--color-border-soft);
 
   font-size: 0.78rem;
   font-weight: 400;
@@ -978,7 +1081,7 @@
   margin-bottom: 0.65rem;
   padding-bottom: 0.6rem;
 
-  border-bottom: 1px solid var(--color-border-soft, #edf0f4);
+  border-bottom: 1px solid var(--color-border-soft);
 
   cursor: move;
   user-select: none;
@@ -1061,7 +1164,7 @@
   width: 0.9rem;
   height: 0.9rem;
 
-  accent-color: #111827;
+  accent-color: var(--color-primary);
 }
 
 .data-table-filter-card__option-text {
@@ -1081,7 +1184,7 @@
   margin-top: 0.7rem;
   padding-top: 0.65rem;
 
-  border-top: 1px solid var(--color-border-soft, #edf0f4);
+  border-top: 1px solid var(--color-border-soft);
 }
 
 .data-table-link-button {
@@ -1102,6 +1205,10 @@
   text-decoration: underline;
 }
 
+
+
+
+
 /* ======================================================
    MODAL
    ====================================================== */
@@ -1115,16 +1222,15 @@
   align-items: center;
   justify-content: center;
 
-  padding: 1.25rem;
+  padding: 1rem;
 
-  background: rgba(15, 23, 42, 0.48);
-  backdrop-filter: blur(6px);
+  background: var(--color-overlay);
+  backdrop-filter: blur(3px);
 }
 
 .data-table-modal {
-  width: 100%;
-  max-width: 42rem;
-  max-height: 92vh;
+  width: min(100%, 38rem);
+  max-height: min(78vh, 42rem);
 
   display: flex;
   flex-direction: column;
@@ -1132,20 +1238,28 @@
   overflow: hidden;
 
   background: var(--color-surface);
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  border-radius: 1.15rem;
+  border: 1px solid color-mix(in srgb, var(--color-white) 65%, transparent);
+  border-radius: 0.9rem;
 
   box-shadow:
-    0 2rem 5rem rgba(15, 23, 42, 0.28),
-    0 0.3rem 1rem rgba(15, 23, 42, 0.14);
+    0 1.5rem 4rem color-mix(in srgb, var(--color-text-primary) 22%, transparent),
+    0 0.2rem 0.8rem color-mix(in srgb, var(--color-text-primary) 8%, transparent);
 
-  animation: data-table-modal-enter 180ms ease-out;
+  animation: data-table-modal-enter 160ms ease-out;
+}
+
+.data-table-modal--columns {
+  width: min(100%, 38rem);
+}
+
+.data-table-modal--sm {
+  max-width: 34rem;
 }
 
 @keyframes data-table-modal-enter {
   from {
     opacity: 0;
-    transform: translateY(0.6rem) scale(0.985);
+    transform: translateY(0.35rem) scale(0.99);
   }
 
   to {
@@ -1154,20 +1268,22 @@
   }
 }
 
-.data-table-modal--sm {
-  max-width: 36rem;
-}
+/* ======================================================
+   ENCABEZADO DEL MODAL
+   ====================================================== */
 
 .data-table-modal__header {
+  flex: 0 0 auto;
+
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
 
-  padding: 1.15rem 1.25rem;
+  padding: 1rem 1.1rem;
 
-  background: var(--data-table-header-bg);
-  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border-soft);
 }
 
 .data-table-modal__title {
@@ -1175,20 +1291,68 @@
 
   color: var(--color-text-primary);
 
-  font-size: 1rem;
+  font-size: 0.94rem;
   font-weight: 700;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.02em;
 }
 
 .data-table-modal__subtitle {
-  margin: 0.25rem 0 0;
+  margin: 0.18rem 0 0;
 
   color: var(--color-text-secondary);
 
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 400;
-  line-height: 1.45;
+  line-height: 1.4;
 }
+
+/* ======================================================
+   ACCIONES RÁPIDAS DEL MODAL
+   ====================================================== */
+
+.data-table-modal__quick-actions {
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+
+  padding: 0.55rem 0.75rem;
+
+  background: var(--data-table-header-bg);
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.data-table-button--small {
+  height: 1.9rem;
+
+  padding: 0 0.65rem;
+
+  border-radius: 0.48rem;
+
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.data-table-modal__quick-actions .data-table-button {
+  color: var(--color-text-secondary);
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.data-table-modal__quick-actions .data-table-button:hover:not(:disabled) {
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  border-color: var(--color-border);
+
+  box-shadow: none;
+  transform: none;
+}
+
+/* ======================================================
+   CUERPO DEL MODAL
+   ====================================================== */
 
 .data-table-modal__body {
   flex: 1 1 auto;
@@ -1198,9 +1362,8 @@
 
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
 
-  padding: 1rem;
+  padding: 0;
 }
 
 .data-table-modal__section {
@@ -1212,8 +1375,8 @@
   overflow: hidden;
 
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--data-table-radius-lg);
+  border: 0;
+  border-radius: 0;
 }
 
 .data-table-modal__section--fixed {
@@ -1228,10 +1391,10 @@
 .data-table-modal__section-header {
   flex: 0 0 auto;
 
-  padding: 0.85rem 0.95rem;
+  padding: 0.7rem 0.85rem;
 
   background: var(--data-table-header-bg);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border-soft);
 }
 
 .data-table-modal__section-title {
@@ -1239,16 +1402,16 @@
 
   color: var(--color-text-primary);
 
-  font-size: 0.82rem;
+  font-size: 0.76rem;
   font-weight: 700;
 }
 
 .data-table-modal__section-subtitle {
-  margin: 0.2rem 0 0;
+  margin: 0.15rem 0 0;
 
   color: var(--color-text-secondary);
 
-  font-size: 0.7rem;
+  font-size: 0.66rem;
   font-weight: 400;
 }
 
@@ -1258,14 +1421,14 @@
 
   overflow-y: auto;
 
-  display: grid;
-  gap: 0.5rem;
+  display: block;
 
-  padding: 0.8rem;
+  padding: 0.35rem 0.75rem;
 }
 
 .data-table-modal__empty {
-  padding: 1.7rem 1rem;
+  margin: 0.75rem;
+  padding: 1.5rem 1rem;
 
   color: var(--color-text-muted);
   background: var(--color-surface-soft);
@@ -1274,22 +1437,36 @@
 
   text-align: center;
 
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   font-weight: 500;
 }
+
+/* ======================================================
+   PIE DEL MODAL
+   ====================================================== */
 
 .data-table-modal__footer {
   flex: 0 0 auto;
 
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
-  gap: 0.55rem;
+  gap: 0.45rem;
 
-  padding: 0.85rem 1rem;
+  padding: 0.7rem 0.85rem;
 
-  background: var(--data-table-header-bg);
-  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.data-table-modal__footer .data-table-button {
+  height: 2.15rem;
+
+  padding: 0 0.8rem;
+
+  border-radius: 0.55rem;
+
+  font-size: 0.7rem;
 }
 
 /* ======================================================
@@ -1299,75 +1476,120 @@
 .data-table-modal-row {
   position: relative;
 
+  min-height: 3rem;
+
   display: grid;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
 
-  padding: 0.65rem 0.72rem;
+  padding: 0.42rem 0.25rem;
 
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--data-table-radius-md);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--color-border-soft);
+  border-radius: 0;
 
   transition:
-    border-color 160ms ease,
-    background-color 160ms ease,
-    box-shadow 160ms ease,
-    transform 160ms ease;
+    background-color 150ms ease,
+    opacity 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+
+.data-table-modal-row:last-child {
+  border-bottom: 0;
 }
 
 .data-table-modal-row:hover {
   background: var(--data-table-hover-bg);
-  border-color: var(--color-border-strong, #cbd0d8);
+}
+
+/**
+ * Elementos de la fila de columnas:
+ * 1. Control de arrastre.
+ * 2. Checkbox de visibilidad.
+ * 3. Número de posición.
+ * 4. Nombre de la columna.
+ * 5. Botón de ordenamiento.
+ * 6. Botón de valores únicos.
+ */
+.data-table-modal-row--column {
+  grid-template-columns:
+    1.3rem
+    1.3rem
+    1.65rem
+    minmax(0, 1fr)
+    auto
+    auto;
 }
 
 .data-table-modal-row--sort {
-  grid-template-columns: 1.5rem 1.6rem minmax(0, 1fr) 4.5rem 2rem;
+  grid-template-columns:
+    1.3rem
+    1.5rem
+    minmax(0, 1fr)
+    auto
+    auto;
 }
 
-.data-table-modal-row--column {
-  grid-template-columns: 2.2rem 2.2rem minmax(0, 1fr) 3.7rem;
+.data-table-modal-row--hidden {
+  opacity: 0.52;
+}
+
+.data-table-modal-row--hidden:hover {
+  opacity: 0.8;
 }
 
 .data-table-modal-row--dragging {
   z-index: 2;
 
-  background: var(--color-surface);
-  border-color: var(--data-table-focus-border);
+  opacity: 0.7;
+  background: var(--data-table-selected-bg);
 
-  box-shadow: 0 1rem 2.4rem rgba(15, 23, 42, 0.16);
+  box-shadow: 0 0.6rem 1.5rem color-mix(in srgb, var(--color-text-primary) 12%, transparent);
 
-  transform: scale(1.012);
+  transform: scale(1.005);
 }
 
 .data-table-modal-row--hover {
   background: var(--data-table-selected-bg);
-  border-color: var(--data-table-focus-border);
 }
 
 .data-table-modal-row__line {
   position: absolute;
   top: -1px;
-  right: 0.6rem;
-  left: 0.6rem;
+  right: 0.25rem;
+  left: 0.25rem;
 
   height: 2px;
 
-  background: #111827;
+  background: var(--color-primary);
   border-radius: 999px;
 }
 
+/* ======================================================
+   CONTROLES DE LAS FILAS DEL MODAL
+   ====================================================== */
+
 .data-table-drag-handle {
-  padding: 0.25rem;
+  width: 1.3rem;
+  height: 1.8rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
 
   color: var(--color-text-muted);
   background: transparent;
   border: 0;
 
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 700;
 
   cursor: grab;
+  user-select: none;
 }
 
 .data-table-drag-handle:hover {
@@ -1378,10 +1600,40 @@
   cursor: grabbing;
 }
 
+.data-table-modal-checkbox {
+  width: 0.88rem;
+  height: 0.88rem;
+
+  margin: 0;
+  justify-self: center;
+
+  accent-color: var(--color-primary);
+
+  cursor: pointer;
+}
+
+.data-table-modal-pill {
+  min-width: 1.45rem;
+  height: 1.45rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  color: var(--color-text-muted);
+  background: transparent;
+  border-radius: 50%;
+
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
 .data-table-modal-index {
   color: var(--color-text-muted);
 
-  font-size: 0.7rem;
+  font-size: 0.66rem;
   font-weight: 600;
   text-align: center;
 }
@@ -1393,52 +1645,74 @@
 
   color: var(--color-text-primary);
 
-  font-size: 0.77rem;
+  font-size: 0.74rem;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.data-table-modal-pill {
-  min-width: 1.9rem;
+/* ======================================================
+   BOTONES DE ACCIÓN DE LAS COLUMNAS
+   ====================================================== */
 
-  display: inline-flex;
-  justify-content: center;
+.data-table-modal-row .data-table-button--small {
+  min-width: 3.5rem;
+  height: 1.75rem;
 
-  padding: 0.3rem 0.45rem;
+  padding: 0 0.55rem;
 
   color: var(--color-text-secondary);
+  background: transparent;
+  border-color: transparent;
+  border-radius: 0.45rem;
+
+  font-size: 0.64rem;
+  font-weight: 600;
+
+  box-shadow: none;
+}
+
+.data-table-modal-row .data-table-button--small:hover:not(:disabled) {
+  color: var(--color-text-primary);
   background: var(--color-surface-soft);
-  border-radius: 999px;
+  border-color: var(--color-border);
 
-  font-size: 0.65rem;
-  font-weight: 700;
+  box-shadow: none;
+  transform: none;
 }
 
-.data-table-modal-checkbox {
-  width: 0.95rem;
-  height: 0.95rem;
-
-  justify-self: center;
-
-  accent-color: #111827;
+.data-table-modal-row .data-table-button--primary {
+  color: var(--color-text-inverse);
+  background: var(--color-primary);
+  border-color: var(--color-primary);
 }
+
+.data-table-modal-row .data-table-button--primary:hover:not(:disabled) {
+  color: var(--color-text-inverse);
+  background: var(--color-black);
+  border-color: var(--color-black);
+}
+
+/* ======================================================
+   SELECTS DEL MODAL
+   ====================================================== */
 
 .data-table-modal-select {
   width: 100%;
   min-width: 0;
-  height: 2.2rem;
+  height: 1.9rem;
 
-  padding: 0 0.55rem;
+  padding: 0 0.5rem;
 
   color: var(--color-text-primary);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--data-table-radius-sm);
+  border-radius: 0.45rem;
 
-  font-size: 0.73rem;
+  font-size: 0.68rem;
   font-weight: 500;
 }
+
 
 /* ======================================================
    CHIPS DEL MODAL
@@ -1478,7 +1752,7 @@
 
 .data-table-chip-item:hover {
   background: var(--data-table-hover-bg);
-  border-color: var(--color-border-strong, #cbd0d8);
+  border-color: var(--color-border-strong);
 }
 
 .data-table-chip-item__text {
@@ -1501,9 +1775,9 @@
 
   padding: 0.85rem 0.95rem;
 
-  color: var(--color-danger, #b91c1c);
-  background: var(--color-danger-soft, #fef2f2);
-  border: 1px solid rgba(185, 28, 28, 0.18);
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 18%, transparent);
   border-radius: var(--data-table-radius-md);
 
   font-size: 0.78rem;
@@ -1681,4 +1955,285 @@
 
     transition-duration: 0.01ms !important;
   }
+}
+
+
+
+
+
+
+
+
+/* ======================================================
+   DETALLES DEL MODAL DE COLUMNAS
+   ====================================================== */
+
+.data-table-columns-modal__heading {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.data-table-columns-modal__count {
+  flex: 0 0 auto;
+
+  padding: 0.25rem 0.5rem;
+
+  color: var(--color-text-secondary);
+  background: var(--color-surface-soft);
+  border-radius: 999px;
+
+  font-size: 0.62rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.data-table-modal__close-button {
+  width: 1.9rem;
+  height: 1.9rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  color: var(--color-text-muted);
+  background: transparent;
+  border: 0;
+  border-radius: 0.45rem;
+
+  cursor: pointer;
+
+  transition:
+    color 150ms ease,
+    background-color 150ms ease;
+}
+
+.data-table-modal__close-button:hover {
+  color: var(--color-text-primary);
+  background: var(--color-surface-soft);
+}
+
+.data-table-modal__quick-action {
+  padding: 0.25rem 0.4rem;
+
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 0;
+
+  font-size: 0.66rem;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: color 150ms ease;
+}
+
+.data-table-modal__quick-action:hover:not(:disabled) {
+  color: var(--color-text-primary);
+  text-decoration: underline;
+}
+
+.data-table-modal__quick-action:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+.data-table-modal__quick-divider {
+  width: 1px;
+  height: 0.9rem;
+
+  margin: 0 0.15rem;
+
+  background: var(--color-border);
+}
+
+.data-table-column-visibility {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+}
+
+.data-table-column-info {
+  min-width: 0;
+
+  display: grid;
+  gap: 0.1rem;
+}
+
+.data-table-column-info__state {
+  color: var(--color-text-muted);
+
+  font-size: 0.58rem;
+  font-weight: 500;
+}
+
+.data-table-column-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem;
+}
+
+.data-table-column-action {
+  position: relative;
+
+  width: 1.85rem;
+  height: 1.85rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  color: var(--color-text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0.45rem;
+
+  cursor: pointer;
+
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.data-table-column-action:hover {
+  color: var(--color-text-primary);
+  background: var(--color-surface-soft);
+  border-color: var(--color-border);
+}
+
+.data-table-column-action--active {
+  color: var(--color-text-inverse);
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.data-table-column-action--active:hover {
+  color: var(--color-text-inverse);
+  background: var(--color-black);
+  border-color: var(--color-black);
+}
+
+.data-table-column-action__badge {
+  position: absolute;
+  top: -0.25rem;
+  right: -0.25rem;
+
+  min-width: 0.9rem;
+  height: 0.9rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 0.2rem;
+
+  color: var(--color-primary);
+  background: var(--color-text-inverse);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+
+  font-size: 0.48rem;
+  font-weight: 700;
+}
+
+.data-table-modal__reset-button {
+  margin-right: auto;
+  padding: 0.35rem 0.2rem;
+
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 0;
+
+  font-size: 0.66rem;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: color 150ms ease;
+}
+
+.data-table-modal__reset-button:hover {
+  color: var(--color-danger);
+  text-decoration: underline;
+}
+
+/* ======================================================
+   ACCIONES CON ICONOS DENTRO DE LA TABLA
+   ====================================================== */
+
+.security-table-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.security-action-icon-button {
+  width: 2.15rem;
+  height: 2.15rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  color: var(--color-text-secondary);
+  background: transparent;
+
+  border: 1px solid transparent;
+  border-radius: 0.55rem;
+
+  cursor: pointer;
+
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.security-action-icon-button svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex-shrink: 0;
+}
+
+.security-action-icon-button:hover:not(:disabled) {
+  color: var(--color-text-primary);
+  background: var(--color-surface-soft);
+  border-color: var(--color-border);
+  transform: translateY(-1px);
+}
+
+.security-action-icon-button--success:hover:not(:disabled) {
+  color: var(--color-success);
+  background: var(--color-success-soft);
+  border-color: var(--color-success-border);
+}
+
+.security-action-icon-button--danger:hover:not(:disabled) {
+  color: var(--color-danger-hover);
+  background: var(--color-danger-soft);
+  border-color: var(--color-danger-border);
+}
+
+.security-action-icon-button:focus-visible {
+  outline: 2px solid var(--color-text-secondary);
+  outline-offset: 2px;
+}
+
+.security-action-icon-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }

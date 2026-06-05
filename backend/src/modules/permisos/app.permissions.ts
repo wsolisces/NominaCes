@@ -30,6 +30,7 @@ export const APP_PERMISSIONS = {
   ROLES_VIEW: "ROLES_VIEW",
   ROLES_CREATE: "ROLES_CREATE",
   ROLES_EDIT: "ROLES_EDIT",
+  ROLES_DELETE: "ROLES_DELETE",
 
   PERMISSIONS_VIEW: "PERMISSIONS_VIEW",
   PERMISSIONS_EDIT: "PERMISSIONS_EDIT",
@@ -100,7 +101,12 @@ export const APP_PERMISSION_META: Record<
   ROLES_EDIT: {
     name: "Editar roles",
     moduleKey: "ROLES",
-    description: "Permite editar roles y asignar permisos."
+    description: "Permite editar roles, activarlos y asignar permisos."
+  },
+  ROLES_DELETE: {
+    name: "Eliminar roles",
+    moduleKey: "ROLES",
+    description: "Permite eliminar roles que no tengan usuarios asignados."
   },
 
   PERMISSIONS_VIEW: {
