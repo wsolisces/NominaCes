@@ -1,199 +1,204 @@
 // ======================================================
 // PATH: backend/src/modules/roles/roles.controller.ts
-// Controladores HTTP del módulo Roles
+// Controlador del módulo de roles
 // ======================================================
 
 /**
  * Responsabilidades:
- * - Leer parámetros y body de Express.
- * - Validar parámetros básicos de las rutas.
- * - Llamar al service del módulo.
- * - Responder usando el formato estándar del backend.
+ * - Recibir peticiones HTTP del módulo de roles.
+ * - Delegar reglas de negocio al servicio.
+ * - Responder con formato JSON consistente.
  *
  * No debe:
- * - Ejecutar consultas SQL.
- * - Validar cookies o permisos.
- * - Aplicar reglas de negocio complejas.
- * - Repetir try/catch; eso lo realiza asyncHandler.
+ * - Ejecutar SQL.
+ * - Contener reglas de protección de SOPORTE.
+ * - Manipular directamente la base de datos.
  */
 
 import type { Request, Response } from "express";
 
-import { AppError } from "../../shared/errors/AppError.js";
-import { created, ok } from "../../shared/http/responses.js";
-
-import * as rolesService from "./roles.service.js";
+import {
+  changeRoleStatusService,
+  createRoleService,
+  getRoleAuditService,
+  getRoleDetailService,
+  listRolesService,
+  updateRoleService,
+} from "./roles.service.js";
 
 /**
- * Obtiene y valida el id del rol recibido en params.
+ * Obtiene el usuario actor desde middlewares de autenticación.
  */
-function getRoleIdParam(req: Request): number {
-  const rawId = req.params.id;
+function getActorUserId(request: Request): string | null {
+  const requestWithUser = request as Request & {
+    user?: { id?: string | number };
+    authUser?: { id?: string | number };
+  };
 
-  const normalizedId = Array.isArray(rawId)
-    ? rawId[0]
-    : rawId;
+  const id = requestWithUser.user?.id ?? requestWithUser.authUser?.id;
 
-  const id = Number(normalizedId);
+  return id === undefined || id === null ? null : String(id);
+}
 
-  if (!Number.isInteger(id) || id <= 0) {
-    throw new AppError({
-      statusCode: 400,
-      code: "VALIDATION_ERROR",
-      message: "El id del rol es inválido."
-    });
+
+/**
+ * Obtiene un parámetro de ruta como string simple.
+ */
+function getRouteParam(
+  request: Request,
+  paramName: string
+): string {
+  const value = request.params[paramName];
+
+  if (Array.isArray(value)) {
+    return value[0] ?? "";
   }
 
-  return id;
+  return value ?? "";
 }
 
 /**
- * GET /roles
- *
- * Lista todos los roles.
+ * Responde errores de forma consistente.
  */
-export async function listRoles(
-  _req: Request,
-  res: Response
-): Promise<void> {
-  const roles = await rolesService.listRoles();
+function handleControllerError(response: Response, error: unknown): void {
+  const statusCode =
+    typeof error === "object" &&
+    error !== null &&
+    "statusCode" in error &&
+    typeof error.statusCode === "number"
+      ? error.statusCode
+      : 500;
 
-  ok(res, {
-    roles
+  const message =
+    error instanceof Error ? error.message : "Error interno del servidor.";
+
+  response.status(statusCode).json({
+    ok: false,
+    message,
   });
 }
 
 /**
- * GET /roles/:id
- *
- * Consulta el detalle de un rol.
+ * Lista roles.
  */
-export async function getRole(
-  req: Request,
-  res: Response
+export async function listRolesController(
+  request: Request,
+  response: Response
 ): Promise<void> {
-  const role = await rolesService.getRole(
-    getRoleIdParam(req)
-  );
-
-  if (!role) {
-    throw new AppError({
-      statusCode: 404,
-      code: "NOT_FOUND",
-      message: "Rol no encontrado."
+  try {
+    const roles = await listRolesService({
+      search: String(request.query.search ?? ""),
+      status: request.query.status as never,
     });
+
+    response.json({
+      ok: true,
+      data: roles,
+    });
+  } catch (error) {
+    handleControllerError(response, error);
   }
-
-  ok(res, {
-    role
-  });
 }
 
 /**
- * POST /roles
- *
- * Crea un rol nuevo.
+ * Obtiene detalle de rol.
  */
-export async function createRole(
-  req: Request,
-  res: Response
+export async function getRoleDetailController(
+  request: Request,
+  response: Response
 ): Promise<void> {
-  const role = await rolesService.createRole(req.body);
+  try {
+    const role = await getRoleDetailService(getRouteParam(request, "id"));
 
-  created(
-    res,
-    {
-      role
-    },
-    "Rol creado correctamente."
-  );
+    response.json({
+      ok: true,
+      data: role,
+    });
+  } catch (error) {
+    handleControllerError(response, error);
+  }
 }
 
 /**
- * PATCH /roles/:id
- *
- * Modifica un rol existente.
+ * Crea rol.
  */
-export async function updateRole(
-  req: Request,
-  res: Response
+export async function createRoleController(
+  request: Request,
+  response: Response
 ): Promise<void> {
-  const role = await rolesService.updateRole(
-    getRoleIdParam(req),
-    req.body
-  );
+  try {
+    const role = await createRoleService(request.body, getActorUserId(request));
 
-  ok(
-    res,
-    {
-      role
-    },
-    "Rol actualizado correctamente."
-  );
+    response.status(201).json({
+      ok: true,
+      data: role,
+    });
+  } catch (error) {
+    handleControllerError(response, error);
+  }
 }
 
 /**
- * POST /roles/:id/deactivate
- *
- * Desactiva un rol.
+ * Actualiza rol.
  */
-export async function deactivateRole(
-  req: Request,
-  res: Response
+export async function updateRoleController(
+  request: Request,
+  response: Response
 ): Promise<void> {
-  const role = await rolesService.deactivateRole(
-    getRoleIdParam(req)
-  );
+  try {
+    const role = await updateRoleService(
+      getRouteParam(request, "id"),
+      request.body,
+      getActorUserId(request)
+    );
 
-  ok(
-    res,
-    {
-      role
-    },
-    "Rol desactivado correctamente."
-  );
+    response.json({
+      ok: true,
+      data: role,
+    });
+  } catch (error) {
+    handleControllerError(response, error);
+  }
 }
 
 /**
- * POST /roles/:id/activate
- *
- * Activa un rol.
+ * Cambia estado de rol.
  */
-export async function activateRole(
-  req: Request,
-  res: Response
+export async function changeRoleStatusController(
+  request: Request,
+  response: Response
 ): Promise<void> {
-  const role = await rolesService.activateRole(
-    getRoleIdParam(req)
-  );
+  try {
+    const role = await changeRoleStatusService(
+      getRouteParam(request, "id"),
+      request.body,
+      getActorUserId(request)
+    );
 
-  ok(
-    res,
-    {
-      role
-    },
-    "Rol activado correctamente."
-  );
+    response.json({
+      ok: true,
+      data: role,
+    });
+  } catch (error) {
+    handleControllerError(response, error);
+  }
 }
 
 /**
- * DELETE /roles/:id
- *
- * Elimina permanentemente un rol sin usuarios asignados.
+ * Obtiene auditoría de rol.
  */
-export async function deleteRole(
-  req: Request,
-  res: Response
+export async function getRoleAuditController(
+  request: Request,
+  response: Response
 ): Promise<void> {
-  const role = await rolesService.deleteRole(
-    getRoleIdParam(req)
-  );
+  try {
+    const audit = await getRoleAuditService(getRouteParam(request, "id"));
 
-  ok(
-    res,
-    {
-      role
-    },
-    "Rol eliminado correctamente."
-  );
+    response.json({
+      ok: true,
+      data: audit,
+    });
+  } catch (error) {
+    handleControllerError(response, error);
+  }
 }

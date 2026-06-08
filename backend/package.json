@@ -9,19 +9,18 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "seed:admin": "tsx src/seeds/seedAdminUser.ts",
-
     "test:health": "node tests/00.health.manual.mjs",
     "test:login": "node tests/01.login.manual.mjs all",
     "test:roles": "node tests/02.roles.manual.mjs all",
     "test:users": "node tests/03.users.manual.mjs all",
     "test:all": "node tests/99.run-all.manual.mjs",
-
     "test:login:menu": "node tests/01.login.manual.mjs",
     "test:roles:menu": "node tests/02.roles.manual.mjs",
     "test:users:menu": "node tests/03.users.manual.mjs"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
@@ -31,6 +30,7 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
+    "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",

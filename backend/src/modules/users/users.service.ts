@@ -1,380 +1,488 @@
 // ======================================================
-// PATH: backend\src\modules\users\users.service.ts
-// Lógica de negocio del módulo Users
+// PATH: backend/src/modules/users/users.service.ts
+// Servicio de usuarios
 // ======================================================
 
-import { AppError } from "../../shared/errors/AppError.js";
-import {
-  generateSixDigitCode,
-  sha256Hash
-} from "../../shared/security/crypto.js";
-import { normalizeUsername } from "../../shared/security/password.js";
+/**
+ * Responsabilidades:
+ * - Aplicar reglas de negocio del catálogo de usuarios.
+ * - Normalizar username, nombre completo y rol.
+ * - Validar duplicados antes de crear o modificar.
+ * - Generar contraseña temporal cuando sea necesario.
+ *
+ * No debe:
+ * - Acceder directamente a req/res.
+ * - Crear conexiones directas a PostgreSQL.
+ * - Definir rutas HTTP.
+ */
 
-import { revokeActiveSessionsByUserId } from "../login/login.repository.js";
-
-import type {
-  CreateUserInput,
-  UpdateUserInput,
-  UserActionResult,
-  UserListRow,
-  UserTemporaryCodeResult
-} from "./users.types.js";
+import bcrypt from "bcryptjs";
 
 import {
-  activateUser,
   createUser,
-  createUserAudit,
-  deactivateUser,
+  deleteUserById,
+  findActiveRoleById,
   findUserById,
   findUserByUsernameNormalized,
-  listUsers,
-  roleExistsActive,
-  setPasswordResetCode,
-  unlockUser,
+  findUsers,
+  lockUserById,
+  resetUserPasswordById,
+  setUserActiveState,
+  unlockUserById,
   updateUser
 } from "./users.repository.js";
 
-/**
- * Vigencia del código temporal de contraseña.
- *
- * Regla definida:
- * - código de 6 dígitos
- * - válido por 5 minutos
- */
-const TEMP_CODE_TTL_MINUTES = 5;
+import {
+  UserDomainError,
+  type CreateUserInput,
+  type RoleId,
+  type UpdateUserInput,
+  type UserDto,
+  type UserId,
+  type UserListFilters,
+  type UserMutationResult,
+  type ResetUserPasswordResult
+} from "./users.types.js";
 
-/**
- * Genera código temporal y su fecha de expiración.
- *
- * El código real se devuelve una sola vez al administrador.
- * En BD se guarda únicamente el hash.
- */
-function buildTemporaryCode(): {
-  temporaryCode: string;
-  temporaryCodeHash: string;
-  temporaryCodeExpiresAt: Date;
-} {
-  const temporaryCode = generateSixDigitCode();
+const USERNAME_PATTERN = /^[a-zA-Z0-9._-]+$/;
+const PASSWORD_MIN_LENGTH = 8;
+const BCRYPT_ROUNDS = 12;
 
-  return {
-    temporaryCode,
-    temporaryCodeHash: sha256Hash(temporaryCode),
-    temporaryCodeExpiresAt: new Date(
-      Date.now() + TEMP_CODE_TTL_MINUTES * 60 * 1000
-    )
-  };
+function normalizeText(value: unknown): string {
+  return String(value ?? "").trim();
 }
 
-/**
- * Lista usuarios para mantenimiento.
- */
-export async function getUsers(): Promise<UserListRow[]> {
-  return listUsers();
+function normalizeNullableText(value: unknown): string | null {
+  const normalized = normalizeText(value);
+  return normalized.length > 0 ? normalized : null;
 }
 
-/**
- * Crea un usuario nuevo.
- *
- * Reglas:
- * - username único, sin distinguir mayúsculas/minúsculas
- * - rol debe existir y estar activo
- * - usuario nace activo
- * - usuario nace desbloqueado
- * - usuario nace con password_reset_required = true
- * - se genera código temporal de 6 dígitos
- * - el código se muestra una sola vez
- */
-export async function createNewUser(
-  input: CreateUserInput
-): Promise<UserTemporaryCodeResult> {
-  const username = input.username.trim();
-  const usernameNormalized = normalizeUsername(username);
-  const fullName = input.fullName.trim();
+function normalizeUsername(value: unknown): string {
+  return normalizeText(value);
+}
 
+function normalizeUsernameForLookup(value: unknown): string {
+  return normalizeUsername(value).toLowerCase();
+}
+
+function normalizeBoolean(value: unknown, fallback: boolean): boolean {
+  if (typeof value === "boolean") return value;
+  if (value === "true") return true;
+  if (value === "false") return false;
+  return fallback;
+}
+
+function normalizeId(value: unknown): UserId {
+  const id = Number(value);
+
+  if (!Number.isInteger(id) || id <= 0) {
+    throw new UserDomainError(
+      "El id del usuario no es válido.",
+      400,
+      "USER_ID_INVALID"
+    );
+  }
+
+  return id;
+}
+
+function normalizeRoleId(value: unknown): RoleId | null {
+  if (value === null || value === undefined || value === "") return null;
+
+  const roleId = Number(value);
+
+  if (!Number.isInteger(roleId) || roleId <= 0) {
+    throw new UserDomainError(
+      "El rol seleccionado no es válido.",
+      400,
+      "ROLE_ID_INVALID"
+    );
+  }
+
+  return roleId;
+}
+
+function assertUsername(username: string): void {
   if (!username) {
-    throw new AppError({
-      statusCode: 400,
-      code: "VALIDATION_ERROR",
-      message: "El usuario es obligatorio."
-    });
+    throw new UserDomainError(
+      "El usuario es obligatorio.",
+      400,
+      "USERNAME_REQUIRED"
+    );
   }
 
+  if (username.length < 3) {
+    throw new UserDomainError(
+      "El usuario debe tener al menos 3 caracteres.",
+      400,
+      "USERNAME_TOO_SHORT"
+    );
+  }
+
+  if (username.length > 80) {
+    throw new UserDomainError(
+      "El usuario no puede exceder 80 caracteres.",
+      400,
+      "USERNAME_TOO_LONG"
+    );
+  }
+
+  if (!USERNAME_PATTERN.test(username)) {
+    throw new UserDomainError(
+      "El usuario solo puede contener letras, números, punto, guion y guion bajo.",
+      400,
+      "USERNAME_INVALID"
+    );
+  }
+}
+
+function assertFullName(fullName: string): void {
   if (!fullName) {
-    throw new AppError({
-      statusCode: 400,
-      code: "VALIDATION_ERROR",
-      message: "El nombre completo es obligatorio."
-    });
+    throw new UserDomainError(
+      "El nombre completo es obligatorio.",
+      400,
+      "FULL_NAME_REQUIRED"
+    );
   }
 
-  const existingUser = await findUserByUsernameNormalized(usernameNormalized);
+  if (fullName.length > 150) {
+    throw new UserDomainError(
+      "El nombre completo no puede exceder 150 caracteres.",
+      400,
+      "FULL_NAME_TOO_LONG"
+    );
+  }
+}
 
-  if (existingUser) {
-    throw new AppError({
-      statusCode: 409,
-      code: "CONFLICT",
-      message: "Ya existe un usuario con ese username."
-    });
+function assertPassword(password: string): void {
+  if (!password) {
+    throw new UserDomainError(
+      "La contraseña es obligatoria.",
+      400,
+      "PASSWORD_REQUIRED"
+    );
   }
 
-  const roleIsValid = await roleExistsActive(input.roleId);
+  if (password.length < PASSWORD_MIN_LENGTH) {
+    throw new UserDomainError(
+      "La contraseña debe tener al menos 8 caracteres.",
+      400,
+      "PASSWORD_TOO_SHORT"
+    );
+  }
+}
 
-  if (!roleIsValid) {
-    throw new AppError({
-      statusCode: 400,
-      code: "VALIDATION_ERROR",
-      message: "El rol seleccionado no existe o está inactivo."
-    });
+function generateTemporaryPassword(): string {
+  const random = Math.random().toString(36).slice(2, 10);
+  const suffix = Math.floor(1000 + Math.random() * 9000);
+
+  return `Nomina${suffix}${random}!`;
+}
+
+async function assertRoleExistsIfProvided(roleId: RoleId | null): Promise<void> {
+  if (!roleId) return;
+
+  const role = await findActiveRoleById(roleId);
+
+  if (!role) {
+    throw new UserDomainError(
+      "El rol seleccionado no existe o está inactivo.",
+      400,
+      "ROLE_NOT_FOUND"
+    );
+  }
+}
+
+/**
+ * Obtiene usuarios con filtros normalizados.
+ */
+export async function listUsersService(
+  filters: UserListFilters
+): Promise<UserDto[]> {
+  return findUsers({
+    search: normalizeNullableText(filters.search) ?? undefined,
+    role_id:
+      filters.role_id !== undefined && filters.role_id !== null
+        ? normalizeRoleId(filters.role_id) ?? undefined
+        : undefined,
+    is_active: filters.is_active,
+    is_locked: filters.is_locked
+  });
+}
+
+/**
+ * Obtiene un usuario por id.
+ */
+export async function getUserByIdService(rawId: unknown): Promise<UserDto> {
+  const id = normalizeId(rawId);
+  const user = await findUserById(id);
+
+  if (!user) {
+    throw new UserDomainError(
+      "No se encontró el usuario solicitado.",
+      404,
+      "USER_NOT_FOUND"
+    );
   }
 
-  const temp = buildTemporaryCode();
+  return user;
+}
+
+/**
+ * Crea un usuario validando username, rol y contraseña.
+ */
+export async function createUserService(
+  input: CreateUserInput
+): Promise<UserMutationResult> {
+  const username = normalizeUsername(input.username);
+  const usernameNormalized = normalizeUsernameForLookup(input.username);
+  const fullName = normalizeText(input.full_name);
+  const roleId = normalizeRoleId(input.role_id);
+  const password = normalizeText(input.password);
+  const isActive = normalizeBoolean(input.is_active, true);
+
+  assertUsername(username);
+  assertFullName(fullName);
+  assertPassword(password);
+  await assertRoleExistsIfProvided(roleId);
+
+  const existing = await findUserByUsernameNormalized(usernameNormalized);
+
+  if (existing) {
+    throw new UserDomainError(
+      "Ya existe un usuario con ese nombre de acceso.",
+      409,
+      "USERNAME_DUPLICATED"
+    );
+  }
+
+  const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
   const user = await createUser({
     username,
-    usernameNormalized,
-    fullName,
-    roleId: input.roleId,
-    temporaryCodeHash: temp.temporaryCodeHash,
-    temporaryCodeExpiresAt: temp.temporaryCodeExpiresAt
+    username_normalized: usernameNormalized,
+    full_name: fullName,
+    role_id: roleId,
+    password,
+    password_hash: passwordHash,
+    password_reset_required: true,
+    is_active: isActive
   });
 
-  await createUserAudit({
-    userId: user.id,
-    action: "CREATE",
-    oldData: null,
-    newData: {
-      username: user.username,
-      full_name: user.full_name,
-      role_id: user.role_id,
-      role_key: user.role_key,
-      is_active: user.is_active,
-      is_locked: user.is_locked,
-      password_reset_required: user.password_reset_required,
-      password_reset_expires_at: user.password_reset_expires_at
-    },
-    changedByUserId: input.changedByUserId
-  });
-
-  return {
-    user,
-    temporaryCode: temp.temporaryCode,
-    expiresAt: temp.temporaryCodeExpiresAt.toISOString()
-  };
+  return { user };
 }
 
 /**
- * Edita datos principales del usuario.
- *
- * Reglas:
- * - no cambia username
- * - no cambia contraseña
- * - permite cambiar nombre y rol
+ * Actualiza un usuario existente.
  */
-export async function editUser(
+export async function updateUserService(
+  rawId: unknown,
   input: UpdateUserInput
-): Promise<UserActionResult> {
-  const currentUser = await findUserById(input.userId);
+): Promise<UserMutationResult> {
+  const id = normalizeId(rawId);
 
-  if (!currentUser) {
-    throw new AppError({
-      statusCode: 404,
-      code: "NOT_FOUND",
-      message: "Usuario no encontrado."
-    });
+  const current = await findUserById(id);
+
+  if (!current) {
+    throw new UserDomainError(
+      "No se encontró el usuario solicitado.",
+      404,
+      "USER_NOT_FOUND"
+    );
   }
 
-  const fullName = input.fullName.trim();
+  const username =
+    input.username !== undefined
+      ? normalizeUsername(input.username)
+      : current.username;
 
-  if (!fullName) {
-    throw new AppError({
-      statusCode: 400,
-      code: "VALIDATION_ERROR",
-      message: "El nombre completo es obligatorio."
-    });
+  const usernameNormalized =
+    input.username !== undefined
+      ? normalizeUsernameForLookup(input.username)
+      : current.username_normalized;
+
+  const fullName =
+    input.full_name !== undefined
+      ? normalizeText(input.full_name)
+      : current.full_name;
+
+  const roleId =
+    input.role_id !== undefined
+      ? normalizeRoleId(input.role_id)
+      : current.role_id;
+
+  const isActive =
+    input.is_active !== undefined
+      ? normalizeBoolean(input.is_active, current.is_active)
+      : current.is_active;
+
+  assertUsername(username);
+  assertFullName(fullName);
+  await assertRoleExistsIfProvided(roleId);
+
+  if (usernameNormalized !== current.username_normalized) {
+    const duplicated = await findUserByUsernameNormalized(usernameNormalized);
+
+    if (duplicated && duplicated.id !== id) {
+      throw new UserDomainError(
+        "Ya existe otro usuario con ese nombre de acceso.",
+        409,
+        "USERNAME_DUPLICATED"
+      );
+    }
   }
 
-  const roleIsValid = await roleExistsActive(input.roleId);
-
-  if (!roleIsValid) {
-    throw new AppError({
-      statusCode: 400,
-      code: "VALIDATION_ERROR",
-      message: "El rol seleccionado no existe o está inactivo."
-    });
-  }
-
-  const updatedUser = await updateUser({
-    userId: input.userId,
-    fullName,
-    roleId: input.roleId
+  const user = await updateUser(id, {
+    username,
+    username_normalized: usernameNormalized,
+    full_name: fullName,
+    role_id: roleId,
+    is_active: isActive
   });
 
-  await createUserAudit({
-    userId: updatedUser.id,
-    action: "UPDATE",
-    oldData: currentUser,
-    newData: updatedUser,
-    changedByUserId: input.changedByUserId
-  });
+  if (!user) {
+    throw new UserDomainError(
+      "No fue posible actualizar el usuario.",
+      500,
+      "USER_UPDATE_FAILED"
+    );
+  }
 
-  return {
-    user: updatedUser
-  };
+  return { user };
 }
 
 /**
  * Activa un usuario.
  */
-export async function activateUserById(input: {
-  userId: string;
-  changedByUserId: string;
-}): Promise<UserActionResult> {
-  const currentUser = await findUserById(input.userId);
+export async function activateUserService(
+  rawId: unknown
+): Promise<UserMutationResult> {
+  const id = normalizeId(rawId);
+  const user = await setUserActiveState(id, true);
 
-  if (!currentUser) {
-    throw new AppError({
-      statusCode: 404,
-      code: "NOT_FOUND",
-      message: "Usuario no encontrado."
-    });
+  if (!user) {
+    throw new UserDomainError(
+      "No se encontró el usuario solicitado.",
+      404,
+      "USER_NOT_FOUND"
+    );
   }
 
-  const updatedUser = await activateUser(input.userId);
-
-  await createUserAudit({
-    userId: updatedUser.id,
-    action: "ACTIVATE",
-    oldData: currentUser,
-    newData: updatedUser,
-    changedByUserId: input.changedByUserId
-  });
-
-  return {
-    user: updatedUser
-  };
+  return { user };
 }
 
 /**
  * Desactiva un usuario.
- *
- * Al desactivar:
- * - revoca sesiones activas
  */
-export async function deactivateUserById(input: {
-  userId: string;
-  changedByUserId: string;
-}): Promise<UserActionResult> {
-  const currentUser = await findUserById(input.userId);
+export async function deactivateUserService(
+  rawId: unknown
+): Promise<UserMutationResult> {
+  const id = normalizeId(rawId);
+  const user = await setUserActiveState(id, false);
 
-  if (!currentUser) {
-    throw new AppError({
-      statusCode: 404,
-      code: "NOT_FOUND",
-      message: "Usuario no encontrado."
-    });
+  if (!user) {
+    throw new UserDomainError(
+      "No se encontró el usuario solicitado.",
+      404,
+      "USER_NOT_FOUND"
+    );
   }
 
-  const updatedUser = await deactivateUser(input.userId);
+  return { user };
+}
 
-  await revokeActiveSessionsByUserId(input.userId, "LOGOUT");
+/**
+ * Bloquea manualmente un usuario.
+ */
+export async function lockUserService(
+  rawId: unknown,
+  reasonInput?: unknown
+): Promise<UserMutationResult> {
+  const id = normalizeId(rawId);
+  const reason =
+    normalizeNullableText(reasonInput) ?? "Bloqueado manualmente por administrador.";
 
-  await createUserAudit({
-    userId: updatedUser.id,
-    action: "DEACTIVATE",
-    oldData: currentUser,
-    newData: updatedUser,
-    changedByUserId: input.changedByUserId
-  });
+  const user = await lockUserById(id, reason);
 
-  return {
-    user: updatedUser
-  };
+  if (!user) {
+    throw new UserDomainError(
+      "No se encontró el usuario solicitado.",
+      404,
+      "USER_NOT_FOUND"
+    );
+  }
+
+  return { user };
 }
 
 /**
  * Desbloquea un usuario.
- *
- * Reglas:
- * - limpia is_locked
- * - reinicia failed_login_attempts
- * - limpia locked_at y locked_reason
  */
-export async function unlockUserById(input: {
-  userId: string;
-  changedByUserId: string;
-}): Promise<UserActionResult> {
-  const currentUser = await findUserById(input.userId);
+export async function unlockUserService(
+  rawId: unknown
+): Promise<UserMutationResult> {
+  const id = normalizeId(rawId);
+  const user = await unlockUserById(id);
 
-  if (!currentUser) {
-    throw new AppError({
-      statusCode: 404,
-      code: "NOT_FOUND",
-      message: "Usuario no encontrado."
-    });
+  if (!user) {
+    throw new UserDomainError(
+      "No se encontró el usuario solicitado.",
+      404,
+      "USER_NOT_FOUND"
+    );
   }
 
-  const updatedUser = await unlockUser(input.userId);
+  return { user };
+}
 
-  await createUserAudit({
-    userId: updatedUser.id,
-    action: "UNLOCK",
-    oldData: currentUser,
-    newData: updatedUser,
-    changedByUserId: input.changedByUserId
-  });
+/**
+ * Restablece contraseña con contraseña temporal.
+ */
+export async function resetUserPasswordService(
+  rawId: unknown
+): Promise<ResetUserPasswordResult> {
+  const id = normalizeId(rawId);
+
+  const current = await findUserById(id);
+
+  if (!current) {
+    throw new UserDomainError(
+      "No se encontró el usuario solicitado.",
+      404,
+      "USER_NOT_FOUND"
+    );
+  }
+
+  const temporaryPassword = generateTemporaryPassword();
+  const passwordHash = await bcrypt.hash(temporaryPassword, BCRYPT_ROUNDS);
+  const user = await resetUserPasswordById(id, passwordHash);
+
+  if (!user) {
+    throw new UserDomainError(
+      "No fue posible restablecer la contraseña.",
+      500,
+      "USER_PASSWORD_RESET_FAILED"
+    );
+  }
 
   return {
-    user: updatedUser
+    user,
+    temporaryPassword
   };
 }
 
 /**
- * Resetea contraseña de un usuario.
- *
- * Reglas:
- * - genera nuevo código temporal
- * - marca password_reset_required = true
- * - revoca sesiones activas
- * - devuelve código temporal una sola vez
+ * Elimina un usuario por id.
  */
-export async function resetUserPassword(input: {
-  userId: string;
-  changedByUserId: string;
-}): Promise<UserTemporaryCodeResult> {
-  const currentUser = await findUserById(input.userId);
+export async function deleteUserService(rawId: unknown): Promise<void> {
+  const id = normalizeId(rawId);
+  const deleted = await deleteUserById(id);
 
-  if (!currentUser) {
-    throw new AppError({
-      statusCode: 404,
-      code: "NOT_FOUND",
-      message: "Usuario no encontrado."
-    });
+  if (!deleted) {
+    throw new UserDomainError(
+      "No se encontró el usuario solicitado.",
+      404,
+      "USER_NOT_FOUND"
+    );
   }
-
-  const temp = buildTemporaryCode();
-
-  const updatedUser = await setPasswordResetCode({
-    userId: input.userId,
-    temporaryCodeHash: temp.temporaryCodeHash,
-    temporaryCodeExpiresAt: temp.temporaryCodeExpiresAt
-  });
-
-  await revokeActiveSessionsByUserId(input.userId, "PASSWORD_RESET");
-
-  await createUserAudit({
-    userId: updatedUser.id,
-    action: "RESET_PASSWORD",
-    oldData: currentUser,
-    newData: {
-      ...updatedUser,
-      temporaryCodeShownOnce: true
-    },
-    changedByUserId: input.changedByUserId
-  });
-
-  return {
-    user: updatedUser,
-    temporaryCode: temp.temporaryCode,
-    expiresAt: temp.temporaryCodeExpiresAt.toISOString()
-  };
 }

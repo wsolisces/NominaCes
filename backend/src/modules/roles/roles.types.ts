@@ -1,98 +1,94 @@
 // ======================================================
 // PATH: backend/src/modules/roles/roles.types.ts
-// Tipos internos y públicos del módulo Roles
+// Tipos del módulo de roles
 // ======================================================
 
 /**
  * Responsabilidades:
- * - Definir filas obtenidas desde PostgreSQL.
- * - Definir respuestas públicas del módulo.
- * - Definir los datos aceptados para crear y modificar roles.
- *
- * Reglas:
- * - app_role usa is_active.
- * - app_permission usa permission_key como llave primaria.
- * - app_role_permission relaciona roles mediante permission_key.
+ * - Definir contratos TypeScript del módulo de roles.
+ * - Centralizar DTOs usados por controlador, servicio y repositorio.
+ * - Mantener reglas de datos separadas de Express.
  *
  * No debe:
  * - Ejecutar consultas SQL.
- * - Aplicar reglas de negocio.
- * - Leer Request o Response de Express.
+ * - Contener lógica HTTP.
+ * - Contener lógica visual del frontend.
  */
 
-/**
- * Fila interna obtenida desde PostgreSQL.
- *
- * PostgreSQL puede devolver columnas BIGINT como string.
- */
 export type RoleRow = {
-  id: number | string;
+  id: string;
   role_key: string;
   role_name: string;
   description: string | null;
   is_active: boolean;
-  created_at: Date;
-  updated_at: Date;
-  permissions: string[];
+  is_system: boolean;
+  is_protected: boolean;
+  created_at: string;
+  updated_at: string;
+  users_count: number;
+  permissions_count: number;
 };
 
-/**
- * Respuesta pública enviada al frontend.
- */
-export type RoleDto = {
-  id: number;
-  roleKey: string;
-  roleName: string;
+export type RoleUserRow = {
+  id: string;
+  username: string;
+  full_name: string;
+  is_active: boolean;
+  inactive_reason: string | null;
+  is_locked: boolean;
+};
+
+export type RolePermissionRow = {
+  permission_key: string;
+  permission_name: string;
+  module_key: string;
+  module_name: string | null;
   description: string | null;
-  isActive: boolean;
-  permissions: string[];
+  is_active: boolean;
+  assigned: boolean;
 };
 
-/**
- * Datos permitidos al crear un rol.
- *
- * Se aceptan temporalmente propiedades camelCase y snake_case
- * para mantener compatibilidad con clientes existentes.
- */
+export type RolePermissionGroup = {
+  module_key: string;
+  module_name: string;
+  permissions: RolePermissionRow[];
+};
+
+export type RoleDetail = RoleRow & {
+  permissions: RolePermissionGroup[];
+  users: RoleUserRow[];
+};
+
+export type RoleAuditRow = {
+  id: string;
+  role_id: string | null;
+  action: string;
+  old_data: unknown;
+  new_data: unknown;
+  reason: string | null;
+  changed_by_user_id: string | null;
+  changed_by_username: string | null;
+  changed_at: string;
+};
+
 export type CreateRoleInput = {
-  roleKey?: string;
-  role_key?: string;
-
-  roleName?: string;
-  role_name?: string;
-
+  role_name: string;
   description?: string | null;
-  permissions?: string[];
+  permission_keys?: string[];
 };
 
-/**
- * Datos permitidos al modificar un rol.
- *
- * La clave técnica roleKey no puede modificarse.
- */
 export type UpdateRoleInput = {
-  roleName?: string;
-  role_name?: string;
-
+  role_name: string;
   description?: string | null;
-  permissions?: string[];
+  permission_keys?: string[];
 };
 
-/**
- * Datos internos completamente normalizados para crear un rol.
- */
-export type NormalizedCreateRoleInput = {
-  roleKey: string;
-  roleName: string;
-  description: string | null;
-  permissions: string[];
+export type ChangeRoleStatusInput = {
+  is_active: boolean;
+  reason?: string | null;
 };
 
-/**
- * Datos internos normalizados para modificar un rol.
- */
-export type NormalizedUpdateRoleInput = {
-  roleName?: string;
-  description?: string | null;
-  permissions?: string[];
+export type RoleListFilters = {
+  search?: string;
+  status?: "ALL" | "ACTIVE" | "INACTIVE";
 };

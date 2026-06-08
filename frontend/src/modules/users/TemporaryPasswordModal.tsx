@@ -1,5 +1,5 @@
 // ======================================================
-// PATH: frontend/src/pages/Users/components/TemporaryPasswordModal.tsx
+// PATH: src/modules/usuarios/components/TemporaryPasswordModal.tsx
 // Modal para mostrar código temporal de contraseña
 // ======================================================
 
@@ -7,7 +7,7 @@
  * Responsabilidades:
  * - Mostrar el código temporal generado para crear o restablecer contraseña.
  * - Permitir copiar el código al portapapeles.
- * - Usar Modal y Button reutilizables.
+ * - Usar estilos propios del módulo de usuarios.
  *
  * No debe:
  * - Solicitar nuevos códigos.
@@ -17,8 +17,7 @@
 
 import { useMemo, useState } from "react";
 
-import { Button, Modal } from "../../../shared/ui";
-import type { UserTemporaryCodeResult } from "../users.types";
+import type { UserTemporaryCodeResult } from "./users.types";
 
 export type TemporaryPasswordModalProps = {
   result: UserTemporaryCodeResult | null;
@@ -115,57 +114,78 @@ export function TemporaryPasswordModal({
     }
   }
 
+  if (!result) return null;
+
   return (
-    <Modal
-      open={Boolean(result)}
-      title="Código temporal"
-      eyebrow="Contraseña"
-      size="sm"
-      onClose={onClose}
-      footer={
-        <div className="users-modal-actions">
-          <Button
+    <div className="users-modal-backdrop" role="presentation">
+      <section
+        className="users-modal users-modal--sm"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="temporary-password-title"
+      >
+        <header className="users-modal-header">
+          <div>
+            <p>Contraseña</p>
+            <h2 id="temporary-password-title">Código temporal</h2>
+          </div>
+
+          <button
             type="button"
-            variant="secondary"
+            className="users-modal-close"
+            onClick={onClose}
+            aria-label="Cerrar"
+          >
+            ×
+          </button>
+        </header>
+
+        <div className="users-modal-body">
+          <div className="users-temporary">
+            <p className="users-temporary__text">
+              Comparte este código únicamente con el usuario autorizado. El
+              usuario deberá crear una nueva contraseña al iniciar sesión.
+            </p>
+
+            {username && (
+              <div className="users-temporary__meta">
+                <span>Usuario</span>
+                <strong>{username}</strong>
+              </div>
+            )}
+
+            <div className="users-temporary__code" aria-label="Código temporal">
+              {code || "Código no disponible"}
+            </div>
+
+            {expiresAt && (
+              <div className="users-temporary__meta">
+                <span>Expira</span>
+                <strong>{expiresAt}</strong>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <footer className="users-modal-footer">
+          <button
+            type="button"
+            className="users-button users-button--secondary"
             onClick={onClose}
           >
             Cerrar
-          </Button>
+          </button>
 
-          <Button
+          <button
             type="button"
+            className="users-button users-button--primary"
             onClick={() => void handleCopy()}
             disabled={!code}
           >
             {copied ? "Copiado" : "Copiar código"}
-          </Button>
-        </div>
-      }
-    >
-      <div className="users-temporary">
-        <p className="users-temporary__text">
-          Comparte este código únicamente con el usuario autorizado. El usuario
-          deberá crear una nueva contraseña al iniciar sesión.
-        </p>
-
-        {username && (
-          <div className="users-temporary__meta">
-            <span>Usuario</span>
-            <strong>{username}</strong>
-          </div>
-        )}
-
-        <div className="users-temporary__code" aria-label="Código temporal">
-          {code || "Código no disponible"}
-        </div>
-
-        {expiresAt && (
-          <div className="users-temporary__meta">
-            <span>Expira</span>
-            <strong>{expiresAt}</strong>
-          </div>
-        )}
-      </div>
-    </Modal>
+          </button>
+        </footer>
+      </section>
+    </div>
   );
 }

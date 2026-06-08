@@ -13,7 +13,7 @@ import { handleError, ok } from "./shared/http/responses.js";
 
 import { loginRouter } from "./modules/login/login.routes.js";
 import { permisosRouter } from "./modules/permisos/permisos.routes.js";
-import { rolesRoutes } from "./modules/roles/roles.routes.js";
+import { rolesRouter } from "./modules/roles/roles.routes.js";
 import { usersRouter } from "./modules/users/users.routes.js";
 
 export const app = express();
@@ -85,7 +85,7 @@ app.get("/health", (_req: Request, res: Response) => {
  */
 app.use("/api/login", loginRouter);
 app.use("/api/permisos", permisosRouter);
-app.use("/api/roles", rolesRoutes);
+app.use("/api/roles", rolesRouter);
 app.use("/api/users", usersRouter);
 
 /**

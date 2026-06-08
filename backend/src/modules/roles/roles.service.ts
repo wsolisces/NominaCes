@@ -1,421 +1,340 @@
 // ======================================================
 // PATH: backend/src/modules/roles/roles.service.ts
-// Reglas de negocio del módulo Roles
+// Servicio del módulo de roles
 // ======================================================
 
 /**
  * Responsabilidades:
- * - Normalizar datos recibidos.
- * - Validar creación y modificación de roles.
- * - Aplicar reglas de negocio.
- * - Coordinar operaciones del repository.
- * - Convertir filas internas a respuestas públicas.
+ * - Aplicar reglas de negocio de roles.
+ * - Proteger SOPORTE.
+ * - Validar creación, edición, activación e inactivación.
+ * - Coordinar cambios de permisos y auditoría.
  *
  * No debe:
- * - Ejecutar SQL.
- * - Leer Request o Response de Express.
- * - Validar cookies o permisos del usuario.
+ * - Recibir Request/Response directamente.
+ * - Renderizar mensajes visuales.
+ * - Duplicar consultas SQL del repositorio.
  */
-
-import { AppError } from "../../shared/errors/AppError.js";
-
-import {
-  countUsersByRoleId,
-  deleteRoleById,
-  findRoleById,
-  findRoleByKey,
-  findRoles,
-  insertRole,
-  setRoleActiveById,
-  updateRoleById
-} from "./roles.repository.js";
 
 import type {
+  ChangeRoleStatusInput,
   CreateRoleInput,
-  NormalizedCreateRoleInput,
-  NormalizedUpdateRoleInput,
-  RoleDto,
+  RoleAuditRow,
+  RoleDetail,
+  RoleListFilters,
   RoleRow,
-  UpdateRoleInput
+  UpdateRoleInput,
 } from "./roles.types.js";
 
-/**
- * Roles protegidos que no pueden eliminarse ni desactivarse.
- */
-const PROTECTED_ROLE_KEYS = new Set([
-  "ADMINISTRADOR"
-]);
+import {
+  createRole,
+  findRoleAudit,
+  findRoleById,
+  findRoleDetail,
+  findRoles,
+  inactivateUsersByRole,
+  insertRoleAudit,
+  replaceRolePermissions,
+  roleKeyExists,
+  roleNameExists,
+  setRoleActive,
+  updateRoleData,
+  withTransaction,
+} from "./roles.repository.js";
+
+type ServiceError = Error & {
+  statusCode?: number;
+};
 
 /**
- * Indica si el valor recibido es un objeto utilizable.
+ * Crea errores con código HTTP.
  */
-function isRecord(
-  value: unknown
-): value is Record<string, unknown> {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    !Array.isArray(value)
-  );
+function createServiceError(message: string, statusCode = 400): ServiceError {
+  const error = new Error(message) as ServiceError;
+  error.statusCode = statusCode;
+  return error;
 }
 
 /**
- * Limpia valores de texto recibidos desde HTTP.
+ * Normaliza el nombre visible de un rol.
  */
-function cleanText(value: unknown): string {
-  return String(value ?? "").trim();
+function normalizeRoleName(value: string): string {
+  return value.trim().replace(/\s+/g, " ");
 }
 
 /**
- * Normaliza la clave técnica de un rol.
- *
- * Ejemplo:
- * "recursos humanos" se convierte en "RECURSOS_HUMANOS".
+ * Genera clave técnica estable a partir del nombre.
  */
-function normalizeRoleKey(value: unknown): string {
-  return cleanText(value)
+function generateRoleKey(roleName: string): string {
+  return normalizeRoleName(roleName)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .toUpperCase()
     .replace(/[^A-Z0-9]+/g, "_")
     .replace(/^_+|_+$/g, "");
 }
 
 /**
- * Normaliza permisos y elimina valores duplicados o vacíos.
+ * Normaliza lista de permisos.
  */
-function normalizePermissions(value: unknown): string[] {
-  if (!Array.isArray(value)) {
-    return [];
-  }
+function normalizePermissionKeys(permissionKeys?: string[]): string[] {
+  if (!permissionKeys?.length) return [];
 
   return Array.from(
     new Set(
-      value
-        .map((item) => cleanText(item).toUpperCase())
+      permissionKeys
+        .map((permissionKey) => permissionKey.trim().toUpperCase())
         .filter(Boolean)
     )
   );
 }
 
 /**
- * Convierte una fila interna a la respuesta pública.
+ * Valida si un rol puede editarse.
  */
-function toRoleDto(role: RoleRow): RoleDto {
-  return {
-    id: Number(role.id),
-    roleKey: role.role_key,
-    roleName: role.role_name,
-    description: role.description,
-    isActive: role.is_active,
-    permissions: role.permissions
-  };
+function assertEditableRole(role: RoleRow): void {
+  if (role.is_protected || role.role_key === "SOPORTE") {
+    throw createServiceError(
+      "El rol SOPORTE está protegido y no se puede modificar.",
+      403
+    );
+  }
+
+  if (!role.is_active) {
+    throw createServiceError(
+      "Primero debes reactivar el rol para modificarlo.",
+      409
+    );
+  }
 }
 
 /**
- * Confirma que un rol exista.
+ * Lista roles.
  */
-async function requireRole(id: number): Promise<RoleRow> {
-  const role = await findRoleById(id);
+export async function listRolesService(
+  filters: RoleListFilters
+): Promise<RoleRow[]> {
+  return findRoles(filters);
+}
+
+/**
+ * Obtiene detalle completo de rol.
+ */
+export async function getRoleDetailService(roleId: string): Promise<RoleDetail> {
+  const role = await findRoleDetail(roleId);
 
   if (!role) {
-    throw new AppError({
-      statusCode: 404,
-      code: "NOT_FOUND",
-      message: "Rol no encontrado."
-    });
+    throw createServiceError("Rol no encontrado.", 404);
   }
 
   return role;
 }
 
 /**
- * Confirma que el rol no sea un rol protegido.
+ * Crea un rol normal.
  */
-function ensureRoleIsNotProtected(
-  role: RoleRow,
-  action: "desactivarse" | "eliminarse"
-): void {
-  if (PROTECTED_ROLE_KEYS.has(role.role_key.toUpperCase())) {
-    throw new AppError({
-      statusCode: 409,
-      code: "CONFLICT",
-      message: `El rol Administrador no puede ${action}.`
-    });
-  }
-}
+export async function createRoleService(
+  input: CreateRoleInput,
+  actorUserId: string | null
+): Promise<RoleRow> {
+  const roleName = normalizeRoleName(input.role_name ?? "");
+  const roleKey = generateRoleKey(roleName);
+  const description = input.description?.trim() || null;
+  const permissionKeys = normalizePermissionKeys(input.permission_keys);
 
-/**
- * Lista todos los roles.
- */
-export async function listRoles(): Promise<RoleDto[]> {
-  const roles = await findRoles();
-
-  return roles.map(toRoleDto);
-}
-
-/**
- * Consulta un rol mediante su ID.
- */
-export async function getRole(
-  id: number
-): Promise<RoleDto | null> {
-  const role = await findRoleById(id);
-
-  return role ? toRoleDto(role) : null;
-}
-
-/**
- * Crea un rol nuevo.
- */
-export async function createRole(
-  payload: unknown
-): Promise<RoleDto> {
-  if (!isRecord(payload)) {
-    throw new AppError({
-      statusCode: 400,
-      code: "VALIDATION_ERROR",
-      message: "Datos de rol inválidos."
-    });
+  if (!roleName) {
+    throw createServiceError("El nombre del rol es obligatorio.");
   }
 
-  const body = payload as CreateRoleInput;
-
-  const input: NormalizedCreateRoleInput = {
-    roleKey: normalizeRoleKey(
-      body.roleKey ?? body.role_key
-    ),
-
-    roleName: cleanText(
-      body.roleName ?? body.role_name
-    ),
-
-    description:
-      body.description === undefined
-        ? null
-        : cleanText(body.description) || null,
-
-    permissions: normalizePermissions(body.permissions)
-  };
-
-  if (!input.roleKey || !input.roleName) {
-    throw new AppError({
-      statusCode: 400,
-      code: "VALIDATION_ERROR",
-      message: "La clave y el nombre del rol son obligatorios."
-    });
+  if (!roleKey) {
+    throw createServiceError("No fue posible generar la clave del rol.");
   }
 
-  if (input.roleKey.length > 80) {
-    throw new AppError({
-      statusCode: 400,
-      code: "VALIDATION_ERROR",
-      message: "La clave del rol no puede superar 80 caracteres."
-    });
-  }
-
-  if (input.roleName.length > 120) {
-    throw new AppError({
-      statusCode: 400,
-      code: "VALIDATION_ERROR",
-      message: "El nombre del rol no puede superar 120 caracteres."
-    });
-  }
-
-  const duplicated = await findRoleByKey(input.roleKey);
-
-  if (duplicated) {
-    throw new AppError({
-      statusCode: 409,
-      code: "CONFLICT",
-      message: "Ya existe un rol con esa clave."
-    });
-  }
-
-  const created = await insertRole(input);
-
-  return toRoleDto(created);
-}
-
-/**
- * Modifica nombre, descripción o permisos de un rol.
- */
-export async function updateRole(
-  id: number,
-  payload: unknown
-): Promise<RoleDto> {
-  if (!isRecord(payload)) {
-    throw new AppError({
-      statusCode: 400,
-      code: "VALIDATION_ERROR",
-      message: "Datos de rol inválidos."
-    });
-  }
-
-  const body = payload as UpdateRoleInput;
-
-  const hasRoleName =
-    body.roleName !== undefined ||
-    body.role_name !== undefined;
-
-  const hasDescription =
-    body.description !== undefined;
-
-  const hasPermissions =
-    body.permissions !== undefined;
-
-  if (
-    !hasRoleName &&
-    !hasDescription &&
-    !hasPermissions
-  ) {
-    throw new AppError({
-      statusCode: 400,
-      code: "VALIDATION_ERROR",
-      message: "No se recibieron datos para modificar el rol."
-    });
-  }
-
-  const input: NormalizedUpdateRoleInput = {};
-
-  if (hasRoleName) {
-    const roleName = cleanText(
-      body.roleName ?? body.role_name
-    );
-
-    if (!roleName) {
-      throw new AppError({
-        statusCode: 400,
-        code: "VALIDATION_ERROR",
-        message: "El nombre del rol no puede estar vacío."
-      });
-    }
-
-    if (roleName.length > 120) {
-      throw new AppError({
-        statusCode: 400,
-        code: "VALIDATION_ERROR",
-        message: "El nombre del rol no puede superar 120 caracteres."
-      });
-    }
-
-    input.roleName = roleName;
-  }
-
-  if (hasDescription) {
-    input.description =
-      cleanText(body.description) || null;
-  }
-
-  if (hasPermissions) {
-    if (!Array.isArray(body.permissions)) {
-      throw new AppError({
-        statusCode: 400,
-        code: "VALIDATION_ERROR",
-        message: "La lista de permisos es inválida."
-      });
-    }
-
-    input.permissions = normalizePermissions(
-      body.permissions
+  if (roleKey === "SOPORTE") {
+    throw createServiceError(
+      "No se puede crear el rol SOPORTE desde pantalla.",
+      403
     );
   }
 
-  const updated = await updateRoleById(id, input);
+  return withTransaction(async (client) => {
+    const existsByName = await roleNameExists(roleName, undefined, client);
+    const existsByKey = await roleKeyExists(roleKey, undefined, client);
 
-  if (!updated) {
-    throw new AppError({
-      statusCode: 404,
-      code: "NOT_FOUND",
-      message: "Rol no encontrado."
-    });
-  }
+    if (existsByName || existsByKey) {
+      throw createServiceError(
+        "Ya existe un rol con ese nombre o clave, incluso si está inactivo.",
+        409
+      );
+    }
 
-  return toRoleDto(updated);
+    const role = await createRole(
+      {
+        role_key: roleKey,
+        role_name: roleName,
+        description,
+      },
+      client
+    );
+
+    await replaceRolePermissions(role.id, permissionKeys, actorUserId, client);
+
+    await insertRoleAudit(
+      {
+        roleId: role.id,
+        action: "ROL_CREADO",
+        oldData: null,
+        newData: {
+          role,
+          permission_keys: permissionKeys,
+        },
+        changedByUserId: actorUserId,
+      },
+      client
+    );
+
+    return role;
+  });
 }
 
 /**
- * Desactiva un rol.
+ * Edita datos y permisos de un rol activo.
  */
-export async function deactivateRole(
-  id: number
-): Promise<RoleDto> {
-  const current = await requireRole(id);
+export async function updateRoleService(
+  roleId: string,
+  input: UpdateRoleInput,
+  actorUserId: string | null
+): Promise<RoleRow> {
+  const roleName = normalizeRoleName(input.role_name ?? "");
+  const description = input.description?.trim() || null;
+  const permissionKeys = normalizePermissionKeys(input.permission_keys);
 
-  ensureRoleIsNotProtected(
-    current,
-    "desactivarse"
-  );
-
-  const updated = await setRoleActiveById(id, false);
-
-  if (!updated) {
-    throw new AppError({
-      statusCode: 404,
-      code: "NOT_FOUND",
-      message: "Rol no encontrado."
-    });
+  if (!roleName) {
+    throw createServiceError("El nombre del rol es obligatorio.");
   }
 
-  return toRoleDto(updated);
+  return withTransaction(async (client) => {
+    const currentRole = await findRoleById(roleId, client);
+
+    if (!currentRole) {
+      throw createServiceError("Rol no encontrado.", 404);
+    }
+
+    assertEditableRole(currentRole);
+
+    const existsByName = await roleNameExists(roleName, roleId, client);
+
+    if (existsByName) {
+      throw createServiceError(
+        "Ya existe un rol con ese nombre, incluso si está inactivo.",
+        409
+      );
+    }
+
+    const role = await updateRoleData(
+      roleId,
+      {
+        role_name: roleName,
+        description,
+      },
+      client
+    );
+
+    await replaceRolePermissions(roleId, permissionKeys, actorUserId, client);
+
+    await insertRoleAudit(
+      {
+        roleId,
+        action: "ROL_MODIFICADO",
+        oldData: currentRole,
+        newData: {
+          role,
+          permission_keys: permissionKeys,
+        },
+        changedByUserId: actorUserId,
+      },
+      client
+    );
+
+    return role;
+  });
 }
 
 /**
- * Activa un rol.
+ * Cambia estado de un rol.
  */
-export async function activateRole(
-  id: number
-): Promise<RoleDto> {
-  const updated = await setRoleActiveById(id, true);
+export async function changeRoleStatusService(
+  roleId: string,
+  input: ChangeRoleStatusInput,
+  actorUserId: string | null
+): Promise<RoleRow> {
+  return withTransaction(async (client) => {
+    const currentRole = await findRoleById(roleId, client);
 
-  if (!updated) {
-    throw new AppError({
-      statusCode: 404,
-      code: "NOT_FOUND",
-      message: "Rol no encontrado."
-    });
-  }
+    if (!currentRole) {
+      throw createServiceError("Rol no encontrado.", 404);
+    }
 
-  return toRoleDto(updated);
+    if (currentRole.is_protected || currentRole.role_key === "SOPORTE") {
+      throw createServiceError(
+        "El rol SOPORTE está protegido y no se puede inactivar.",
+        403
+      );
+    }
+
+    if (currentRole.is_active === input.is_active) {
+      return currentRole;
+    }
+
+    if (!input.is_active && !input.reason?.trim()) {
+      throw createServiceError("El motivo para inactivar el rol es obligatorio.");
+    }
+
+    const updatedRole = await setRoleActive(roleId, input.is_active, client);
+
+    let affectedUsers = 0;
+
+    if (!input.is_active) {
+      affectedUsers = await inactivateUsersByRole(
+        {
+          roleId,
+          reason: input.reason!.trim(),
+          actorUserId,
+        },
+        client
+      );
+    }
+
+    await insertRoleAudit(
+      {
+        roleId,
+        action: input.is_active ? "ROL_REACTIVADO" : "ROL_INACTIVADO",
+        oldData: currentRole,
+        newData: {
+          ...updatedRole,
+          affected_users: affectedUsers,
+        },
+        changedByUserId: actorUserId,
+        reason: input.is_active ? null : input.reason!.trim(),
+      },
+      client
+    );
+
+    return updatedRole;
+  });
 }
 
 /**
- * Elimina permanentemente un rol.
- *
- * Reglas:
- * - El rol debe existir.
- * - ADMINISTRADOR no puede eliminarse.
- * - El rol no puede tener usuarios asignados.
+ * Consulta auditoría de rol.
  */
-export async function deleteRole(
-  id: number
-): Promise<RoleDto> {
-  const current = await requireRole(id);
+export async function getRoleAuditService(
+  roleId: string
+): Promise<RoleAuditRow[]> {
+  const role = await findRoleById(roleId);
 
-  ensureRoleIsNotProtected(
-    current,
-    "eliminarse"
-  );
-
-  const assignedUsers = await countUsersByRoleId(id);
-
-  if (assignedUsers > 0) {
-    throw new AppError({
-      statusCode: 409,
-      code: "CONFLICT",
-      message:
-        `No se puede eliminar el rol porque tiene ` +
-        `${assignedUsers} usuario(s) asignado(s).`
-    });
+  if (!role) {
+    throw createServiceError("Rol no encontrado.", 404);
   }
 
-  const deleted = await deleteRoleById(id);
-
-  if (!deleted) {
-    throw new AppError({
-      statusCode: 404,
-      code: "NOT_FOUND",
-      message: "Rol no encontrado."
-    });
-  }
-
-  return toRoleDto(deleted);
+  return findRoleAudit(roleId);
 }

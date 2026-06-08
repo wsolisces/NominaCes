@@ -1,782 +1,505 @@
 /* ======================================================
    PATH: src/modules/roles/roles.css
-   Estilos específicos del módulo de roles
+   Estilos del módulo de roles
    ====================================================== */
 
 /**
  * Responsabilidades:
- * - Definir la presentación visual de la página de roles.
- * - Estilizar indicadores, estados, tabla y modales.
- * - Presentar permisos asignados de forma compacta.
- * - Mantener acentos azules discretos y consistentes.
+ * - Definir estilos específicos de la pantalla de roles.
+ * - Mantener consistencia visual con permisos, usuarios y seguridad.
+ * - Estilizar KPIs, alertas, paneles, auditoría y asignación de permisos.
  *
  * No debe:
- * - Definir estilos globales del sistema.
- * - Modificar componentes reutilizables.
- * - Contener estilos específicos de otros módulos.
+ * - Modificar layout principal.
+ * - Redefinir estilos globales.
+ * - Duplicar reglas internas del DataTable.
  */
 
 /* ======================================================
-   INDICADORES SUPERIORES
+   KPIS
    ====================================================== */
 
 .roles-kpis {
-  width: 100%;
-
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--space-md);
+  gap: 0.85rem;
 }
 
 .roles-kpi {
   min-width: 0;
-
-  display: grid;
-  gap: 0.35rem;
-
-  padding: var(--space-lg);
-
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-
-  background: var(--color-surface);
-
-  box-shadow: 0 0.3rem 1rem rgba(15, 23, 42, 0.04);
+  padding: 1rem 1.05rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
 }
 
 .roles-kpi__label {
-  overflow: hidden;
-
-  color: var(--color-text-secondary);
-
-  font-size: var(--font-size-xs);
+  display: block;
+  margin-bottom: 0.45rem;
+  color: #64748b;
+  font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 0.055em;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
+  letter-spacing: 0.02em;
 }
 
 .roles-kpi__value {
-  overflow: hidden;
-
-  color: var(--color-text-primary);
-
-  font-size: calc(1.55rem * var(--app-scale));
-  font-weight: 750;
+  display: block;
+  color: #0f172a;
+  font-size: 1.45rem;
+  font-weight: 800;
   line-height: 1;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 /* ======================================================
-   CONTENEDOR PRINCIPAL
-   ====================================================== */
-
-.roles-panel {
-  width: 100%;
-  min-width: 0;
-
-  display: grid;
-  gap: var(--space-lg);
-
-  padding: var(--space-lg);
-
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-
-  background: var(--color-surface);
-}
-
-/* ======================================================
-   MENSAJES
+   ALERTAS
    ====================================================== */
 
 .roles-alert {
-  width: 100%;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-md);
+  gap: 0.75rem;
 
-  padding: var(--space-md) var(--space-lg);
+  padding: 0.8rem 0.95rem;
+  border-radius: 14px;
 
-  border: 1px solid transparent;
-  border-radius: var(--radius-md);
-
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  line-height: 1.45;
+  font-size: 0.86rem;
+  font-weight: 700;
 }
 
 .roles-alert--success {
-  border-color: #bfdbfe;
-
-  background: #eff6ff;
-  color: #1d4ed8;
+  border: 1px solid #bbf7d0;
+  background: #f0fdf4;
+  color: #166534;
 }
 
 .roles-alert--error {
-  border-color: #fecaca;
-
+  border: 1px solid #fecaca;
   background: #fef2f2;
-  color: #b91c1c;
+  color: #991b1b;
 }
 
 .roles-alert__close {
-  flex: 0 0 auto;
+  width: 1.65rem;
+  height: 1.65rem;
 
-  width: calc(1.8rem * var(--app-scale));
-  height: calc(1.8rem * var(--app-scale));
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 0;
+  display: inline-grid;
+  place-items: center;
 
   border: 0;
-  border-radius: 50%;
-
+  border-radius: 999px;
   background: transparent;
   color: currentColor;
 
-  cursor: pointer;
-
-  font-size: calc(1.25rem * var(--app-scale));
+  font-size: 1.15rem;
   line-height: 1;
-
-  opacity: 0.7;
-
-  transition:
-    background-color 160ms ease,
-    opacity 160ms ease;
+  cursor: pointer;
 }
 
 .roles-alert__close:hover {
   background: rgba(15, 23, 42, 0.08);
-  opacity: 1;
-}
-
-.roles-alert__close:focus-visible {
-  outline: 2px solid currentColor;
-  outline-offset: 2px;
 }
 
 /* ======================================================
-   INFORMACIÓN PRINCIPAL DE TABLA
+   PANEL
    ====================================================== */
 
-.roles-main-text {
+.roles-panel {
   min-width: 0;
+  padding-bottom: 0.35rem;
+}
 
+/* ======================================================
+   RESUMEN MODAL CREAR / EDITAR
+   ====================================================== */
+
+.roles-edit-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  padding: 0.9rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.roles-edit-summary__content {
+  min-width: 0;
   display: grid;
   gap: 0.2rem;
 }
 
-.roles-main-text__title {
-  overflow: hidden;
-
-  color: var(--color-text-primary);
-
-  font-size: var(--font-size-sm);
-  font-weight: 700;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.roles-edit-summary__label {
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
-.roles-module-key {
-  max-width: 100%;
-
-  display: inline-flex;
-  align-items: center;
-
+.roles-edit-summary__key {
   overflow: hidden;
-
-  padding: 0.25rem 0.55rem;
-
-  border: 1px solid #dbeafe;
-  border-radius: var(--radius-sm);
-
-  background: #f8fbff;
-  color: #2563eb;
-
+  color: #0f172a;
   font-family:
-    "Cascadia Code",
-    "Segoe UI Mono",
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
     Consolas,
+    "Liberation Mono",
+    "Courier New",
     monospace;
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-
+  font-size: 0.9rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.roles-description {
-  display: block;
-
-  overflow: hidden;
-
-  color: var(--color-text-secondary);
-
-  font-size: var(--font-size-sm);
-  line-height: 1.45;
-
-  text-overflow: ellipsis;
-}
-
-/* ======================================================
-   ESTADOS
-   ====================================================== */
-
-.roles-status {
-  min-width: 4.6rem;
-  min-height: calc(1.75rem * var(--app-scale));
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 0 var(--space-md);
-
-  border: 1px solid transparent;
-  border-radius: 999px;
-
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  line-height: 1;
-}
-
-.roles-status--active {
-  border-color: #bfdbfe;
-
-  background: #eff6ff;
-  color: #1d4ed8;
-}
-
-.roles-status--inactive {
-  border-color: #d1d5db;
-
-  background: #f8fafc;
-  color: var(--color-text-secondary);
-}
-
-/* ======================================================
-   PERMISOS MOSTRADOS EN TABLA
-   ====================================================== */
-
-.roles-permission-list {
-  min-width: 0;
-
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-}
-
-.roles-permission-chip {
-  max-width: 11rem;
-
-  display: inline-flex;
-  align-items: center;
-
-  overflow: hidden;
-
-  padding: 0.22rem 0.5rem;
-
-  border: 1px solid #dbeafe;
-  border-radius: 999px;
-
-  background: #f8fbff;
-  color: #2563eb;
-
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ======================================================
-   ACCIONES DE TABLA
-   ====================================================== */
-
-.roles-table-actions {
-  min-width: max-content;
-
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--space-sm);
-}
-
-.roles-action-icon-button {
+.roles-edit-summary__status {
   flex: 0 0 auto;
+  padding: 0.38rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
 
-  width: calc(2rem * var(--app-scale));
-  height: calc(2rem * var(--app-scale));
+.roles-edit-summary__status--active {
+  background: #ecfdf5;
+  color: #047857;
+}
 
-  display: inline-flex;
+.roles-edit-summary__status--inactive {
+  background: #f8fafc;
+  color: #64748b;
+}
+
+/* ======================================================
+   ELIMINAR
+   ====================================================== */
+
+.roles-delete-confirm {
+  display: grid;
+  gap: 0.7rem;
+  color: #334155;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.roles-delete-confirm p {
+  margin: 0;
+}
+
+.roles-delete-confirm strong {
+  color: #0f172a;
+}
+
+/* ======================================================
+   PERMISOS DEL ROL
+   ====================================================== */
+
+.roles-permissions-summary {
+  display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 1rem;
 
-  padding: 0;
-
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-
-  background: var(--color-surface);
-  color: var(--color-text-secondary);
-
-  cursor: pointer;
-
-  transition:
-    border-color 160ms ease,
-    background-color 160ms ease,
-    color 160ms ease,
-    opacity 160ms ease,
-    transform 160ms ease;
+  padding: 0.95rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
 }
 
-.roles-action-icon-button svg {
-  width: calc(1rem * var(--app-scale));
-  height: calc(1rem * var(--app-scale));
-
-  pointer-events: none;
+.roles-permissions-summary__label {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
-.roles-action-icon-button:hover:not(:disabled) {
-  border-color: #93c5fd;
-
-  background: #eff6ff;
-  color: #2563eb;
-
-  transform: translateY(-1px);
+.roles-permissions-summary__name {
+  color: #0f172a;
+  font-size: 0.95rem;
+  font-weight: 800;
 }
 
-.roles-action-icon-button--success:hover:not(:disabled) {
-  border-color: #93c5fd;
-
+.roles-permissions-summary__count {
+  flex: 0 0 auto;
+  padding: 0.42rem 0.75rem;
+  border-radius: 999px;
   background: #eff6ff;
   color: #1d4ed8;
+  font-size: 0.76rem;
+  font-weight: 800;
 }
 
-.roles-action-icon-button--danger:hover:not(:disabled) {
-  border-color: #fecaca;
-
-  background: #fef2f2;
-  color: #dc2626;
-}
-
-.roles-action-icon-button:focus-visible {
-  outline: 2px solid #93c5fd;
-  outline-offset: 2px;
-}
-
-.roles-action-icon-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.42;
-  transform: none;
-}
-
-/* ======================================================
-   FORMULARIO DEL MODAL
-   ====================================================== */
-
-.roles-form-grid {
-  width: 100%;
-
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-lg);
-}
-
-/* ======================================================
-   CONTENEDOR DE PERMISOS DEL FORMULARIO
-   ====================================================== */
-
-.roles-permissions {
-  width: 100%;
-  min-width: 0;
-
-  display: grid;
-  gap: var(--space-md);
-
-  padding-top: var(--space-md);
-
-  border-top: 1px solid var(--color-border);
-}
-
-.roles-permissions__header {
-  width: 100%;
-
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-lg);
-}
-
-.roles-permissions__header > div {
-  min-width: 0;
-}
-
-.roles-permissions__title {
-  margin: 0;
-
-  color: var(--color-text-primary);
-
-  font-size: var(--font-size-md);
-  font-weight: 750;
-  line-height: 1.25;
-}
-
-.roles-permissions__description {
-  margin: 0.3rem 0 0;
-
-  color: var(--color-text-secondary);
-
-  font-size: var(--font-size-sm);
-  line-height: 1.45;
-}
-
-.roles-permissions__summary {
-  min-height: calc(1.75rem * var(--app-scale));
-
-  display: flex;
-  align-items: center;
-
-  color: #2563eb;
-
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-}
-
-.roles-permissions__groups {
-  max-height: min(46vh, 32rem);
-  overflow-y: auto;
-
-  display: grid;
-  gap: var(--space-md);
-
-  padding-right: 0.3rem;
-  padding-bottom: 0.3rem;
-}
-
-.roles-permissions__empty {
-  padding: var(--space-xl);
-
-  border: 1px dashed var(--color-border);
-  border-radius: var(--radius-md);
-
+.roles-permissions-empty {
+  padding: 1.4rem;
+  border: 1px dashed #cbd5e1;
+  border-radius: 16px;
   background: #f8fafc;
-  color: var(--color-text-secondary);
-
-  font-size: var(--font-size-sm);
+  color: #64748b;
+  font-size: 0.9rem;
+  font-weight: 700;
   text-align: center;
 }
 
-/* ======================================================
-   GRUPOS DE PERMISOS
-   ====================================================== */
-
-.roles-permission-group {
-  overflow: hidden;
-
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-
-  background: var(--color-surface);
+.roles-permissions-groups {
+  display: grid;
+  gap: 0.9rem;
+  max-height: min(52vh, 34rem);
+  overflow: auto;
+  padding-right: 0.25rem;
 }
 
-.roles-permission-group__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-md);
-
-  padding: var(--space-md);
-
-  border-bottom: 1px solid var(--color-border);
-
-  background: #f8fbff;
+.roles-permissions-group {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.85rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #ffffff;
 }
 
-.roles-permission-group__title {
-  overflow: hidden;
-
-  color: var(--color-text-primary);
-
-  font-size: var(--font-size-xs);
-  font-weight: 800;
-  letter-spacing: 0.045em;
-
-  text-overflow: ellipsis;
+.roles-permissions-group__title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  white-space: nowrap;
 }
 
-.roles-permission-group__count {
-  flex: 0 0 auto;
-
-  min-width: calc(1.6rem * var(--app-scale));
-  min-height: calc(1.6rem * var(--app-scale));
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 0 0.4rem;
-
-  border: 1px solid #bfdbfe;
-  border-radius: 999px;
-
-  background: #eff6ff;
-  color: #1d4ed8;
-
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-}
-
-.roles-permission-group__list {
+.roles-permissions-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1px;
-
-  background: var(--color-border);
+  gap: 0.65rem;
 }
 
-/* ======================================================
-   OPCIONES DE PERMISO
-   ====================================================== */
-
 .roles-permission-option {
-  min-width: 0;
-
   display: flex;
   align-items: flex-start;
-  gap: var(--space-md);
+  gap: 0.65rem;
 
-  padding: var(--space-md);
+  min-width: 0;
+  padding: 0.75rem;
 
-  background: var(--color-surface);
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #f8fafc;
 
   cursor: pointer;
-
   transition:
-    background-color 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
     box-shadow 160ms ease;
 }
 
 .roles-permission-option:hover {
-  background: #f8fbff;
+  border-color: #bfdbfe;
+  background: #ffffff;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
 }
 
-.roles-permission-option:has(input:checked) {
+.roles-permission-option--checked {
+  border-color: #93c5fd;
   background: #eff6ff;
-  box-shadow: inset 0.18rem 0 #60a5fa;
-}
-
-.roles-permission-option:has(input:disabled) {
-  cursor: not-allowed;
-  opacity: 0.6;
 }
 
 .roles-permission-option input {
-  flex: 0 0 auto;
-
-  width: calc(1rem * var(--app-scale));
-  height: calc(1rem * var(--app-scale));
-
-  margin: 0.15rem 0 0;
-
+  margin-top: 0.15rem;
   accent-color: #2563eb;
-  cursor: pointer;
 }
 
-.roles-permission-option input:disabled {
-  cursor: not-allowed;
-}
-
-.roles-permission-option__content {
+.roles-permission-option__body {
   min-width: 0;
-
   display: grid;
   gap: 0.2rem;
 }
 
-.roles-permission-option__name {
-  overflow: hidden;
-
-  color: var(--color-text-primary);
-
-  font-size: var(--font-size-sm);
-  font-weight: 700;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.roles-permission-option__body strong {
+  color: #0f172a;
+  font-size: 0.82rem;
+  font-weight: 800;
 }
 
-.roles-permission-option__key {
-  overflow: hidden;
-
-  color: #2563eb;
-
-  font-family:
-    "Cascadia Code",
-    "Segoe UI Mono",
-    Consolas,
-    monospace;
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.roles-permission-option__description {
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-
-  color: var(--color-text-secondary);
-
-  font-size: var(--font-size-xs);
-  line-height: 1.4;
+.roles-permission-option__body span {
+  color: #64748b;
+  font-size: 0.76rem;
+  line-height: 1.35;
 }
 
 /* ======================================================
-   CONFIRMACIÓN DE ELIMINACIÓN
+   AUDITORÍA
    ====================================================== */
 
-.roles-delete-summary {
+.roles-audit-info {
   display: grid;
-  gap: 0.35rem;
-
-  padding: var(--space-lg);
-
-  border: 1px solid #dbeafe;
-  border-radius: var(--radius-md);
-
-  background: #f8fbff;
+  gap: 0.25rem;
+  padding: 0.9rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
 }
 
-.roles-delete-summary__label {
-  color: var(--color-text-secondary);
-
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  letter-spacing: 0.045em;
+.roles-audit-info__label {
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
-.roles-delete-summary__name {
-  color: var(--color-text-primary);
-
-  font-size: var(--font-size-md);
-  font-weight: 750;
-}
-
-.roles-delete-summary__key {
-  overflow: hidden;
-
-  color: #2563eb;
-
+.roles-audit-info__key {
+  color: #0f172a;
   font-family:
-    "Cascadia Code",
-    "Segoe UI Mono",
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
     Consolas,
+    "Liberation Mono",
+    "Courier New",
     monospace;
-  font-size: var(--font-size-xs);
+  font-size: 0.9rem;
+}
+
+.roles-table-wrapper {
+  width: 100%;
+  overflow: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.roles-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.roles-table th {
+  padding: 0.72rem 0.85rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.roles-table td {
+  padding: 0.78rem 0.85rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  vertical-align: top;
+}
+
+.roles-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.roles-table__empty {
+  padding: 1.5rem !important;
+  color: #64748b !important;
   font-weight: 700;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  text-align: center;
 }
 
-.roles-delete-warning {
-  margin: 0;
-
-  color: var(--color-text-secondary);
-
-  font-size: var(--font-size-sm);
-  line-height: 1.55;
+.roles-audit-change {
+  display: grid;
+  gap: 0.25rem;
 }
 
-/* ======================================================
-   SCROLLBAR DEL SELECTOR DE PERMISOS
-   ====================================================== */
-
-.roles-permissions__groups::-webkit-scrollbar {
-  width: 0.45rem;
+.roles-audit-change__old {
+  color: #94a3b8;
+  text-decoration: line-through;
 }
 
-.roles-permissions__groups::-webkit-scrollbar-track {
-  background: transparent;
+.roles-audit-change__arrow {
+  color: #64748b;
+  font-weight: 800;
 }
 
-.roles-permissions__groups::-webkit-scrollbar-thumb {
+.roles-audit-change__new {
+  display: inline-flex;
+  width: fit-content;
+  padding: 0.18rem 0.45rem;
   border-radius: 999px;
-
-  background: #cbd5e1;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 800;
 }
 
-.roles-permissions__groups::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+.roles-audit-change__same {
+  color: #334155;
+}
+
+.roles-audit-status-change {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.roles-audit-status-change__arrow {
+  color: #64748b;
+  font-weight: 900;
+}
+
+.roles-audit-status {
+  display: inline-flex;
+  width: fit-content;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.roles-audit-status--changed {
+  background: #eff6ff;
+  color: #1d4ed8;
 }
 
 /* ======================================================
    RESPONSIVE
    ====================================================== */
 
-@media (max-width: 1100px) {
+@media (max-width: 1080px) {
   .roles-kpis {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .roles-permission-group__list {
+  .roles-permissions-list {
     grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 760px) {
-  .roles-form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .roles-permissions__header {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .roles-permissions__header > button {
-    width: 100%;
-  }
-}
-
-@media (max-width: 620px) {
+@media (max-width: 640px) {
   .roles-kpis {
     grid-template-columns: 1fr;
   }
 
-  .roles-kpi,
-  .roles-panel {
-    padding: var(--space-md);
+  .roles-permissions-summary {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
-  .roles-table-actions {
-    gap: 0.35rem;
-  }
-
-  .roles-action-icon-button {
-    width: calc(1.9rem * var(--app-scale));
-    height: calc(1.9rem * var(--app-scale));
-  }
-
-  .roles-permissions__groups {
-    max-height: min(52vh, 28rem);
+  .roles-edit-summary {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

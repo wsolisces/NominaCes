@@ -1,24 +1,22 @@
 // ======================================================
 // PATH: src/modules/roles/roles.types.ts
-// Tipos del módulo Roles
+// Tipos del módulo de roles
 // ======================================================
 
 /**
  * Responsabilidades:
- * - Definir los contratos recibidos desde el backend.
- * - Definir los payloads enviados al backend.
- * - Definir estados auxiliares utilizados por la pantalla.
- * - Mantener tipado consistente entre API, página y tabla.
+ * - Definir los contratos TypeScript del módulo de roles.
+ * - Mantener tipados los DTOs recibidos desde el backend.
+ * - Definir los estados utilizados por formularios y asignación de permisos.
  *
  * No debe:
  * - Ejecutar peticiones HTTP.
- * - Contener componentes React.
- * - Aplicar reglas visuales.
- * - Modificar información recibida desde el backend.
+ * - Renderizar componentes.
+ * - Definir estilos visuales.
  */
 
 /**
- * Rol devuelto por el backend.
+ * Rol recibido desde el backend.
  */
 export type RoleDto = {
   id: number;
@@ -26,73 +24,80 @@ export type RoleDto = {
   roleName: string;
   description: string | null;
   isActive: boolean;
-  permissions: string[];
+  createdAt: string;
+  updatedAt: string;
 };
 
 /**
- * Payload utilizado para crear un rol.
+ * Permiso disponible para asignarse a roles.
  */
-export type CreateRoleInput = {
-  roleKey: string;
-  roleName: string;
-  description?: string | null;
-  permissions?: string[];
+export type RolePermissionDto = {
+  permissionKey: string;
+  permissionName: string;
+  moduleKey: string;
+  description: string | null;
+  isActive: boolean;
+  assigned: boolean;
 };
 
 /**
- * Payload utilizado para modificar un rol.
- *
- * La clave técnica no puede modificarse después
- * de crear el rol.
+ * Registro de auditoría del rol.
  */
-export type UpdateRoleInput = {
-  roleName?: string;
-  description?: string | null;
-  permissions?: string[];
+export type RoleAuditDto = {
+  id: number;
+  oldRoleName: string | null;
+  newRoleName: string | null;
+  oldDescription: string | null;
+  newDescription: string | null;
+  oldIsActive: boolean | null;
+  newIsActive: boolean | null;
+  changedByUsername: string | null;
+  changedByFullName: string | null;
+  changedAt: string;
 };
 
 /**
- * Estado editable utilizado dentro del formulario.
+ * Estado editable del formulario de creación y edición.
  */
 export type RoleFormState = {
   roleKey: string;
   roleName: string;
   description: string;
-  permissions: string[];
+  isActive: boolean;
 };
 
 /**
- * Resumen utilizado en los indicadores superiores.
+ * Resumen superior de roles.
  */
 export type RolesSummary = {
   total: number;
   active: number;
   inactive: number;
-  assignedPermissions: number;
+  system: number;
 };
 
 /**
- * Respuesta posible del endpoint de listado.
- *
- * Permite compatibilidad con respuestas:
- * - RoleDto[]
- * - { roles: RoleDto[] }
+ * Payload para crear un rol.
  */
-export type RolesListPayload =
-  | RoleDto[]
-  | {
-      roles: RoleDto[];
-    };
+export type CreateRoleRequest = {
+  roleKey: string;
+  roleName: string;
+  description: string | null;
+  isActive: boolean;
+};
 
 /**
- * Respuesta posible de endpoints individuales.
- *
- * Permite compatibilidad con respuestas:
- * - RoleDto
- * - { role: RoleDto }
+ * Payload para actualizar un rol.
  */
-export type RolePayload =
-  | RoleDto
-  | {
-      role: RoleDto;
-    };
+export type UpdateRoleRequest = {
+  roleName: string;
+  description: string | null;
+  isActive: boolean;
+};
+
+/**
+ * Payload para actualizar permisos asignados a un rol.
+ */
+export type UpdateRolePermissionsRequest = {
+  permissionKeys: string[];
+};

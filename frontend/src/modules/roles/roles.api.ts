@@ -1,265 +1,366 @@
 // ======================================================
 // PATH: src/modules/roles/roles.api.ts
-// Cliente HTTP del módulo Roles
+// Cliente HTTP del módulo de roles
 // ======================================================
 
 /**
  * Responsabilidades:
- * - Centralizar los endpoints HTTP del módulo Roles.
- * - Enviar payloads tipados al backend.
- * - Validar y normalizar las respuestas recibidas.
+ * - Centralizar las peticiones HTTP del módulo de roles.
+ * - Normalizar respuestas del backend hacia contratos del frontend.
+ * - Mantener encapsulada la comunicación con la API.
  *
  * No debe:
- * - Administrar estado React.
- * - Mostrar mensajes visuales.
- * - Aplicar reglas de negocio de la pantalla.
+ * - Renderizar componentes.
+ * - Manejar estados visuales.
+ * - Contener estilos.
  */
 
-import { apiRequest } from "../../api/httpClient";
+import { API_BASE_URL } from "../../api/httpClient";
 
 import type {
-  CreateRoleInput,
+  CreateRoleRequest,
+  RoleAuditDto,
   RoleDto,
-  RolePayload,
-  RolesListPayload,
-  UpdateRoleInput
+  RolePermissionDto,
+  UpdateRolePermissionsRequest,
+  UpdateRoleRequest
 } from "./roles.types";
 
 /**
- * Endpoints disponibles del módulo Roles.
+ * Envelope flexible para respuestas de API.
  */
-const ROLE_ENDPOINTS = {
-  list: "/roles",
-
-  detail(roleId: number): string {
-    return `/roles/${roleId}`;
-  },
-
-  activate(roleId: number): string {
-    return `/roles/${roleId}/activate`;
-  },
-
-  deactivate(roleId: number): string {
-    return `/roles/${roleId}/deactivate`;
-  }
-} as const;
+type ApiEnvelope<T> = {
+  ok?: boolean;
+  message?: string;
+  data?: T;
+};
 
 /**
- * Indica si un valor es un objeto válido.
+ * Convierte una ruta relativa en URL absoluta.
  */
-function isRecord(
-  value: unknown
-): value is Record<string, unknown> {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    !Array.isArray(value)
-  );
+function buildApiUrl(path: string): string {
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+
+  return `${API_BASE_URL}${cleanPath}`;
 }
 
 /**
- * Indica si un valor cumple con la estructura pública de un rol.
+ * Lee el cuerpo de una respuesta HTTP de forma segura.
  */
-function isRoleDto(value: unknown): value is RoleDto {
-  if (!isRecord(value)) {
-    return false;
+async function parseResponseBody(response: Response): Promise<unknown> {
+  const text = await response.text();
+
+  if (!text) {
+    return null;
   }
 
-  return (
-    typeof value["id"] === "number" &&
-    typeof value["roleKey"] === "string" &&
-    typeof value["roleName"] === "string" &&
-    (
-      value["description"] === null ||
-      typeof value["description"] === "string"
-    ) &&
-    typeof value["isActive"] === "boolean" &&
-    Array.isArray(value["permissions"])
-  );
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
 }
 
 /**
- * Normaliza un listado de roles recibido desde el backend.
- *
- * Formatos soportados:
- * - RoleDto[]
- * - { roles: RoleDto[] }
+ * Obtiene un mensaje de error legible.
  */
-function extractRoles(payload: RolesListPayload): RoleDto[] {
-  if (Array.isArray(payload)) {
-    const validRoles = payload.filter(isRoleDto);
-
-    if (validRoles.length !== payload.length) {
-      throw new Error(
-        "El servidor devolvió uno o más roles inválidos."
-      );
-    }
-
-    return validRoles;
-  }
-
+function getErrorMessage(
+  payload: unknown,
+  fallback: string
+): string {
   if (
-    isRecord(payload) &&
-    Array.isArray(payload["roles"])
+    payload &&
+    typeof payload === "object" &&
+    "message" in payload &&
+    typeof payload.message === "string" &&
+    payload.message.trim()
   ) {
-    const roles = payload["roles"];
-    const validRoles = roles.filter(isRoleDto);
-
-    if (validRoles.length !== roles.length) {
-      throw new Error(
-        "El servidor devolvió uno o más roles inválidos."
-      );
-    }
-
-    return validRoles;
+    return payload.message;
   }
 
-  throw new Error(
-    "El servidor devolvió un listado de roles inválido."
-  );
-}
-
-/**
- * Normaliza un rol individual recibido desde el backend.
- *
- * Formatos soportados:
- * - RoleDto
- * - { role: RoleDto }
- */
-function extractRole(payload: RolePayload): RoleDto {
-  if (
-    isRecord(payload) &&
-    isRoleDto(payload["role"])
-  ) {
-    return payload["role"];
-  }
-
-  if (isRoleDto(payload)) {
+  if (typeof payload === "string" && payload.trim()) {
     return payload;
   }
 
-  throw new Error(
-    "El servidor devolvió información de rol inválida."
-  );
+  return fallback;
 }
 
 /**
- * GET /roles
- *
- * Consulta todos los roles disponibles.
+ * Extrae data cuando la API responde con envelope.
+ */
+function unwrapData<T>(payload: unknown): T {
+  if (
+    payload &&
+    typeof payload === "object" &&
+    "data" in payload
+  ) {
+    return (payload as ApiEnvelope<T>).data as T;
+  }
+
+  return payload as T;
+}
+
+/**
+ * Ejecuta una petición HTTP tipada.
+ */
+async function apiRequest<T>(
+  path: string,
+  options: RequestInit,
+  fallbackErrorMessage: string
+): Promise<T> {
+  const response = await fetch(buildApiUrl(path), {
+    ...options,
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers ?? {})
+    }
+  });
+
+  const payload = await parseResponseBody(response);
+
+  if (!response.ok) {
+    throw new Error(getErrorMessage(payload, fallbackErrorMessage));
+  }
+
+  return unwrapData<T>(payload);
+}
+
+/**
+ * Normaliza un valor desconocido a texto.
+ */
+function normalizeString(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
+
+/**
+ * Normaliza un valor desconocido a número.
+ */
+function normalizeNumber(value: unknown): number {
+  return typeof value === "number" ? value : Number(value);
+}
+
+/**
+ * Normaliza un valor desconocido a booleano.
+ */
+function normalizeBoolean(value: unknown): boolean {
+  return Boolean(value);
+}
+
+/**
+ * Normaliza texto nullable.
+ */
+function normalizeNullableString(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const normalizedValue = value.trim();
+
+  return normalizedValue || null;
+}
+
+/**
+ * Normaliza un rol recibido desde el backend.
+ */
+function normalizeRole(rawRole: unknown): RoleDto {
+  const role = rawRole as Record<string, unknown>;
+
+  return {
+    id: normalizeNumber(role.id),
+    roleKey: normalizeString(role.roleKey ?? role.role_key),
+    roleName: normalizeString(role.roleName ?? role.role_name),
+    description: normalizeNullableString(role.description),
+    isActive: normalizeBoolean(role.isActive ?? role.is_active),
+    createdAt: normalizeString(role.createdAt ?? role.created_at),
+    updatedAt: normalizeString(role.updatedAt ?? role.updated_at)
+  };
+}
+
+/**
+ * Normaliza un permiso asignable recibido desde el backend.
+ */
+function normalizeRolePermission(
+  rawPermission: unknown
+): RolePermissionDto {
+  const permission = rawPermission as Record<string, unknown>;
+
+  return {
+    permissionKey: normalizeString(
+      permission.permissionKey ?? permission.permission_key
+    ),
+    permissionName: normalizeString(
+      permission.permissionName ?? permission.permission_name
+    ),
+    moduleKey: normalizeString(
+      permission.moduleKey ?? permission.module_key
+    ),
+    description: normalizeNullableString(permission.description),
+    isActive: normalizeBoolean(
+      permission.isActive ?? permission.is_active
+    ),
+    assigned: normalizeBoolean(permission.assigned)
+  };
+}
+
+/**
+ * Normaliza un registro de auditoría.
+ */
+function normalizeRoleAudit(rawAudit: unknown): RoleAuditDto {
+  const audit = rawAudit as Record<string, unknown>;
+
+  return {
+    id: normalizeNumber(audit.id),
+    oldRoleName: normalizeNullableString(
+      audit.oldRoleName ?? audit.old_role_name
+    ),
+    newRoleName: normalizeNullableString(
+      audit.newRoleName ?? audit.new_role_name
+    ),
+    oldDescription: normalizeNullableString(
+      audit.oldDescription ?? audit.old_description
+    ),
+    newDescription: normalizeNullableString(
+      audit.newDescription ?? audit.new_description
+    ),
+    oldIsActive:
+      audit.oldIsActive ?? audit.old_is_active ?? null
+        ? Boolean(audit.oldIsActive ?? audit.old_is_active)
+        : audit.oldIsActive ?? audit.old_is_active === false
+          ? false
+          : null,
+    newIsActive:
+      audit.newIsActive ?? audit.new_is_active ?? null
+        ? Boolean(audit.newIsActive ?? audit.new_is_active)
+        : audit.newIsActive ?? audit.new_is_active === false
+          ? false
+          : null,
+    changedByUsername: normalizeNullableString(
+      audit.changedByUsername ?? audit.changed_by_username
+    ),
+    changedByFullName: normalizeNullableString(
+      audit.changedByFullName ?? audit.changed_by_full_name
+    ),
+    changedAt: normalizeString(audit.changedAt ?? audit.changed_at)
+  };
+}
+
+/**
+ * Consulta todos los roles.
  */
 export async function getRolesRequest(): Promise<RoleDto[]> {
-  const payload = await apiRequest<RolesListPayload>(
-    ROLE_ENDPOINTS.list
+  const result = await apiRequest<unknown[]>(
+    "/roles",
+    {
+      method: "GET"
+    },
+    "No fue posible consultar roles."
   );
 
-  return extractRoles(payload);
+  return result.map(normalizeRole);
 }
 
 /**
- * GET /roles/:id
- *
- * Consulta el detalle de un rol.
- */
-export async function getRoleRequest(
-  roleId: number
-): Promise<RoleDto> {
-  const payload = await apiRequest<RolePayload>(
-    ROLE_ENDPOINTS.detail(roleId)
-  );
-
-  return extractRole(payload);
-}
-
-/**
- * POST /roles
- *
- * Crea un rol nuevo.
+ * Crea un rol.
  */
 export async function createRoleRequest(
-  input: CreateRoleInput
+  payload: CreateRoleRequest
 ): Promise<RoleDto> {
-  const payload = await apiRequest<RolePayload>(
-    ROLE_ENDPOINTS.list,
+  const result = await apiRequest<unknown>(
+    "/roles",
     {
       method: "POST",
-      body: input
-    }
+      body: JSON.stringify(payload)
+    },
+    "No fue posible crear el rol."
   );
 
-  return extractRole(payload);
+  return normalizeRole(result);
 }
 
 /**
- * PATCH /roles/:id
- *
- * Modifica un rol existente.
+ * Actualiza un rol existente.
  */
 export async function updateRoleRequest(
   roleId: number,
-  input: UpdateRoleInput
+  payload: UpdateRoleRequest
 ): Promise<RoleDto> {
-  const payload = await apiRequest<RolePayload>(
-    ROLE_ENDPOINTS.detail(roleId),
+  const result = await apiRequest<unknown>(
+    `/roles/${roleId}`,
     {
-      method: "PATCH",
-      body: input
-    }
+      method: "PUT",
+      body: JSON.stringify(payload)
+    },
+    "No fue posible actualizar el rol."
   );
 
-  return extractRole(payload);
+  return normalizeRole(result);
 }
 
 /**
- * POST /roles/:id/activate
- *
- * Activa un rol existente.
- */
-export async function activateRoleRequest(
-  roleId: number
-): Promise<RoleDto> {
-  const payload = await apiRequest<RolePayload>(
-    ROLE_ENDPOINTS.activate(roleId),
-    {
-      method: "POST"
-    }
-  );
-
-  return extractRole(payload);
-}
-
-/**
- * POST /roles/:id/deactivate
- *
- * Inactiva un rol existente.
- */
-export async function deactivateRoleRequest(
-  roleId: number
-): Promise<RoleDto> {
-  const payload = await apiRequest<RolePayload>(
-    ROLE_ENDPOINTS.deactivate(roleId),
-    {
-      method: "POST"
-    }
-  );
-
-  return extractRole(payload);
-}
-
-/**
- * DELETE /roles/:id
- *
- * Elimina permanentemente un rol.
+ * Elimina un rol.
  */
 export async function deleteRoleRequest(
   roleId: number
-): Promise<RoleDto> {
-  const payload = await apiRequest<RolePayload>(
-    ROLE_ENDPOINTS.detail(roleId),
+): Promise<void> {
+  await apiRequest<unknown>(
+    `/roles/${roleId}`,
     {
       method: "DELETE"
-    }
+    },
+    "No fue posible eliminar el rol."
+  );
+}
+
+/**
+ * Consulta los permisos disponibles y asignados de un rol.
+ */
+export async function getRolePermissionsRequest(
+  roleId: number
+): Promise<RolePermissionDto[]> {
+  const result = await apiRequest<unknown[]>(
+    `/roles/${roleId}/permissions`,
+    {
+      method: "GET"
+    },
+    "No fue posible consultar permisos del rol."
   );
 
-  return extractRole(payload);
+  return result.map(normalizeRolePermission);
+}
+
+/**
+ * Actualiza los permisos asignados a un rol.
+ */
+export async function updateRolePermissionsRequest(
+  roleId: number,
+  payload: UpdateRolePermissionsRequest
+): Promise<RolePermissionDto[]> {
+  const result = await apiRequest<unknown[]>(
+    `/roles/${roleId}/permissions`,
+    {
+      method: "PUT",
+      body: JSON.stringify(payload)
+    },
+    "No fue posible actualizar permisos del rol."
+  );
+
+  return result.map(normalizeRolePermission);
+}
+
+/**
+ * Consulta la auditoría de un rol.
+ */
+export async function getRoleAuditRequest(
+  roleId: number
+): Promise<RoleAuditDto[]> {
+  const result = await apiRequest<unknown[]>(
+    `/roles/${roleId}/audit`,
+    {
+      method: "GET"
+    },
+    "No fue posible consultar la auditoría del rol."
+  );
+
+  return result.map(normalizeRoleAudit);
 }

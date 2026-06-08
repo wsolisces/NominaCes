@@ -1,96 +1,44 @@
 // ======================================================
 // PATH: backend/src/modules/users/users.routes.ts
-// Rutas HTTP del módulo Users
+// Rutas HTTP del módulo de usuarios
 // ======================================================
+
+/**
+ * Responsabilidades:
+ * - Definir endpoints del catálogo de usuarios.
+ * - Conectar rutas Express con sus controladores.
+ * - Mantener el módulo aislado y reutilizable.
+ *
+ * No debe:
+ * - Ejecutar SQL.
+ * - Contener reglas de negocio.
+ * - Responder directamente solicitudes HTTP.
+ */
 
 import { Router } from "express";
 
-import { asyncHandler } from "../../shared/errors/asyncHandler.js";
-import { authRequired } from "../login/auth.middleware.js";
-import { APP_PERMISSIONS } from "../permisos/app.permissions.js";
-import { requirePermission } from "../permisos/permission.middleware.js";
-import * as usersController from "./users.controller.js";
+import {
+  activateUserController,
+  createUserController,
+  deactivateUserController,
+  deleteUserController,
+  getUserByIdController,
+  listUsersController,
+  lockUserController,
+  resetUserPasswordController,
+  unlockUserController,
+  updateUserController
+} from "./users.controller.js";
 
 export const usersRouter = Router();
 
-/**
- * Todas las rutas de Users requieren sesión válida.
- */
-usersRouter.use(authRequired);
-
-/**
- * GET /users
- *
- * Lista usuarios.
- */
-usersRouter.get(
-  "/",
-  requirePermission(APP_PERMISSIONS.USERS_VIEW),
-  asyncHandler(usersController.listUsers)
-);
-
-/**
- * POST /users
- *
- * Crea usuario nuevo.
- */
-usersRouter.post(
-  "/",
-  requirePermission(APP_PERMISSIONS.USERS_CREATE),
-  asyncHandler(usersController.createUser)
-);
-
-/**
- * PATCH /users/:userId
- *
- * Edita usuario.
- */
-usersRouter.patch(
-  "/:userId",
-  requirePermission(APP_PERMISSIONS.USERS_EDIT),
-  asyncHandler(usersController.updateUser)
-);
-
-/**
- * POST /users/:userId/activate
- *
- * Activa usuario.
- */
-usersRouter.post(
-  "/:userId/activate",
-  requirePermission(APP_PERMISSIONS.USERS_EDIT),
-  asyncHandler(usersController.activateUser)
-);
-
-/**
- * POST /users/:userId/deactivate
- *
- * Desactiva usuario.
- */
-usersRouter.post(
-  "/:userId/deactivate",
-  requirePermission(APP_PERMISSIONS.USERS_EDIT),
-  asyncHandler(usersController.deactivateUser)
-);
-
-/**
- * POST /users/:userId/unlock
- *
- * Desbloquea usuario.
- */
-usersRouter.post(
-  "/:userId/unlock",
-  requirePermission(APP_PERMISSIONS.USERS_EDIT),
-  asyncHandler(usersController.unlockUser)
-);
-
-/**
- * POST /users/:userId/reset-password
- *
- * Genera código temporal para crear nueva contraseña.
- */
-usersRouter.post(
-  "/:userId/reset-password",
-  requirePermission(APP_PERMISSIONS.USERS_EDIT),
-  asyncHandler(usersController.resetPassword)
-);
+usersRouter.get("/", listUsersController);
+usersRouter.get("/:id", getUserByIdController);
+usersRouter.post("/", createUserController);
+usersRouter.put("/:id", updateUserController);
+usersRouter.patch("/:id/activate", activateUserController);
+usersRouter.patch("/:id/deactivate", deactivateUserController);
+usersRouter.patch("/:id/lock", lockUserController);
+usersRouter.patch("/:id/unlock", unlockUserController);
+usersRouter.patch("/:id/reset-password", resetUserPasswordController);
+usersRouter.delete("/:id", deleteUserController);

@@ -1,175 +1,214 @@
 // ======================================================
 // PATH: backend/src/modules/permisos/permisos.controller.ts
-// Controladores HTTP del módulo Permisos
+// Controlador HTTP del módulo de permisos
 // ======================================================
 
 /**
  * Responsabilidades:
- * - Recibir peticiones HTTP del módulo Permisos.
- * - Validar body con Zod.
- * - Pasar datos normalizados al service.
- * - Responder usando helpers HTTP compartidos.
+ * - Recibir solicitudes HTTP del catálogo de permisos.
+ * - Normalizar parámetros provenientes de Express.
+ * - Delegar reglas de negocio al service.
+ * - Responder con un formato consistente.
  *
  * No debe:
- * - Ejecutar SQL.
- * - Aplicar reglas de negocio.
- * - Decidir estructura visual del frontend.
+ * - Ejecutar SQL directamente.
+ * - Crear conexiones a PostgreSQL.
+ * - Duplicar validaciones profundas del service.
  */
 
 import type { Request, Response } from "express";
-import { z } from "zod";
 
-import { AppError } from "../../shared/errors/AppError.js";
-import { ok } from "../../shared/http/responses.js";
+import {
+  activatePermissionService,
+  createPermissionService,
+  deactivatePermissionService,
+  deletePermissionService,
+  getPermissionByIdService,
+  listPermissionsService,
+  updatePermissionService
+} from "./permisos.service.js";
 
-import * as permisosService from "./permisos.service.js";
+import { PermissionDomainError } from "./permisos.types.js";
 
-/**
- * Schema para editar permisos.
- *
- * Reglas:
- * - permissionKey viene por URL.
- * - Solo se editan datos descriptivos y estado.
- */
-const updatePermissionSchema = z.object({
-  permissionName: z.string().min(1, "El nombre del permiso es obligatorio.").optional(),
-  moduleKey: z.string().min(1, "El módulo es obligatorio.").optional(),
-  description: z.string().nullable().optional(),
-  isActive: z.boolean().optional()
-});
-
-/**
- * Normaliza un parámetro de ruta de Express.
- *
- * Express/TypeScript puede tipar params como string | string[].
- * El sistema espera un único string para permissionKey.
- */
-function getRouteParamAsString(
-  value: string | string[] | undefined,
-  paramName: string
-): string {
-  if (Array.isArray(value)) {
-    const firstValue = value[0]?.trim();
-
-    if (firstValue) {
-      return firstValue;
-    }
-  }
-
-  if (typeof value === "string" && value.trim()) {
-    return value.trim();
-  }
-
-  throw new AppError({
-    statusCode: 400,
-    code: "VALIDATION_ERROR",
-    message: `El parámetro ${paramName} es obligatorio.`
-  });
+function asString(value: unknown): string | undefined {
+  if (typeof value === "string") return value;
+  if (Array.isArray(value) && typeof value[0] === "string") return value[0];
+  return undefined;
 }
 
-/**
- * Obtiene el id numérico del usuario autenticado.
- *
- * req.auth lo agrega authRequired.
- * Algunas implementaciones tipan el id como string aunque venga de BD.
- */
-function getAuthUserId(req: Request): number | null {
-  const rawUserId = req.auth?.user.id ?? null;
+function asBoolean(value: unknown): boolean | undefined {
+  const normalized = asString(value);
 
-  if (rawUserId === null || rawUserId === undefined) {
-    return null;
+  if (normalized === "true") return true;
+  if (normalized === "false") return false;
+
+  return undefined;
+}
+
+function sendError(res: Response, error: unknown): void {
+  if (error instanceof PermissionDomainError) {
+    res.status(error.statusCode).json({
+      ok: false,
+      code: error.code,
+      message: error.message
+    });
+
+    return;
   }
 
-  const userId = Number(rawUserId);
+  console.error("[permisos.controller] Error no controlado:", error);
 
-  if (!Number.isInteger(userId) || userId <= 0) {
-    return null;
-  }
-
-  return userId;
+  res.status(500).json({
+    ok: false,
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Ocurrió un error interno al procesar la solicitud."
+  });
 }
 
 /**
  * GET /permisos
- *
- * Lista permisos disponibles.
+ * Lista permisos con filtros opcionales.
  */
-export async function listPermissions(
-  _req: Request,
-  res: Response
-): Promise<void> {
-  const permissions = await permisosService.listPermissions();
-  ok(res, permissions);
-}
-
-/**
- * GET /permisos/:permissionKey
- *
- * Consulta detalle de un permiso.
- */
-export async function getPermission(
+export async function listPermissionsController(
   req: Request,
   res: Response
 ): Promise<void> {
-  const permissionKey = getRouteParamAsString(
-    req.params.permissionKey,
-    "permissionKey"
-  );
-
-  const permission = await permisosService.getPermissionByKey(permissionKey);
-
-  ok(res, permission);
-}
-
-/**
- * PATCH /permisos/:permissionKey
- *
- * Edita metadata de un permiso.
- */
-export async function updatePermission(
-  req: Request,
-  res: Response
-): Promise<void> {
-  const parsed = updatePermissionSchema.safeParse(req.body);
-
-  if (!parsed.success) {
-    throw new AppError({
-      statusCode: 400,
-      code: "VALIDATION_ERROR",
-      message: "Datos inválidos para editar permiso.",
-      details: parsed.error.flatten().fieldErrors
+  try {
+    const permissions = await listPermissionsService({
+      search: asString(req.query.search),
+      module_key: asString(req.query.module_key),
+      is_active: asBoolean(req.query.is_active)
     });
+
+    res.status(200).json({
+      ok: true,
+      data: permissions
+    });
+  } catch (error) {
+    sendError(res, error);
   }
-
-  const permissionKey = getRouteParamAsString(
-    req.params.permissionKey,
-    "permissionKey"
-  );
-
-  const permission = await permisosService.updatePermission({
-    permissionKey,
-    ...parsed.data,
-    changedByUserId: getAuthUserId(req)
-  });
-
-  ok(res, permission, "Permiso actualizado correctamente.");
 }
 
 /**
- * GET /permisos/:permissionKey/audit
- *
- * Lista auditoría de un permiso.
+ * GET /permisos/:id
+ * Obtiene un permiso por id.
  */
-export async function listPermissionAudit(
+export async function getPermissionByIdController(
   req: Request,
   res: Response
 ): Promise<void> {
-  const permissionKey = getRouteParamAsString(
-    req.params.permissionKey,
-    "permissionKey"
-  );
+  try {
+    const permission = await getPermissionByIdService(req.params.id);
 
-  const audit = await permisosService.listPermissionAudit(permissionKey);
+    res.status(200).json({
+      ok: true,
+      data: permission
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+}
 
-  ok(res, audit);
+/**
+ * POST /permisos
+ * Crea un permiso.
+ */
+export async function createPermissionController(
+  req: Request,
+  res: Response
+): Promise<void> {
+  try {
+    const result = await createPermissionService(req.body);
+
+    res.status(201).json({
+      ok: true,
+      data: result.permission,
+      message: "Permiso creado correctamente."
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+}
+
+/**
+ * PUT /permisos/:id
+ * Actualiza un permiso.
+ */
+export async function updatePermissionController(
+  req: Request,
+  res: Response
+): Promise<void> {
+  try {
+    const result = await updatePermissionService(req.params.id, req.body);
+
+    res.status(200).json({
+      ok: true,
+      data: result.permission,
+      message: "Permiso actualizado correctamente."
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+}
+
+/**
+ * PATCH /permisos/:id/activate
+ * Activa un permiso.
+ */
+export async function activatePermissionController(
+  req: Request,
+  res: Response
+): Promise<void> {
+  try {
+    const result = await activatePermissionService(req.params.id);
+
+    res.status(200).json({
+      ok: true,
+      data: result.permission,
+      message: "Permiso activado correctamente."
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+}
+
+/**
+ * PATCH /permisos/:id/deactivate
+ * Desactiva un permiso.
+ */
+export async function deactivatePermissionController(
+  req: Request,
+  res: Response
+): Promise<void> {
+  try {
+    const result = await deactivatePermissionService(req.params.id);
+
+    res.status(200).json({
+      ok: true,
+      data: result.permission,
+      message: "Permiso desactivado correctamente."
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+}
+
+/**
+ * DELETE /permisos/:id
+ * Elimina un permiso.
+ */
+export async function deletePermissionController(
+  req: Request,
+  res: Response
+): Promise<void> {
+  try {
+    await deletePermissionService(req.params.id);
+
+    res.status(200).json({
+      ok: true,
+      message: "Permiso eliminado correctamente."
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
 }

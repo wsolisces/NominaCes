@@ -1,71 +1,155 @@
 // ======================================================
 // PATH: backend/src/modules/permisos/permisos.repository.ts
-// Acceso a datos del módulo Permisos
+// Repositorio de permisos
 // ======================================================
 
 /**
  * Responsabilidades:
- * - Consultar app_permission.
- * - Actualizar metadata controlada de permisos.
- * - Registrar auditoría en app_permission_audit.
- * - Mantener transaccionalidad entre edición y auditoría.
+ * - Ejecutar consultas SQL sobre app_permission.
+ * - Encapsular el acceso a PostgreSQL.
+ * - Devolver datos tipados al servicio.
  *
  * No debe:
- * - Aplicar reglas de autorización.
- * - Validar payloads HTTP.
- * - Transformar DTO final.
+ * - Contener lógica HTTP.
+ * - Validar permisos de usuario autenticado.
+ * - Formatear respuestas para Express.
  */
 
 import { db } from "../../config/db.js";
 
 import type {
-  PermissionAuditRow,
-  PermissionRow,
-  UpdatePermissionRowInput
+  CreatePermissionInput,
+  PermissionDto,
+  PermissionId,
+  PermissionListFilters,
+  UpdatePermissionInput
 } from "./permisos.types.js";
 
-/**
- * Lista todos los permisos registrados.
- */
-export async function listPermissionRows(): Promise<PermissionRow[]> {
-  const result = await db.query<PermissionRow>(
-    `
-    SELECT
-      permission_key,
-      permission_name,
-      module_key,
-      description,
-      is_active,
-      created_at,
-      updated_at,
-      updated_by_user_id
-    FROM app_permission
-    ORDER BY
-      module_key ASC,
-      permission_key ASC
-    `
-  );
+type PermissionRow = {
+  id: number;
+  permission_key: string;
+  permission_name: string;
+  module_key: string | null;
+  description: string | null;
+  is_active: boolean;
+  created_at: Date;
+  updated_at: Date;
+};
 
-  return result.rows;
+function mapPermissionRow(row: PermissionRow): PermissionDto {
+  return {
+    id: row.id,
+    permission_key: row.permission_key,
+    permission_name: row.permission_name,
+    module_key: row.module_key,
+    description: row.description,
+    is_active: row.is_active,
+    created_at: row.created_at,
+    updated_at: row.updated_at
+  };
 }
 
 /**
- * Busca un permiso por clave técnica.
+ * Obtiene permisos con filtros opcionales.
  */
-export async function findPermissionByKey(
-  permissionKey: string
-): Promise<PermissionRow | null> {
+export async function findPermissions(
+  filters: PermissionListFilters
+): Promise<PermissionDto[]> {
+  const where: string[] = [];
+  const values: unknown[] = [];
+
+  if (filters.search) {
+    values.push(`%${filters.search}%`);
+    where.push(`
+      (
+        permission_key ILIKE $${values.length}
+        OR permission_name ILIKE $${values.length}
+        OR COALESCE(description, '') ILIKE $${values.length}
+      )
+    `);
+  }
+
+  if (filters.module_key) {
+    values.push(filters.module_key);
+    where.push(`module_key = $${values.length}`);
+  }
+
+  if (typeof filters.is_active === "boolean") {
+    values.push(filters.is_active);
+    where.push(`is_active = $${values.length}`);
+  }
+
+  const whereClause = where.length > 0 ? `WHERE ${where.join(" AND ")}` : "";
+
   const result = await db.query<PermissionRow>(
     `
     SELECT
+      id,
       permission_key,
       permission_name,
       module_key,
       description,
       is_active,
       created_at,
-      updated_at,
-      updated_by_user_id
+      updated_at
+    FROM app_permission
+    ${whereClause}
+    ORDER BY
+      module_key ASC NULLS LAST,
+      permission_key ASC
+    `,
+    values
+  );
+
+  return result.rows.map(mapPermissionRow);
+}
+
+/**
+ * Busca un permiso por id.
+ */
+export async function findPermissionById(
+  id: PermissionId
+): Promise<PermissionDto | null> {
+  const result = await db.query<PermissionRow>(
+    `
+    SELECT
+      id,
+      permission_key,
+      permission_name,
+      module_key,
+      description,
+      is_active,
+      created_at,
+      updated_at
+    FROM app_permission
+    WHERE id = $1
+    LIMIT 1
+    `,
+    [id]
+  );
+
+  const row = result.rows[0];
+
+  return row ? mapPermissionRow(row) : null;
+}
+
+/**
+ * Busca un permiso por clave normalizada.
+ */
+export async function findPermissionByKey(
+  permissionKey: string
+): Promise<PermissionDto | null> {
+  const result = await db.query<PermissionRow>(
+    `
+    SELECT
+      id,
+      permission_key,
+      permission_name,
+      module_key,
+      description,
+      is_active,
+      created_at,
+      updated_at
     FROM app_permission
     WHERE permission_key = $1
     LIMIT 1
@@ -73,146 +157,141 @@ export async function findPermissionByKey(
     [permissionKey]
   );
 
-  return result.rows[0] ?? null;
+  const row = result.rows[0];
+
+  return row ? mapPermissionRow(row) : null;
 }
 
 /**
- * Actualiza un permiso y registra auditoría en una misma transacción.
+ * Crea un permiso.
  */
-export async function updatePermissionRowWithAudit(
-  currentPermission: PermissionRow,
-  input: UpdatePermissionRowInput
-): Promise<PermissionRow> {
-  const client = await db.connect();
-
-  try {
-    await client.query("BEGIN");
-
-    const updatedResult = await client.query<PermissionRow>(
-      `
-      UPDATE app_permission
-      SET
-        permission_name = $2,
-        module_key = $3,
-        description = $4,
-        is_active = $5,
-        updated_at = now(),
-        updated_by_user_id = $6
-      WHERE permission_key = $1
-      RETURNING
-        permission_key,
-        permission_name,
-        module_key,
-        description,
-        is_active,
-        created_at,
-        updated_at,
-        updated_by_user_id
-      `,
-      [
-        input.permissionKey,
-        input.permissionName,
-        input.moduleKey,
-        input.description,
-        input.isActive,
-        input.changedByUserId
-      ]
-    );
-
-    const updatedPermission = updatedResult.rows[0];
-
-    if (!updatedPermission) {
-      throw new Error("No fue posible actualizar el permiso.");
-    }
-
-    await client.query(
-      `
-      INSERT INTO app_permission_audit (
-        permission_key,
-        action,
-        old_permission_name,
-        new_permission_name,
-        old_module_key,
-        new_module_key,
-        old_description,
-        new_description,
-        old_is_active,
-        new_is_active,
-        changed_by_user_id
-      )
-      VALUES (
-        $1,
-        'UPDATE',
-        $2,
-        $3,
-        $4,
-        $5,
-        $6,
-        $7,
-        $8,
-        $9,
-        $10
-      )
-      `,
-      [
-        input.permissionKey,
-        currentPermission.permission_name,
-        updatedPermission.permission_name,
-        currentPermission.module_key,
-        updatedPermission.module_key,
-        currentPermission.description,
-        updatedPermission.description,
-        currentPermission.is_active,
-        updatedPermission.is_active,
-        input.changedByUserId
-      ]
-    );
-
-    await client.query("COMMIT");
-
-    return updatedPermission;
-  } catch (error) {
-    await client.query("ROLLBACK");
-    throw error;
-  } finally {
-    client.release();
-  }
-}
-
-/**
- * Lista auditoría de un permiso.
- */
-export async function listPermissionAuditRows(
-  permissionKey: string
-): Promise<PermissionAuditRow[]> {
-  const result = await db.query<PermissionAuditRow>(
+export async function createPermission(
+  input: CreatePermissionInput
+): Promise<PermissionDto> {
+  const result = await db.query<PermissionRow>(
     `
-    SELECT
-      a.id,
-      a.permission_key,
-      a.action,
-      a.old_permission_name,
-      a.new_permission_name,
-      a.old_module_key,
-      a.new_module_key,
-      a.old_description,
-      a.new_description,
-      a.old_is_active,
-      a.new_is_active,
-      a.changed_by_user_id,
-      u.username AS changed_by_username,
-      u.full_name AS changed_by_full_name,
-      a.changed_at
-    FROM app_permission_audit a
-    LEFT JOIN app_user u
-      ON u.id = a.changed_by_user_id
-    WHERE a.permission_key = $1
-    ORDER BY
-      a.changed_at DESC,
-      a.id DESC
+    INSERT INTO app_permission (
+      permission_key,
+      permission_name,
+      module_key,
+      description,
+      is_active
+    )
+    VALUES ($1, $2, $3, $4, $5)
+    RETURNING
+      id,
+      permission_key,
+      permission_name,
+      module_key,
+      description,
+      is_active,
+      created_at,
+      updated_at
     `,
-    [permissionKey]
+    [
+      input.permission_key,
+      input.permission_name,
+      input.module_key ?? null,
+      input.description ?? null,
+      input.is_active ?? true
+    ]
   );
 
-  return result.rows;
+  return mapPermissionRow(result.rows[0]);
+}
+
+/**
+ * Actualiza un permiso existente.
+ */
+export async function updatePermission(
+  id: PermissionId,
+  input: Required<UpdatePermissionInput>
+): Promise<PermissionDto | null> {
+  const result = await db.query<PermissionRow>(
+    `
+    UPDATE app_permission
+    SET
+      permission_key = $2,
+      permission_name = $3,
+      module_key = $4,
+      description = $5,
+      is_active = $6,
+      updated_at = NOW()
+    WHERE id = $1
+    RETURNING
+      id,
+      permission_key,
+      permission_name,
+      module_key,
+      description,
+      is_active,
+      created_at,
+      updated_at
+    `,
+    [
+      id,
+      input.permission_key,
+      input.permission_name,
+      input.module_key,
+      input.description,
+      input.is_active
+    ]
+  );
+
+  const row = result.rows[0];
+
+  return row ? mapPermissionRow(row) : null;
+}
+
+/**
+ * Cambia el estado activo/inactivo de un permiso.
+ */
+export async function setPermissionActiveState(
+  id: PermissionId,
+  isActive: boolean
+): Promise<PermissionDto | null> {
+  const result = await db.query<PermissionRow>(
+    `
+    UPDATE app_permission
+    SET
+      is_active = $2,
+      updated_at = NOW()
+    WHERE id = $1
+    RETURNING
+      id,
+      permission_key,
+      permission_name,
+      module_key,
+      description,
+      is_active,
+      created_at,
+      updated_at
+    `,
+    [id, isActive]
+  );
+
+  const row = result.rows[0];
+
+  return row ? mapPermissionRow(row) : null;
+}
+
+/**
+ * Elimina físicamente un permiso.
+ *
+ * Nota:
+ * Si el permiso está relacionado con roles o usuarios,
+ * PostgreSQL puede impedir el borrado por llaves foráneas.
+ */
+export async function deletePermissionById(
+  id: PermissionId
+): Promise<boolean> {
+  const result = await db.query(
+    `
+    DELETE FROM app_permission
+    WHERE id = $1
+    `,
+    [id]
+  );
+
+  return Number(result.rowCount) > 0;
 }

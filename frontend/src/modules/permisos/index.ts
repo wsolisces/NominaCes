@@ -13,7 +13,7 @@
  * - Renderizar componentes por sí mismo.
  */
 
-export { default as PermisosPage } from "./pages/PermisosPage";
+export { default as PermisosPage } from "./PermisosPage";
 
 export type {
   PermissionAuditDto,
