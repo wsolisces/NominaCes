@@ -30,8 +30,7 @@
    PAGE
    ====================================================== */
 
-export { Page } from "./Page/Page";
-export type { PageProps } from "./Page/Page";
+export { PageHeader } from "./Page/PageHeader";
 
 /* ======================================================
    BUTTON

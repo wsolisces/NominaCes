@@ -27,7 +27,7 @@
   --color-transparent: transparent;
 
   /* ======================================================
-     ESCALA NEUTRA
+     ESCALA NEUTRA CORPORATIVA
      ====================================================== */
 
   --color-neutral-25: #fcfcfb;
@@ -41,6 +41,22 @@
   --color-neutral-700: #4b4540;
   --color-neutral-800: #292623;
   --color-neutral-900: #171513;
+
+  /* ======================================================
+     ESCALA SLATE / UI FRÍA
+     ====================================================== */
+
+  --color-slate-50: #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
+  --color-slate-300: #cbd5e1;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1e293b;
+  --color-slate-900: #0f172a;
+  --color-slate-950: #020617;
 
   /* ======================================================
      ESCALA AZUL CORPORATIVA
@@ -58,6 +74,22 @@
   --color-blue-800: #23456f;
   --color-blue-900: #17345f;
   --color-blue-950: #1d2635;
+
+  /* ======================================================
+     ESCALA AZUL SISTEMA / COMPONENTES UI
+     ====================================================== */
+
+  --color-system-blue-50: #eff6ff;
+  --color-system-blue-100: #dbeafe;
+  --color-system-blue-200: #bfdbfe;
+  --color-system-blue-300: #93c5fd;
+  --color-system-blue-400: #60a5fa;
+  --color-system-blue-500: #3b82f6;
+  --color-system-blue-600: #2563eb;
+  --color-system-blue-700: #1d4ed8;
+  --color-system-blue-800: #1e40af;
+  --color-system-blue-900: #1e3a8a;
+  --color-system-blue-950: #172554;
 
   /* ======================================================
      ESCALA NARANJA CORPORATIVA
@@ -124,9 +156,17 @@
   --color-surface-soft: var(--color-neutral-25);
   --color-surface-muted: var(--color-neutral-100);
 
+  --color-surface-cold: var(--color-slate-50);
+  --color-surface-cold-hover: var(--color-slate-100);
+  --color-surface-cold-active: var(--color-slate-200);
+
   --color-surface-blue: var(--color-blue-50);
   --color-surface-blue-hover: var(--color-blue-100);
   --color-surface-blue-active: var(--color-blue-200);
+
+  --color-surface-ui-blue: var(--color-system-blue-50);
+  --color-surface-ui-blue-hover: var(--color-system-blue-100);
+  --color-surface-ui-blue-active: var(--color-system-blue-200);
 
   /* ======================================================
      BORDES
@@ -136,53 +176,87 @@
   --color-border: var(--color-neutral-200);
   --color-border-strong: var(--color-neutral-300);
 
+  --color-border-cold-soft: var(--color-slate-100);
+  --color-border-cold: var(--color-slate-200);
+  --color-border-cold-strong: var(--color-slate-300);
+
   --color-border-blue-soft: var(--color-blue-100);
   --color-border-blue: var(--color-blue-200);
   --color-border-blue-strong: var(--color-blue-400);
+
+  --color-border-ui-blue-soft: var(--color-system-blue-100);
+  --color-border-ui-blue: var(--color-system-blue-200);
+  --color-border-ui-blue-strong: var(--color-system-blue-400);
 
   /* ======================================================
      TEXTO
      ====================================================== */
 
-  --color-text-primary: #111827;
-  --color-text-secondary: #6b7280;
-  --color-text-muted: #9ca3af;
-  --color-text-disabled: #b8bec7;
+  --color-text-primary: var(--color-slate-900);
+  --color-text-secondary: var(--color-slate-600);
+  --color-text-muted: var(--color-slate-500);
+  --color-text-disabled: var(--color-slate-400);
   --color-text-inverse: var(--color-white);
 
-  --color-text-blue: var(--color-blue-700);
-  --color-text-blue-strong: var(--color-blue-900);
+  --color-text-neutral: var(--color-neutral-700);
+  --color-text-neutral-strong: var(--color-neutral-900);
+
+  --color-text-blue: var(--color-system-blue-700);
+  --color-text-blue-strong: var(--color-system-blue-900);
 
   /* ======================================================
      ACCIONES PRINCIPALES
      ====================================================== */
 
-  --color-primary: var(--color-blue-950);
-  --color-primary-hover: var(--color-blue-900);
-  --color-primary-active: var(--color-blue-800);
+  --color-primary: var(--color-system-blue-900);
+  --color-primary-hover: var(--color-system-blue-950);
+  --color-primary-active: var(--color-system-blue-800);
 
-  --color-primary-soft: var(--color-blue-50);
-  --color-primary-soft-hover: var(--color-blue-100);
+  --color-primary-soft: var(--color-system-blue-50);
+  --color-primary-soft-hover: var(--color-system-blue-100);
 
-  --color-primary-border: var(--color-blue-300);
+  --color-primary-border: var(--color-system-blue-300);
   --color-primary-contrast: var(--color-white);
 
   /* ======================================================
      ACENTOS
      ====================================================== */
 
-  --color-accent: var(--color-blue-500);
-  --color-accent-hover: var(--color-blue-600);
-  --color-accent-active: var(--color-blue-700);
+  --color-accent: var(--color-system-blue-700);
+  --color-accent-hover: var(--color-system-blue-800);
+  --color-accent-active: var(--color-system-blue-900);
 
-  --color-accent-soft: var(--color-blue-50);
-  --color-accent-soft-hover: var(--color-blue-100);
-  --color-accent-border: var(--color-blue-300);
+  --color-accent-soft: var(--color-system-blue-50);
+  --color-accent-soft-hover: var(--color-system-blue-100);
+  --color-accent-border: var(--color-system-blue-300);
 
   /* Naranja disponible únicamente para detalles corporativos. */
   --color-corporate-accent: var(--color-orange-500);
   --color-corporate-accent-hover: var(--color-orange-600);
   --color-corporate-accent-soft: var(--color-orange-50);
+
+  /* ======================================================
+     ALIASES PARA COMPONENTES UI
+     ====================================================== */
+
+  --color-ui-title: var(--color-slate-900);
+  --color-ui-subtitle: var(--color-slate-700);
+  --color-ui-text: var(--color-slate-600);
+  --color-ui-muted: var(--color-slate-500);
+  --color-ui-disabled: var(--color-slate-400);
+
+  --color-ui-border-soft: var(--color-slate-200);
+  --color-ui-border: var(--color-slate-300);
+  --color-ui-border-strong: var(--color-slate-400);
+
+  --color-ui-blue: var(--color-system-blue-700);
+  --color-ui-blue-hover: var(--color-system-blue-950);
+  --color-ui-blue-soft: var(--color-system-blue-50);
+  --color-ui-blue-border: var(--color-system-blue-200);
+
+  --color-ui-surface: var(--color-white);
+  --color-ui-surface-soft: var(--color-slate-50);
+  --color-ui-surface-muted: var(--color-slate-100);
 
   /* ======================================================
      SIDEBAR
@@ -231,22 +305,30 @@
      ESTADO: INFORMACIÓN
      ====================================================== */
 
-  --color-info: var(--color-blue-700);
-  --color-info-hover: var(--color-blue-800);
-  --color-info-soft: var(--color-blue-50);
-  --color-info-border: var(--color-blue-200);
+  --color-info: var(--color-system-blue-700);
+  --color-info-hover: var(--color-system-blue-800);
+  --color-info-soft: var(--color-system-blue-50);
+  --color-info-border: var(--color-system-blue-200);
 
   /* ======================================================
-     TRANSPARENCIAS Y FOCUS
+     TRANSPARENCIAS, SOMBRAS Y FOCUS
      ====================================================== */
 
   --color-overlay-soft: rgba(15, 23, 42, 0.18);
   --color-overlay: rgba(15, 23, 42, 0.38);
   --color-overlay-strong: rgba(15, 23, 42, 0.55);
 
-  --color-focus-soft: rgba(95, 145, 191, 0.14);
-  --color-focus: rgba(95, 145, 191, 0.32);
-  --color-focus-strong: rgba(62, 98, 138, 0.48);
+  --color-focus-soft: rgba(37, 99, 235, 0.14);
+  --color-focus: rgba(37, 99, 235, 0.32);
+  --color-focus-strong: rgba(29, 78, 216, 0.48);
+
+  --shadow-primary-soft: 0 8px 18px rgba(30, 58, 138, 0.18);
+  --shadow-primary-hover: 0 12px 22px rgba(30, 58, 138, 0.24);
+  --shadow-primary-active: 0 7px 14px rgba(30, 58, 138, 0.18);
+
+  --shadow-ui-soft: 0 10px 24px rgba(15, 23, 42, 0.08);
+  --shadow-ui-medium: 0 16px 34px rgba(15, 23, 42, 0.12);
+  --shadow-ui-strong: 0 22px 50px rgba(15, 23, 42, 0.16);
 
   --focus-ring: 0 0 0 3px var(--color-focus-soft);
 }

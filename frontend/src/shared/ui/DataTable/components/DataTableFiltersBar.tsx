@@ -47,7 +47,10 @@ export default function DataTableFilters({
   }
 
   return (
-    <div className="data-table-filters-bar">
+    <div
+      className="data-table-filters-bar"
+      aria-label="Filtros activos"
+    >
       <div className="data-table-filters-bar__list">
         {filterGroups.map((group) => (
           <button
@@ -58,8 +61,12 @@ export default function DataTableFilters({
               setOpenFiltersModal(true);
             }}
             className="data-table-filter-chip"
+            title={`Ver filtro ${group.label}`}
           >
-            <span>{group.label}</span>
+            <span className="data-table-filter-chip__label">
+              {group.label}
+            </span>
+
             <span className="data-table-filter-chip__count">
               {group.count}
             </span>

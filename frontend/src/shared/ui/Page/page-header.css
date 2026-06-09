@@ -1,0 +1,413 @@
+/* ======================================================
+   PATH: src/shared/ui/Page/page-header.css
+   Encabezado estándar para páginas internas
+   ====================================================== */
+
+/**
+ * Responsabilidades:
+ * - Definir el diseño visual del encabezado reutilizable.
+ * - Estandarizar breadcrumb, título, descripción, acción y métricas.
+ * - Mantener apariencia moderna, limpia y corporativa.
+ *
+ * No debe:
+ * - Definir estilos específicos de módulos.
+ * - Sobrescribir estilos globales de layout.
+ * - Escribir colores directos fuera de la paleta global.
+ */
+
+/* ======================================================
+   CONTENEDOR
+   ====================================================== */
+
+.page-header-shell {
+  width: 100%;
+  padding: 0;
+
+  border: 0;
+  border-radius: 0;
+
+  background: var(--color-transparent);
+  box-shadow: none;
+}
+
+/* ======================================================
+   ENCABEZADO SUPERIOR
+   ====================================================== */
+
+.page-header-main {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.page-header-copy {
+  min-width: 0;
+  max-width: 760px;
+}
+
+.page-header-title {
+  margin: 0;
+
+  color: var(--color-ui-title);
+
+  font-family:
+    "Aptos Display",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: clamp(1.65rem, 1.2vw + 1.12rem, 2.22rem);
+  font-weight: 820;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+
+.page-header-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.42rem;
+
+  margin-top: 0.82rem;
+
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.74rem;
+  font-weight: 780;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.page-header-breadcrumb-strong {
+  color: var(--color-ui-subtitle);
+}
+
+.page-header-breadcrumb-separator {
+  color: var(--color-ui-muted);
+}
+
+.page-header-breadcrumb-current {
+  color: var(--color-primary);
+}
+
+.page-header-description {
+  max-width: 660px;
+  margin: 0.72rem 0 0;
+
+  color: var(--color-ui-text);
+
+  font-family:
+    "Aptos",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.94rem;
+  font-weight: 450;
+  line-height: 1.68;
+}
+
+/* ======================================================
+   ACCIONES
+   ====================================================== */
+
+.page-header-actions {
+  flex: 0 0 auto;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.7rem;
+
+  padding-top: 0.05rem;
+}
+
+.page-header-action {
+  flex: 0 0 auto;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.48rem;
+
+  min-height: 2.55rem;
+  padding: 0.72rem 1.08rem;
+
+  border: 1px solid var(--color-primary);
+  border-radius: 0.58rem;
+
+  color: var(--color-primary-contrast);
+  background: var(--color-primary);
+
+  box-shadow: var(--shadow-primary-soft);
+
+  font-family:
+    "Aptos",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.82rem;
+  font-weight: 760;
+  line-height: 1;
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease,
+    opacity 150ms ease;
+}
+
+.page-header-action:hover:not(:disabled) {
+  transform: translateY(-1px);
+
+  border-color: var(--color-primary-hover);
+  background: var(--color-primary-hover);
+
+  box-shadow: var(--shadow-primary-hover);
+}
+
+.page-header-action:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: var(--shadow-primary-active);
+}
+
+.page-header-action:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.page-header-action-secondary {
+  color: var(--color-ui-title);
+  background: var(--color-ui-surface);
+  border-color: var(--color-border-cold);
+  box-shadow: var(--shadow-ui-soft);
+}
+
+.page-header-action-secondary:hover:not(:disabled) {
+  color: var(--color-primary);
+  background: var(--color-ui-surface-soft);
+  border-color: var(--color-ui-border);
+  box-shadow: var(--shadow-ui-soft);
+}
+
+.page-header-action-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 0.92rem;
+  line-height: 1;
+}
+
+/* ======================================================
+   MÉTRICAS
+   ====================================================== */
+
+.page-header-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.15rem;
+
+  margin-top: 1.72rem;
+}
+
+.page-header-metric {
+  position: relative;
+
+  min-height: 5.55rem;
+  padding: 1.22rem 1.28rem;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.42rem;
+
+  border: 1px solid var(--color-border-cold);
+  border-radius: 0.88rem;
+
+  color: var(--color-primary);
+  background: var(--color-ui-surface);
+
+  box-shadow: var(--shadow-ui-soft);
+
+  overflow: hidden;
+}
+
+.page-header-metric::before {
+  content: "";
+
+  position: absolute;
+  top: 1.22rem;
+  right: 1.22rem;
+
+  width: 2.85rem;
+  height: 2.85rem;
+
+  border-radius: 0.78rem;
+
+  background: var(--color-surface-ui-blue);
+}
+
+.page-header-metric::after {
+  content: "";
+
+  position: absolute;
+  top: 1.95rem;
+  right: 1.95rem;
+
+  width: 1.35rem;
+  height: 1.35rem;
+
+  border: 2px solid currentColor;
+  border-radius: 0.35rem;
+
+  opacity: 0.95;
+}
+
+.page-header-metric-label {
+  display: block;
+  max-width: calc(100% - 4rem);
+
+  color: var(--color-ui-muted);
+
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.7rem;
+  font-weight: 820;
+  line-height: 1.1;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.page-header-metric-value {
+  display: block;
+  max-width: calc(100% - 4rem);
+
+  color: var(--color-ui-title);
+
+  font-family:
+    "Aptos Display",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 1.58rem;
+  font-weight: 840;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+/* ======================================================
+   VARIANTES DE MÉTRICAS
+   ====================================================== */
+
+.page-header-metric-neutral {
+  color: var(--color-primary);
+}
+
+.page-header-metric-neutral::before {
+  background: var(--color-surface-ui-blue);
+}
+
+.page-header-metric-success {
+  color: var(--color-success-hover);
+}
+
+.page-header-metric-success::before {
+  background: var(--color-success-soft);
+}
+
+.page-header-metric-success::after {
+  border-radius: 999px;
+}
+
+.page-header-metric-success .page-header-metric-value {
+  color: var(--color-success-hover);
+}
+
+.page-header-metric-danger {
+  color: var(--color-danger);
+}
+
+.page-header-metric-danger::before {
+  background: var(--color-danger-soft);
+}
+
+.page-header-metric-danger::after {
+  border-radius: 999px;
+}
+
+.page-header-metric-danger .page-header-metric-value {
+  color: var(--color-danger-hover);
+}
+
+.page-header-metric-info {
+  color: var(--color-info);
+}
+
+.page-header-metric-info::before {
+  background: var(--color-surface-ui-blue);
+}
+
+.page-header-metric-info .page-header-metric-value {
+  color: var(--color-text-blue-strong);
+}
+
+.page-header-metric-warning {
+  color: var(--color-warning-hover);
+}
+
+.page-header-metric-warning::before {
+  background: var(--color-warning-soft);
+}
+
+.page-header-metric-warning .page-header-metric-value {
+  color: var(--color-warning-hover);
+}
+
+/* ======================================================
+   RESPONSIVE
+   ====================================================== */
+
+@media (max-width: 900px) {
+  .page-header-main {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-header-actions {
+    justify-content: flex-start;
+  }
+
+  .page-header-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .page-header-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-header-action {
+    width: 100%;
+  }
+
+  .page-header-metrics {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+
+  .page-header-metric {
+    min-height: 4.65rem;
+  }
+}

@@ -8,11 +8,14 @@
  * - Orquestar búsqueda, filtros, ordenamiento, columnas y paginación.
  * - Mantener persistencia de columnas y registros por página.
  * - Exponer callbacks para integrar datos filtrados con páginas externas.
+ * - Mantener header, filtros, tabla y paginación dentro de un mismo card visual.
+ * - Servir como única base visual para todas las tablas del sistema.
  *
  * No debe:
  * - Consultar APIs.
  * - Conocer reglas de negocio de módulos.
  * - Definir estilos repetidos en línea.
+ * - Depender de clases específicas de módulos.
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -38,8 +41,13 @@ export type Align = "left" | "center" | "right";
 /**
  * Modo visual de tabla.
  *
- * scroll: permite scroll horizontal.
- * fit: adapta columnas al ancho disponible.
+ * scroll:
+ * - Permite scroll horizontal.
+ * - Recomendado para catálogos administrativos con muchas columnas.
+ *
+ * fit:
+ * - Adapta columnas al ancho disponible.
+ * - Recomendado para tablas simples o de pocas columnas.
  */
 export type TableMode = "scroll" | "fit";
 
@@ -95,9 +103,17 @@ export type DataTableProps<T extends Record<string, unknown>> = {
 };
 
 /**
+ * Opciones oficiales permitidas para registros por página.
+ */
+const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
+
+/**
  * Convierte un valor persistido en arreglo de strings seguro.
  */
-function safeStringArray(raw: string | null, fallback: string[]) {
+function safeStringArray(
+  raw: string | null,
+  fallback: string[]
+): string[] {
   try {
     if (!raw) {
       return fallback;
@@ -118,7 +134,7 @@ function safeStringArray(raw: string | null, fallback: string[]) {
 /**
  * Compara dos arreglos de strings conservando orden.
  */
-function sameStringArray(a: string[], b: string[]) {
+function sameStringArray(a: string[], b: string[]): boolean {
   if (a.length !== b.length) {
     return false;
   }
@@ -128,19 +144,41 @@ function sameStringArray(a: string[], b: string[]) {
 
 /**
  * Normaliza el tamaño de página permitido.
+ *
+ * Regla visual:
+ * - El DataTable inicia en 10 registros.
+ * - Opciones permitidas: 5, 10, 20 y 50.
  */
-function getSafePageSize(raw: string | null) {
-  const parsed = raw ? Number(raw) : 10;
+function getSafePageSize(raw: string | number | null): number {
+  const parsed = raw === null ? 10 : Number(raw);
 
   if (!Number.isFinite(parsed) || parsed <= 0) {
     return 10;
   }
 
-  if (![5, 10, 25, 50, 100, 250].includes(parsed)) {
+  if (!PAGE_SIZE_OPTIONS.includes(parsed)) {
     return 10;
   }
 
   return parsed;
+}
+
+/**
+ * Normaliza columnas visibles u ordenadas contra las columnas actuales.
+ */
+function normalizeColumnKeys(
+  currentKeys: string[],
+  validKeys: string[]
+): string[] {
+  const validCurrentKeys = currentKeys.filter((key) =>
+    validKeys.includes(key)
+  );
+
+  const missingKeys = validKeys.filter(
+    (key) => !validCurrentKeys.includes(key)
+  );
+
+  return [...validCurrentKeys, ...missingKeys];
 }
 
 /**
@@ -180,6 +218,29 @@ export default function DataTable<T extends Record<string, unknown>>({
       : safeStringArray(localStorage.getItem(orderKey), columnKeys)
   );
 
+  const [pageSize, setPageSize] = useState<number>(() =>
+    getSafePageSize(localStorage.getItem(pageSizeKey))
+  );
+
+  const [uniqueColumns, setUniqueColumns] = useState<string[]>([]);
+  const [openColumn, setOpenColumn] = useState<ColumnDef<T> | null>(null);
+  const [cardPosition, setCardPosition] = useState({ x: 0, y: 0 });
+  const [openColumnModal, setOpenColumnModal] = useState(false);
+  const [openFiltersModal, setOpenFiltersModal] = useState(false);
+
+  const [activeFilterGroup, setActiveFilterGroup] = useState<{
+    key: string;
+    label: string;
+    values: string[];
+    count: number;
+  } | null>(null);
+
+  const onDataChangeRef = useRef(onDataChange);
+  const lastEmitSignatureRef = useRef("");
+
+  /**
+   * Mantiene columnas visibles y ordenadas sincronizadas con las columnas reales.
+   */
   useEffect(() => {
     if (forceColumnOrder) {
       setVisibleColumns(columnKeys);
@@ -187,23 +248,29 @@ export default function DataTable<T extends Record<string, unknown>>({
       return;
     }
 
-    setVisibleColumns((prev) => {
-      const validPrev = prev.filter((key) => columnKeys.includes(key));
-      const missingKeys = columnKeys.filter((key) => !validPrev.includes(key));
-      const next = [...validPrev, ...missingKeys];
+    setVisibleColumns((previousColumns) => {
+      const nextColumns = normalizeColumnKeys(
+        previousColumns,
+        columnKeys
+      );
 
-      return sameStringArray(prev, next) ? prev : next;
+      return sameStringArray(previousColumns, nextColumns)
+        ? previousColumns
+        : nextColumns;
     });
 
-    setColumnOrder((prev) => {
-      const validPrev = prev.filter((key) => columnKeys.includes(key));
-      const missingKeys = columnKeys.filter((key) => !validPrev.includes(key));
-      const next = [...validPrev, ...missingKeys];
+    setColumnOrder((previousOrder) => {
+      const nextOrder = normalizeColumnKeys(previousOrder, columnKeys);
 
-      return sameStringArray(prev, next) ? prev : next;
+      return sameStringArray(previousOrder, nextOrder)
+        ? previousOrder
+        : nextOrder;
     });
   }, [columnKeys, forceColumnOrder]);
 
+  /**
+   * Persiste columnas visibles cuando el orden no está forzado.
+   */
   useEffect(() => {
     if (forceColumnOrder) {
       return;
@@ -212,6 +279,9 @@ export default function DataTable<T extends Record<string, unknown>>({
     localStorage.setItem(storageKey, JSON.stringify(visibleColumns));
   }, [storageKey, visibleColumns, forceColumnOrder]);
 
+  /**
+   * Persiste orden de columnas cuando el orden no está forzado.
+   */
   useEffect(() => {
     if (forceColumnOrder) {
       return;
@@ -220,24 +290,37 @@ export default function DataTable<T extends Record<string, unknown>>({
     localStorage.setItem(orderKey, JSON.stringify(columnOrder));
   }, [orderKey, columnOrder, forceColumnOrder]);
 
-  const [pageSize, setPageSize] = useState<number>(() =>
-    getSafePageSize(localStorage.getItem(pageSizeKey))
-  );
-
-  const handlePageSizeChange = (next: number) => {
-    const safeNext = getSafePageSize(String(next));
-    setPageSize(safeNext);
-  };
-
+  /**
+   * Persiste registros por página.
+   */
   useEffect(() => {
     localStorage.setItem(pageSizeKey, String(pageSize));
   }, [pageSizeKey, pageSize]);
 
-  const [uniqueColumns, setUniqueColumns] = useState<string[]>([]);
-
+  /**
+   * Mantiene columnas únicas válidas.
+   */
   useEffect(() => {
-    setUniqueColumns((prev) => prev.filter((key) => columnKeys.includes(key)));
+    setUniqueColumns((previousColumns) =>
+      previousColumns.filter((key) => columnKeys.includes(key))
+    );
   }, [columnKeys]);
+
+  /**
+   * Actualiza referencia del callback externo sin forzar efectos innecesarios.
+   */
+  useEffect(() => {
+    onDataChangeRef.current = onDataChange;
+  }, [onDataChange]);
+
+  /**
+   * Cambia registros por página usando opciones permitidas.
+   */
+  function handlePageSizeChange(next: number): void {
+    const safeNext = getSafePageSize(next);
+
+    setPageSize(safeNext);
+  }
 
   const visibleDefs = useMemo(() => {
     return columnOrder
@@ -263,12 +346,12 @@ export default function DataTable<T extends Record<string, unknown>>({
       return orderedRows;
     }
 
-    const seen = new Set<string>();
+    const seenRows = new Set<string>();
 
     return orderedRows.filter((row) => {
-      const key = uniqueColumns
-        .map((col) => {
-          const value = row[col];
+      const uniqueKey = uniqueColumns
+        .map((columnKey) => {
+          const value = row[columnKey];
 
           if (value === null || value === undefined) {
             return "";
@@ -278,11 +361,11 @@ export default function DataTable<T extends Record<string, unknown>>({
         })
         .join("|");
 
-      if (seen.has(key)) {
+      if (seenRows.has(uniqueKey)) {
         return false;
       }
 
-      seen.add(key);
+      seenRows.add(uniqueKey);
 
       return true;
     });
@@ -291,30 +374,45 @@ export default function DataTable<T extends Record<string, unknown>>({
   const totals = useMemo(() => {
     const result: Record<string, number> = {};
 
-    visibleDefs.forEach((col) => {
-      if (!col.isTotal) {
+    visibleDefs.forEach((column) => {
+      if (!column.isTotal) {
         return;
       }
 
-      const key = String(col.key);
+      const key = String(column.key);
 
-      result[key] = finalRows.reduce((acc, row) => {
+      result[key] = finalRows.reduce((accumulator, row) => {
         const value = Number(row[key]);
 
-        return acc + (Number.isNaN(value) ? 0 : value);
+        return accumulator + (Number.isNaN(value) ? 0 : value);
       }, 0);
     });
 
     return result;
   }, [finalRows, visibleDefs]);
 
-  const onDataChangeRef = useRef(onDataChange);
-  const lastEmitSignatureRef = useRef("");
+  const hasFilters = Object.keys(filters).length > 0;
 
-  useEffect(() => {
-    onDataChangeRef.current = onDataChange;
-  }, [onDataChange]);
+  const filterGroups = useMemo(() => {
+    return Object.entries(filters)
+      .map(([columnKey, values]) => {
+        const column = columns.find(
+          (currentColumn) => String(currentColumn.key) === columnKey
+        );
 
+        return {
+          key: columnKey,
+          label: column?.header || columnKey,
+          values,
+          count: values.length
+        };
+      })
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [filters, columns]);
+
+  /**
+   * Emite el estado filtrado y ordenado hacia páginas externas.
+   */
   useEffect(() => {
     if (!onDataChangeRef.current) {
       return;
@@ -351,48 +449,17 @@ export default function DataTable<T extends Record<string, unknown>>({
     });
   }, [finalRows, visibleColumns, columnOrder, filters, sorts]);
 
-  const [openColumn, setOpenColumn] = useState<ColumnDef<T> | null>(null);
-  const [cardPosition, setCardPosition] = useState({ x: 0, y: 0 });
-
-  const [openModal, setOpenModal] = useState(false);
-
-  const [openFiltersModal, setOpenFiltersModal] = useState(false);
-  const [activeFilterGroup, setActiveFilterGroup] = useState<{
-    key: string;
-    label: string;
-    values: string[];
-    count: number;
-  } | null>(null);
-
-  const hasFilters = Object.keys(filters).length > 0;
-
-  const filterGroups = useMemo(() => {
-    return Object.entries(filters)
-      .map(([colKey, values]) => {
-        const column = columns.find((c) => String(c.key) === colKey);
-
-        return {
-          key: colKey,
-          label: column?.header || colKey,
-          values,
-          count: values.length
-        };
-      })
-      .sort((a, b) => a.label.localeCompare(b.label));
-  }, [filters, columns]);
-
-  return (
+    return (
     <div className="data-table">
-      
-
       <DataTableHeader
         search={search}
         setSearch={setSearch}
         loading={loading}
         pageSize={pageSize}
         setPageSize={handlePageSizeChange}
+        pageSizeOptions={PAGE_SIZE_OPTIONS}
         showColumnsButton={!disableColumnConfig}
-        onOpenColumns={() => setOpenModal(true)}
+        onOpenColumns={() => setOpenColumnModal(true)}
       />
 
       <DataTableFilters
@@ -401,13 +468,6 @@ export default function DataTable<T extends Record<string, unknown>>({
         setFilters={setFilters}
         setActiveFilterGroup={setActiveFilterGroup}
         setOpenFiltersModal={setOpenFiltersModal}
-      />
-
-      <ModalChips
-        open={openFiltersModal}
-        group={activeFilterGroup}
-        setFilters={setFilters}
-        setOpen={setOpenFiltersModal}
       />
 
       <div className="data-table__card">
@@ -426,7 +486,16 @@ export default function DataTable<T extends Record<string, unknown>>({
           showPageSizeSelector={false}
           tableMode={tableMode}
         />
+
+        {error ? <div className="data-table-error">{error}</div> : null}
       </div>
+
+      <ModalChips
+        open={openFiltersModal}
+        group={activeFilterGroup}
+        setFilters={setFilters}
+        setOpen={setOpenFiltersModal}
+      />
 
       {openColumn ? (
         <FilterCard
@@ -434,19 +503,19 @@ export default function DataTable<T extends Record<string, unknown>>({
           values={columnValues[String(openColumn.key)] || []}
           selected={filters[String(openColumn.key)] || []}
           openAt={cardPosition}
-          onApply={(vals) =>
-            setFilters((prev: Record<string, string[]>) => ({
-              ...prev,
-              [String(openColumn.key)]: vals
+          onApply={(values) =>
+            setFilters((previousFilters: Record<string, string[]>) => ({
+              ...previousFilters,
+              [String(openColumn.key)]: values
             }))
           }
           onClear={() =>
-            setFilters((prev: Record<string, string[]>) => {
-              const copy = { ...prev };
+            setFilters((previousFilters: Record<string, string[]>) => {
+              const nextFilters = { ...previousFilters };
 
-              delete copy[String(openColumn.key)];
+              delete nextFilters[String(openColumn.key)];
 
-              return copy;
+              return nextFilters;
             })
           }
           onClose={() => setOpenColumn(null)}
@@ -455,8 +524,8 @@ export default function DataTable<T extends Record<string, unknown>>({
 
       {!disableColumnConfig ? (
         <ColumnsModal
-          open={openModal}
-          onClose={() => setOpenModal(false)}
+          open={openColumnModal}
+          onClose={() => setOpenColumnModal(false)}
           columns={columns.map((column) => ({
             key: String(column.key),
             header: column.header
@@ -466,10 +535,10 @@ export default function DataTable<T extends Record<string, unknown>>({
           sorts={sorts}
           uniqueColumns={uniqueColumns}
           onToggleColumn={(key) => {
-            setVisibleColumns((prev) =>
-              prev.includes(key)
-                ? prev.filter((item) => item !== key)
-                : [...prev, key]
+            setVisibleColumns((previousColumns) =>
+              previousColumns.includes(key)
+                ? previousColumns.filter((item) => item !== key)
+                : [...previousColumns, key]
             );
           }}
           onSelectAll={() => setVisibleColumns(columnKeys)}
@@ -480,20 +549,19 @@ export default function DataTable<T extends Record<string, unknown>>({
             setSorts([]);
             setUniqueColumns([]);
           }}
-          onChangeSorts={(next) => {
-            setSorts(next);
+          onChangeSorts={(nextSorts) => {
+            setSorts(nextSorts);
           }}
-          onChangeUniqueColumns={(cols) => {
-            setUniqueColumns(cols);
+          onChangeUniqueColumns={(nextUniqueColumns) => {
+            setUniqueColumns(nextUniqueColumns);
           }}
           onClearSorts={() => setSorts([])}
-          onReorderColumns={(next) => {
-            setColumnOrder(next);
+          onReorderColumns={(nextColumnOrder) => {
+            setColumnOrder(nextColumnOrder);
           }}
         />
       ) : null}
-
-      {error ? <div className="data-table-error">{error}</div> : null}
     </div>
   );
+  
 }

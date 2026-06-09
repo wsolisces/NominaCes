@@ -8,74 +8,74 @@
  * - Definir estructura visual principal del DataTable.
  * - Estilizar header, buscador, botones, filtros, tabla y paginación.
  * - Estilizar columnas sticky, columnas compactas y acciones de tabla.
+ * - Mantener un diseño compacto, corporativo y reutilizable.
  *
  * No debe:
  * - Contener estilos de modales.
  * - Contener estilos de ModalChips.
  * - Contener estilos de ConfigurarColumnasModal.
+ * - Escribir colores directos fuera de la paleta global.
+ * - Depender de estilos específicos de módulos como permisos, roles o usuarios.
  */
 
 /* ======================================================
    VARIABLES INTERNAS
-   ====================================================== */
+====================================================== */
+
 
 .data-table {
-  --data-table-radius-sm: 0.55rem;
-  --data-table-radius-md: 0.75rem;
-  --data-table-radius-lg: 1rem;
+  --data-table-radius-sm: 0.5rem;
+  --data-table-radius-md: 0.62rem;
+  --data-table-radius-lg: 0.72rem;
 
-  --data-table-control-height: 2.7rem;
-  --data-table-row-height: 3.25rem;
+  --data-table-control-height: 2.12rem;
+  --data-table-row-height: 3.15rem;
 
-  --data-table-header-bg: var(--color-surface-blue);
-  --data-table-header-hover-bg: var(--color-surface-blue-hover);
-  --data-table-header-border: var(--color-border-blue);
-  --data-table-header-text: var(--color-text-blue);
-  --data-table-header-hover-text: var(--color-text-blue-strong);
+  --data-table-header-bg: var(--color-ui-surface-soft);
+  --data-table-header-hover-bg: var(--color-ui-surface-soft);
+  --data-table-header-border: var(--color-border-cold-soft);
+  --data-table-header-text: var(--color-ui-subtitle);
+  --data-table-header-hover-text: var(--color-ui-title);
 
-  --data-table-sort-bg: var(--color-blue-700);
-  --data-table-sort-hover-bg: var(--color-blue-800);
-  --data-table-sort-accent: var(--color-blue-400);
-  --data-table-sort-badge-bg: var(--color-blue-500);
-  --data-table-sort-badge-hover-bg: var(--color-blue-600);
+  --data-table-sort-bg: var(--color-primary);
+  --data-table-sort-hover-bg: var(--color-primary-hover);
+  --data-table-sort-accent: var(--color-system-blue-400);
+  --data-table-sort-badge-bg: var(--color-system-blue-700);
+  --data-table-sort-badge-hover-bg: var(--color-system-blue-800);
 
-  --data-table-hover-bg: var(--color-surface-blue);
-  --data-table-selected-bg: var(--color-surface-blue-hover);
+  --data-table-hover-bg: var(--color-ui-surface-soft);
+  --data-table-selected-bg: var(--color-surface-ui-blue);
 
   --data-table-focus: var(--color-focus-soft);
-  --data-table-focus-border: var(--color-focus-strong);
+  --data-table-focus-border: var(--color-ui-blue-border);
 
   --data-table-shadow:
-    0 0.2rem 0.55rem color-mix(
+    0 8px 20px color-mix(
       in srgb,
-      var(--color-text-primary) 4%,
-      transparent
-    ),
-    0 1rem 2.4rem color-mix(
-      in srgb,
-      var(--color-text-primary) 5%,
-      transparent
+      var(--color-ui-title) 4%,
+      var(--color-transparent)
     );
 
-  --data-table-floating-shadow:
-    0 1.4rem 3.8rem var(--color-overlay-soft),
-    0 0.2rem 0.8rem color-mix(
-      in srgb,
-      var(--color-text-primary) 10%,
-      transparent
-    );
+  --data-table-floating-shadow: var(--shadow-ui-strong);
 
   width: 100%;
   min-width: 0;
-  gap: 1rem;
 
   display: grid;
   grid-auto-rows: max-content;
   align-content: start;
+  gap: 0.62rem;
 
-  color: var(--color-text-primary);
-  font-size: 0.82rem;
-  margin-top: 2rem;
+  margin-top: 1rem;
+
+  color: var(--color-ui-title);
+
+  font-family:
+    "Aptos",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.8rem;
 }
 
 /* ======================================================
@@ -91,12 +91,11 @@
   min-height: 0;
   max-height: none;
 
-  overflow: visible;
+  overflow: hidden;
 
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--data-table-radius-lg);
+  border: 1px solid var(--color-border-cold-soft);
 
+  background: var(--color-ui-surface);
   box-shadow: var(--data-table-shadow);
 }
 
@@ -111,7 +110,7 @@
 .data-table select:focus-visible {
   outline: none;
   border-color: var(--data-table-focus-border);
-  box-shadow: 0 0 0 3px var(--data-table-focus);
+  box-shadow: var(--focus-ring);
 }
 
 /* ======================================================
@@ -120,7 +119,12 @@
 
 .data-table * {
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--color-text-secondary) 20%, transparent) transparent;
+  scrollbar-color: color-mix(
+      in srgb,
+      var(--color-ui-muted) 24%,
+      var(--color-transparent)
+    )
+    var(--color-transparent);
 }
 
 .data-table *::-webkit-scrollbar {
@@ -129,19 +133,29 @@
 }
 
 .data-table *::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--color-transparent);
 }
 
 .data-table *::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--color-text-secondary) 20%, transparent);
-  border: 0.08rem solid transparent;
+  border: 0.08rem solid var(--color-transparent);
   border-radius: 999px;
+
+  background: color-mix(
+    in srgb,
+    var(--color-ui-muted) 24%,
+    var(--color-transparent)
+  );
   background-clip: padding-box;
 }
 
 .data-table *::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--color-text-secondary) 40%, transparent);
-  border: 0.05rem solid transparent;
+  border: 0.05rem solid var(--color-transparent);
+
+  background: color-mix(
+    in srgb,
+    var(--color-ui-muted) 42%,
+    var(--color-transparent)
+  );
   background-clip: padding-box;
 }
 
@@ -156,7 +170,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.9rem;
+  gap: 1rem;
+
+  padding: 0;
+
+  border: 0;
+
+  background: var(--color-transparent);
 }
 
 .data-table-header__left {
@@ -165,7 +185,7 @@
 
   display: flex;
   align-items: center;
-  gap: 0.7rem;
+  gap: 0.6rem;
 }
 
 .data-table-header__right {
@@ -174,7 +194,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.6rem;
+  gap: 0.55rem;
 }
 
 /* ======================================================
@@ -184,9 +204,9 @@
 .data-table-search {
   position: relative;
 
-  width: min(100%, 25rem);
-  min-width: 12rem;
-  height: 2.15rem;
+  width: min(100%, 22rem);
+  min-width: 15rem;
+  height: 2.12rem;
 
   display: flex;
   align-items: center;
@@ -195,28 +215,30 @@
 .data-table-search__icon {
   position: absolute;
   top: 50%;
-  left: 0.7rem;
-  z-index: 1;
+  left: 0.72rem;
+  z-index: 2;
 
-  width: 0.9rem;
-  height: 0.9rem;
+  width: 0.82rem;
+  height: 0.82rem;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  color: var(--color-text-muted);
+  color: var(--color-ui-muted);
 
   transform: translateY(-50%);
   pointer-events: none;
 }
 
-.data-table-search__icon svg,
-.data-table-search__clear svg,
-.data-table-page-size__icon svg,
-.data-table-button__icon svg {
-  width: 0.9rem;
-  height: 0.9rem;
+.data-table-search__icon svg {
+  width: 0.82rem !important;
+  height: 0.82rem !important;
+  max-width: 0.82rem !important;
+  max-height: 0.82rem !important;
+
+  display: block;
+  flex: 0 0 auto;
 
   fill: currentColor;
 }
@@ -225,35 +247,37 @@
   width: 100%;
   height: 100%;
 
-  padding: 0 2.25rem 0 2rem;
+  padding: 0 2rem 0 1.95rem;
 
-  color: var(--color-text-primary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--data-table-radius-sm);
-  background: var(--color-surface);
+  border: 1px solid var(--color-ui-border-soft);
+  border-radius: 0.58rem;
+
+  color: var(--color-ui-title);
+  background: var(--color-ui-surface);
 
   font-size: 0.75rem;
   font-weight: 500;
+  line-height: 1;
 
   transition:
-    background-color 160ms ease,
-    border-color 160ms ease,
-    box-shadow 160ms ease;
+    background-color 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease;
 }
 
 .data-table-search__input:hover {
-  border-color: var(--color-border-strong);
+  border-color: var(--color-ui-border);
 }
 
 .data-table-search__input:focus {
-  background: var(--color-surface);
   border-color: var(--data-table-focus-border);
-  box-shadow: 0 0 0 3px var(--data-table-focus);
+  background: var(--color-ui-surface);
+  box-shadow: var(--focus-ring);
 }
 
 .data-table-search__input::placeholder {
-  color: var(--color-text-muted);
-  font-weight: 400;
+  color: var(--color-ui-muted);
+  font-weight: 450;
 }
 
 .data-table-search__input::-webkit-search-cancel-button {
@@ -263,10 +287,10 @@
 .data-table-search__clear {
   position: absolute;
   top: 50%;
-  right: 0.35rem;
+  right: 0.36rem;
 
-  width: 1.65rem;
-  height: 1.65rem;
+  width: 1.5rem;
+  height: 1.5rem;
 
   display: inline-flex;
   align-items: center;
@@ -274,22 +298,44 @@
 
   padding: 0;
 
-  color: var(--color-text-muted);
-  background: transparent;
   border: 0;
   border-radius: 50%;
+
+  color: var(--color-ui-muted);
+  background: var(--color-transparent);
+
+  font-size: 0.9rem;
+  font-weight: 650;
+  line-height: 1;
 
   cursor: pointer;
   transform: translateY(-50%);
 
   transition:
-    color 160ms ease,
-    background-color 160ms ease;
+    color 150ms ease,
+    background-color 150ms ease;
 }
 
 .data-table-search__clear:hover {
-  color: var(--color-text-primary);
-  background: var(--color-surface-muted);
+  color: var(--color-ui-title);
+  background: var(--color-ui-surface-muted);
+}
+
+/* ======================================================
+   ÍCONOS GENERALES
+   ====================================================== */
+
+.data-table-page-size__icon svg,
+.data-table-button__icon svg {
+  width: 0.86rem !important;
+  height: 0.86rem !important;
+  max-width: 0.86rem !important;
+  max-height: 0.86rem !important;
+
+  display: block;
+  flex: 0 0 auto;
+
+  fill: currentColor;
 }
 
 /* ======================================================
@@ -301,21 +347,28 @@
 
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
 
-  color: var(--color-text-secondary);
+  color: var(--color-ui-text);
 
-  font-size: 0.76rem;
-  font-weight: 600;
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.72rem;
+  font-weight: 720;
+  line-height: 1;
   white-space: nowrap;
 }
 
 .data-table-header__loading-indicator {
-  width: 0.55rem;
-  height: 0.55rem;
+  width: 0.5rem;
+  height: 0.5rem;
 
-  background: var(--color-text-secondary);
   border-radius: 50%;
+
+  background: var(--color-ui-muted);
 
   animation: data-table-loading-pulse 1.15s ease-in-out infinite;
 }
@@ -340,22 +393,23 @@
 .data-table-page-size {
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
-
-  transition:
-    background-color 160ms ease,
-    border-color 160ms ease;
+  gap: 0.5rem;
 }
 
 .data-table-page-size__label {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
 
-  color: var(--color-text-secondary);
+  color: var(--color-ui-title);
 
-  font-size: 0.76rem;
-  font-weight: 600;
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.72rem;
+  font-weight: 760;
+  line-height: 1;
   white-space: nowrap;
 }
 
@@ -364,22 +418,23 @@
   align-items: center;
   justify-content: center;
 
-  color: var(--color-text-muted);
+  color: var(--color-ui-muted);
 }
 
 .data-table-select {
-  min-width: 7.7rem;
-  height: 1.85rem;
+  min-width: 5.8rem;
+  height: 2.12rem;
 
-  padding: 0 0.45rem;
+  padding: 0 0.64rem;
 
-  color: var(--color-text-primary);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--data-table-radius-sm);
+  border: 1px solid var(--color-ui-border-soft);
+  border-radius: 0.58rem;
+
+  color: var(--color-ui-title);
+  background: var(--color-ui-surface);
 
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
 
   cursor: pointer;
 }
@@ -400,43 +455,52 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.48rem;
+  gap: 0.42rem;
 
-  padding: 0 0.95rem;
+  padding: 0 0.78rem;
 
-  color: var(--color-text-primary);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--data-table-radius-md);
+  border: 1px solid var(--color-ui-border-soft);
+  border-radius: 0.58rem;
 
-  font-size: 0.77rem;
-  font-weight: 600;
+  color: var(--color-ui-title);
+  background: var(--color-ui-surface);
+
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.73rem;
+  font-weight: 760;
   line-height: 1;
+  letter-spacing: 0.015em;
   white-space: nowrap;
 
   cursor: pointer;
 
   transition:
-    background-color 160ms ease,
-    border-color 160ms ease,
-    color 160ms ease,
-    box-shadow 160ms ease,
-    transform 160ms ease,
-    opacity 160ms ease;
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease,
+    opacity 150ms ease;
 }
+   
 
 .data-table-button__icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  color: var(--color-text-secondary);
+  color: currentColor;
 }
 
 .data-table-button:hover:not(:disabled) {
-  background: var(--color-surface-soft);
-  border-color: var(--color-border-strong);
-  box-shadow: 0 0.25rem 0.65rem color-mix(in srgb, var(--color-text-primary) 6%, transparent);
+  color: var(--color-ui-title);
+  background: var(--color-ui-surface-soft);
+  border-color: var(--color-ui-border);
+  box-shadow: var(--shadow-ui-soft);
 
   transform: translateY(-1px);
 }
@@ -452,67 +516,71 @@
 }
 
 .data-table-button--primary {
-  color: var(--color-text-inverse);
+  color: var(--color-primary-contrast);
   background: var(--color-primary);
   border-color: var(--color-primary);
+  box-shadow: var(--shadow-primary-soft);
 }
 
 .data-table-button--primary .data-table-button__icon {
-  color: var(--color-text-inverse);
+  color: var(--color-primary-contrast);
 }
 
 .data-table-button--primary:hover:not(:disabled) {
-  color: var(--color-text-inverse);
-  background: var(--color-black);
-  border-color: var(--color-black);
+  color: var(--color-primary-contrast);
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+  box-shadow: var(--shadow-primary-hover);
 }
 
 .data-table-button--danger {
-  color: var(--color-danger);
+  color: var(--color-danger-hover);
   background: var(--color-danger-soft);
-  border-color: color-mix(in srgb, var(--color-danger) 18%, transparent);
+  border-color: var(--color-danger-border);
 }
 
 .data-table-button--danger:hover:not(:disabled) {
+  color: var(--color-danger-hover);
   background: var(--color-danger-soft);
-  border-color: color-mix(in srgb, var(--color-danger) 30%, transparent);
+  border-color: var(--color-danger);
 }
 
 .data-table-button--icon {
-  width: 2.15rem;
-  min-width: 2.15rem;
-  height: 2.15rem;
+  width: var(--data-table-control-height);
+  min-width: var(--data-table-control-height);
+  height: var(--data-table-control-height);
 
   padding: 0;
 }
 
 .data-table-button--small {
-  height: 1.9rem;
+  height: 1.82rem;
 
-  padding: 0 0.65rem;
+  padding: 0 0.58rem;
 
   border-radius: 0.48rem;
 
   font-size: 0.68rem;
-  font-weight: 600;
+  font-weight: 760;
 }
 
 .data-table-button--soft-danger {
-  height: 2.45rem;
-  padding: 0 1rem;
+  height: 2rem;
+  padding: 0 0.72rem;
 
-  color: var(--color-danger);
-  background: var(--color-danger-soft);
-  border-color: color-mix(in srgb, var(--color-danger) 22%, transparent);
-  border-radius: 10px;
+  border: 1px solid var(--color-danger-border);
+  border-radius: 0.56rem;
 
-  font-size: 0.76rem;
+  color: var(--color-danger-hover);
+  background: var(--color-ui-surface);
+
+  font-size: 0.72rem;
 }
 
 .data-table-button--soft-danger:hover:not(:disabled) {
-  color: var(--color-danger);
-  background: color-mix(in srgb, var(--color-danger) 12%, var(--color-surface));
-  border-color: color-mix(in srgb, var(--color-danger) 34%, transparent);
+  color: var(--color-danger-hover);
+  background: var(--color-danger-soft);
+  border-color: var(--color-danger);
 }
 
 /* ======================================================
@@ -526,10 +594,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.55rem;
+  gap: 0.6rem;
 
-  margin: 0;
-  padding: 0;
+  padding: 0.58rem 0.85rem;
 }
 
 .data-table-filters-bar__list {
@@ -538,62 +605,79 @@
 
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-
-  overflow-x: auto;
+  gap: 0.42rem;
 
   margin: 0;
   padding: 0;
+
+  overflow-x: auto;
 }
 
 .data-table-filter-chip {
   min-width: max-content;
-  height: 1.78rem;
+  height: 1.62rem;
 
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.38rem;
 
-  padding: 0 0.65rem;
+  padding: 0 0.62rem;
 
-  color: var(--color-text-secondary);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-ui-border-soft);
   border-radius: 999px;
 
-  font-size: 0.7rem;
-  font-weight: 600;
+  color: var(--color-ui-title);
+  background: var(--color-ui-surface);
+
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.66rem;
+  font-weight: 780;
+  line-height: 1;
+  letter-spacing: 0.015em;
 
   cursor: pointer;
 
   transition:
-    background-color 160ms ease,
-    border-color 160ms ease,
-    color 160ms ease;
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    transform 150ms ease;
 }
 
 .data-table-filter-chip:hover {
-  color: var(--color-text-primary);
-  background: var(--color-surface);
-  border-color: var(--color-border-strong);
+  color: var(--color-ui-title);
+  background: var(--color-ui-surface-soft);
+  border-color: var(--color-ui-border);
+
+  transform: translateY(-1px);
+}
+
+.data-table-filter-chip__label {
+  display: inline-flex;
+  align-items: center;
 }
 
 .data-table-filter-chip__count {
-  min-width: 1.15rem;
-  height: 1.15rem;
+  min-width: 1.05rem;
+  height: 1.05rem;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  padding: 0 0.32rem;
+  padding: 0 0.28rem;
 
-  color: var(--color-text-primary);
-  background: var(--color-surface-muted);
   border-radius: 999px;
 
+  color: var(--color-ui-title);
+  background: var(--color-ui-surface-muted);
+
   font-size: 0.58rem;
-  font-weight: 700;
+  font-weight: 820;
 }
 
 .data-table-filters-bar__clear {
@@ -601,21 +685,27 @@
 
   padding: 0;
 
-  color: var(--color-text-secondary);
-  background: transparent;
   border: 0;
 
-  font-size: 0.72rem;
-  font-weight: 600;
+  color: var(--color-ui-title);
+  background: var(--color-transparent);
+
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.7rem;
+  font-weight: 780;
   line-height: 1;
 
   cursor: pointer;
 
-  transition: color 160ms ease;
+  transition: color 150ms ease;
 }
 
 .data-table-filters-bar__clear:hover {
-  color: var(--color-text-primary);
+  color: var(--color-primary);
   text-decoration: underline;
 }
 
@@ -632,8 +722,7 @@
 
   overflow: visible;
 
-  background: var(--color-surface);
-  border-radius: var(--data-table-radius-lg);
+  background: var(--color-ui-surface);
 }
 
 .data-table-table__scroll {
@@ -649,7 +738,12 @@
   overscroll-behavior-x: contain;
 
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--color-text-secondary) 20%, transparent) transparent;
+  scrollbar-color: color-mix(
+      in srgb,
+      var(--color-ui-muted) 24%,
+      var(--color-transparent)
+    )
+    var(--color-transparent);
 }
 
 .data-table-table__scroll--fit {
@@ -663,34 +757,49 @@
 
 .data-table-table__scroll::-webkit-scrollbar {
   width: 0;
-  height: 0.4rem;
+  height: 0.38rem;
 }
 
 .data-table-table__scroll::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--color-transparent);
 }
 
 .data-table-table__scroll::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--color-text-secondary) 18%, transparent);
-  border: 0.08rem solid transparent;
+  border: 0.08rem solid var(--color-transparent);
   border-radius: 999px;
+
+  background: color-mix(
+    in srgb,
+    var(--color-ui-muted) 22%,
+    var(--color-transparent)
+  );
   background-clip: padding-box;
 }
 
 .data-table-table__scroll:hover::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--color-text-secondary) 30%, transparent);
-  border: 0.06rem solid transparent;
+  border: 0.06rem solid var(--color-transparent);
+
+  background: color-mix(
+    in srgb,
+    var(--color-ui-muted) 34%,
+    var(--color-transparent)
+  );
   background-clip: padding-box;
 }
 
 .data-table-table__scroll::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--color-text-primary) 45%, transparent);
-  border: 0.04rem solid transparent;
+  border: 0.04rem solid var(--color-transparent);
+
+  background: color-mix(
+    in srgb,
+    var(--color-ui-title) 45%,
+    var(--color-transparent)
+  );
   background-clip: padding-box;
 }
 
 .data-table-table__scroll::-webkit-scrollbar-corner {
-  background: transparent;
+  background: var(--color-transparent);
 }
 
 /* ======================================================
@@ -706,7 +815,7 @@
   border-collapse: separate;
   border-spacing: 0;
 
-  font-size: 0.78rem;
+  font-size: 0.8rem;
 }
 
 .data-table-table__table--scroll {
@@ -732,32 +841,38 @@
 .data-table-table__th {
   position: relative;
 
-  padding: 0.82rem 0.78rem;
+  padding: 0.68rem 0.92rem;
+
+  border-bottom: 1px solid var(--data-table-header-border);
 
   color: var(--data-table-header-text);
   background: var(--data-table-header-bg);
-  border-bottom: 1px solid var(--data-table-header-border);
 
-  font-size: 0.69rem;
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: 0.04em;
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.66rem;
+  font-weight: 820;
+  line-height: 1.24;
+  letter-spacing: 0.045em;
   text-transform: uppercase;
 
   cursor: pointer;
   user-select: none;
 
   transition:
-    color 160ms ease,
-    background-color 160ms ease,
-    box-shadow 160ms ease;
+    color 150ms ease,
+    background-color 150ms ease,
+    box-shadow 150ms ease;
 }
+
 
 .data-table-table__th:hover {
   color: var(--data-table-header-hover-text);
   background: var(--data-table-header-hover-bg);
-
-  box-shadow: inset 0 -2px 0 var(--color-focus);
+  box-shadow: none;
 }
 
 .data-table-table__th:first-child {
@@ -773,7 +888,7 @@
 
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.36rem;
 }
 
 .data-table-table__th-inner--left {
@@ -809,26 +924,32 @@
 .data-table-table__sort-badge {
   flex: 0 0 auto;
 
-  min-width: 1.32rem;
-  height: 1.08rem;
+  min-width: 1.25rem;
+  height: 1rem;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  padding: 0 0.28rem;
+  padding: 0 0.25rem;
+
+  border-radius: 999px;
 
   color: var(--color-text-inverse);
   background: var(--data-table-sort-badge-bg);
-  border-radius: 999px;
 
-  font-size: 0.54rem;
-  font-weight: 700;
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.52rem;
+  font-weight: 760;
   line-height: 1;
 
   transition:
-    background-color 160ms ease,
-    transform 160ms ease;
+    background-color 150ms ease,
+    transform 150ms ease;
 }
 
 .data-table-table__th:hover .data-table-table__sort-badge {
@@ -863,7 +984,7 @@
    ====================================================== */
 
 .data-table-table__body {
-  background: var(--color-surface);
+  background: var(--color-ui-surface);
 }
 
 .data-table-table__tr {
@@ -883,25 +1004,38 @@
 }
 
 .data-table-table__tr--clickable:hover {
-  box-shadow: inset 0.18rem 0 var(--color-primary);
+  box-shadow: inset 0.16rem 0 var(--color-primary);
 }
 
 .data-table-table__td {
   min-height: var(--data-table-row-height);
 
-  padding: 0.78rem;
+  padding: 0.72rem 0.92rem;
 
-  color: var(--color-text-primary);
-  border-bottom: 1px solid var(--color-border-soft);
+  border-bottom: 1px solid var(--color-border-cold-soft);
 
-  font-size: 0.78rem;
-  font-weight: 400;
-  line-height: 1.45;
+  color: var(--color-ui-title);
+
+  font-family:
+    "Aptos",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.8rem;
+  font-weight: 540;
+  line-height: 1.42;
   vertical-align: middle;
+
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
+
 
 .data-table-table__td:first-child {
   padding-left: 1rem;
+
+  font-weight: 760;
 }
 
 .data-table-table__td:last-child {
@@ -917,13 +1051,19 @@
 
   width: 100%;
   min-width: 0;
+
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 .data-table-table__content--truncate {
-  overflow: hidden;
+  overflow: visible;
 
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  white-space: normal;
+  text-overflow: initial;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 .data-table-table__content--wrap {
@@ -944,12 +1084,12 @@
 }
 
 .data-table-table__empty {
-  padding: 4rem 1.25rem;
+  padding: 2.6rem 1.15rem;
 
-  color: var(--color-text-muted);
+  color: var(--color-ui-muted);
   text-align: center;
 
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 500;
 }
 
@@ -962,59 +1102,153 @@
   z-index: 2;
 
   background: var(--data-table-header-bg);
-  box-shadow: 0 -1px 0 var(--color-border);
+  box-shadow: 0 -1px 0 var(--color-border-cold);
 }
 
 .data-table-table__foot .data-table-table__td {
-  color: var(--color-text-primary);
+  color: var(--color-ui-title);
   background: var(--data-table-header-bg);
 
   font-weight: 700;
 }
 
 /* ======================================================
-   PAGINACIÓN
+   FOOTER / PAGINACIÓN
    ====================================================== */
 
-.data-table-pagination {
-  min-height: 3.4rem;
+.data-table-footer {
+  width: 100%;
+  min-width: 0;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.85rem;
+  gap: 1rem;
 
-  padding: 0.7rem 0.9rem;
+  min-height: 3.2rem;
+  padding: 0.72rem 0.92rem;
 
-  color: var(--color-text-secondary);
-  background: var(--color-surface);
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-border-cold-soft);
 
-  font-size: 0.74rem;
+  color: var(--color-ui-text);
+  background: var(--color-ui-surface);
+}
+
+.data-table-footer__summary {
+  min-width: 0;
+  margin: 0;
+
+  color: var(--color-ui-text);
+
+  font-family:
+    "Aptos",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.76rem;
   font-weight: 500;
+  line-height: 1.35;
 }
 
-.data-table-pagination__left,
-.data-table-pagination__right {
-  display: flex;
+.data-table-pagination {
+  flex: 0 0 auto;
+
+  display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
+  justify-content: flex-end;
+  gap: 0.38rem;
+
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+
+  border: 0;
+
+  color: var(--color-ui-text);
+  background: var(--color-transparent);
+
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  line-height: 1;
 }
 
-.data-table-pagination__divider {
-  width: 1px;
-  height: 1.15rem;
+.data-table-pagination__button,
+.data-table-pagination__number {
+  min-width: 2rem;
+  height: 2rem;
 
-  background: var(--color-border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 0.58rem;
+
+  border: 1px solid var(--color-ui-border-soft);
+  border-radius: 0.56rem;
+
+  color: var(--color-ui-title);
+  background: var(--color-ui-surface);
+
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.76rem;
+  font-weight: 750;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease,
+    opacity 150ms ease;
 }
 
-.data-table-pagination__page {
-  min-width: 4.5rem;
+.data-table-pagination__button {
+  width: 2rem;
+  padding: 0;
 
-  color: var(--color-text-primary);
-  text-align: center;
+  color: var(--color-ui-subtitle);
 
-  font-weight: 700;
+  font-size: 0.95rem;
+  font-weight: 760;
+}
+
+.data-table-pagination__button:hover:not(:disabled),
+.data-table-pagination__number:hover:not(:disabled) {
+  transform: translateY(-1px);
+
+  color: var(--color-primary);
+  background: var(--color-ui-surface-soft);
+  border-color: var(--color-ui-border);
+
+  box-shadow: var(--shadow-ui-soft);
+}
+
+.data-table-pagination__button:disabled,
+.data-table-pagination__number:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.data-table-pagination__number--active,
+.data-table-pagination__number--active:disabled {
+  color: var(--color-primary-contrast);
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+
+  box-shadow: var(--shadow-primary-soft);
+
+  cursor: default;
+  opacity: 1;
 }
 
 /* ======================================================
@@ -1027,12 +1261,12 @@
 
   width: 17rem;
 
-  padding: 0.75rem;
+  padding: 0.72rem;
 
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-cold);
   border-radius: var(--data-table-radius-lg);
 
+  background: var(--color-ui-surface);
   box-shadow: var(--data-table-floating-shadow);
 }
 
@@ -1040,12 +1274,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.65rem;
+  gap: 0.62rem;
 
-  margin-bottom: 0.65rem;
-  padding-bottom: 0.6rem;
+  margin-bottom: 0.62rem;
+  padding-bottom: 0.58rem;
 
-  border-bottom: 1px solid var(--color-border-soft);
+  border-bottom: 1px solid var(--color-border-cold-soft);
 
   cursor: move;
   user-select: none;
@@ -1057,43 +1291,51 @@
 
   overflow: hidden;
 
-  color: var(--color-text-primary);
+  color: var(--color-ui-title);
 
+  font-family:
+    "Aptos Display",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 780;
+  line-height: 1.18;
+  letter-spacing: -0.015em;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .data-table-filter-card__input {
   width: 100%;
-  height: 2.35rem;
+  height: 2.18rem;
 
-  margin-bottom: 0.65rem;
-  padding: 0 0.7rem;
+  margin-bottom: 0.62rem;
+  padding: 0 0.65rem;
 
-  color: var(--color-text-primary);
-  background: var(--color-surface-soft);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-ui-border-soft);
   border-radius: var(--data-table-radius-sm);
 
-  font-size: 0.76rem;
+  color: var(--color-ui-title);
+  background: var(--color-ui-surface-soft);
+
+  font-size: 0.74rem;
   font-weight: 500;
 }
 
 .data-table-filter-card__input:focus {
-  background: var(--color-surface);
+  background: var(--color-ui-surface);
 }
 
 .data-table-filter-card__list {
   max-height: 12rem;
 
-  overflow-y: auto;
-
   display: grid;
   gap: 0.18rem;
 
   padding-right: 0.2rem;
+
+  overflow-y: auto;
 }
 
 .data-table-filter-card__option {
@@ -1101,14 +1343,15 @@
 
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
 
-  padding: 0.48rem 0.5rem;
+  padding: 0.44rem 0.48rem;
 
-  color: var(--color-text-secondary);
   border-radius: var(--data-table-radius-sm);
 
-  font-size: 0.74rem;
+  color: var(--color-ui-text);
+
+  font-size: 0.72rem;
   font-weight: 500;
 
   cursor: pointer;
@@ -1120,13 +1363,13 @@
 
 .data-table-filter-card__option:hover,
 .data-table-filter-card__option--active {
-  color: var(--color-text-primary);
-  background: var(--color-surface-soft);
+  color: var(--color-ui-title);
+  background: var(--color-ui-surface-soft);
 }
 
 .data-table-filter-card__checkbox {
-  width: 0.9rem;
-  height: 0.9rem;
+  width: 0.86rem;
+  height: 0.86rem;
 
   accent-color: var(--color-primary);
 }
@@ -1143,29 +1386,35 @@
 .data-table-filter-card__footer {
   display: flex;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: 0.48rem;
 
-  margin-top: 0.7rem;
-  padding-top: 0.65rem;
+  margin-top: 0.68rem;
+  padding-top: 0.62rem;
 
-  border-top: 1px solid var(--color-border-soft);
+  border-top: 1px solid var(--color-border-cold-soft);
 }
 
 .data-table-link-button {
-  padding: 0.25rem;
+  padding: 0.22rem;
 
-  color: var(--color-text-secondary);
-  background: transparent;
   border: 0;
 
+  color: var(--color-ui-text);
+  background: var(--color-transparent);
+
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
   font-size: 0.7rem;
-  font-weight: 600;
+  font-weight: 720;
 
   cursor: pointer;
 }
 
 .data-table-link-button:hover {
-  color: var(--color-text-primary);
+  color: var(--color-primary);
   text-decoration: underline;
 }
 
@@ -1177,12 +1426,12 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.4rem;
+  gap: 0.38rem;
 }
 
 .security-action-icon-button {
-  width: 2.15rem;
-  height: 2.15rem;
+  width: 1.95rem;
+  height: 1.95rem;
 
   display: inline-flex;
   align-items: center;
@@ -1190,31 +1439,31 @@
 
   padding: 0;
 
-  color: var(--color-text-secondary);
-  background: transparent;
-
-  border: 1px solid transparent;
+  border: 1px solid var(--color-ui-border-soft);
   border-radius: 0.55rem;
+
+  color: var(--color-ui-text);
+  background: var(--color-ui-surface);
 
   cursor: pointer;
 
   transition:
-    color 160ms ease,
-    background-color 160ms ease,
-    border-color 160ms ease,
-    transform 160ms ease;
+    color 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease;
 }
 
 .security-action-icon-button svg {
-  width: 1.1rem;
-  height: 1.1rem;
+  width: 0.92rem;
+  height: 0.92rem;
   flex-shrink: 0;
 }
 
 .security-action-icon-button:hover:not(:disabled) {
-  color: var(--color-text-primary);
-  background: var(--color-surface-soft);
-  border-color: var(--color-border);
+  color: var(--color-ui-title);
+  background: var(--color-ui-surface-soft);
+  border-color: var(--color-ui-border-soft);
   transform: translateY(-1px);
 }
 
@@ -1231,7 +1480,7 @@
 }
 
 .security-action-icon-button:focus-visible {
-  outline: 2px solid var(--color-text-secondary);
+  outline: 2px solid var(--color-ui-border-strong);
   outline-offset: 2px;
 }
 
@@ -1247,27 +1496,47 @@
 .data-table-table__cell--sticky-left,
 .data-table-table__cell--sticky-right {
   position: sticky;
-  background: #ffffff;
+
+  background: var(--color-ui-surface);
 }
 
 .data-table-table__cell--sticky-left {
   left: 0;
-  box-shadow: 0.45rem 0 0.75rem rgba(15, 23, 42, 0.06);
+  box-shadow: 0.45rem 0 0.75rem
+    color-mix(
+      in srgb,
+      var(--color-ui-title) 6%,
+      var(--color-transparent)
+    );
 }
 
 .data-table-table__cell--sticky-right {
   right: 0;
-  box-shadow: -0.45rem 0 0.75rem rgba(15, 23, 42, 0.06);
+  box-shadow: -0.45rem 0 0.75rem
+    color-mix(
+      in srgb,
+      var(--color-ui-title) 6%,
+      var(--color-transparent)
+    );
 }
 
 .data-table-table__th.data-table-table__cell--sticky-left,
 .data-table-table__th.data-table-table__cell--sticky-right {
-  background: #eef4fb;
+  z-index: 4;
+
+  background: var(--data-table-header-bg);
+}
+
+.data-table-table__td.data-table-table__cell--sticky-left,
+.data-table-table__td.data-table-table__cell--sticky-right {
+  z-index: 3;
+
+  background: var(--color-ui-surface);
 }
 
 .data-table-table__tr:hover .data-table-table__cell--sticky-left,
 .data-table-table__tr:hover .data-table-table__cell--sticky-right {
-  background: #f8fafc;
+  background: var(--data-table-hover-bg);
 }
 
 /* ======================================================
@@ -1276,8 +1545,8 @@
 
 .data-table-table__th--compact,
 .data-table-table__td--compact {
-  padding-left: 0.45rem;
-  padding-right: 0.45rem;
+  padding-left: 0.46rem;
+  padding-right: 0.46rem;
 }
 
 .data-table-table__content--compact {
@@ -1287,8 +1556,8 @@
 
   color: inherit;
 
-  font-size: 0.82rem;
-  line-height: 1.35;
+  font-size: 0.8rem;
+  line-height: 1.38;
 
   white-space: normal;
   text-overflow: initial;
@@ -1302,8 +1571,10 @@
 
 .data-table-table__td--compact .data-table-table__content {
   min-width: 0;
-  white-space: normal;
+
   overflow: visible;
+
+  white-space: normal;
   text-overflow: initial;
   overflow-wrap: anywhere;
 }
@@ -1315,18 +1586,24 @@
 .data-table-error {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.55rem;
 
-  padding: 0.85rem 0.95rem;
+  padding: 0.78rem 0.88rem;
 
-  color: var(--color-danger);
-  background: var(--color-danger-soft);
-  border: 1px solid color-mix(in srgb, var(--color-danger) 18%, transparent);
+  border: 1px solid var(--color-danger-border);
   border-radius: var(--data-table-radius-md);
 
-  font-size: 0.78rem;
-  font-weight: 600;
-  line-height: 1.45;
+  color: var(--color-danger-hover);
+  background: var(--color-danger-soft);
+
+  font-family:
+    "Aptos",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.76rem;
+  font-weight: 650;
+  line-height: 1.42;
 }
 
 /* ======================================================
@@ -1341,8 +1618,8 @@
 
 .data-table input:disabled,
 .data-table select:disabled {
-  color: var(--color-text-muted);
-  background: var(--color-surface-soft);
+  color: var(--color-ui-muted);
+  background: var(--color-ui-surface-soft);
 }
 
 /* ======================================================
@@ -1377,18 +1654,17 @@
 @media (max-width: 640px) {
   .data-table {
     gap: 0.45rem;
+    margin-top: 1rem;
   }
 
   .data-table-header,
-  .data-table-pagination,
   .data-table-filters-bar {
     align-items: stretch;
     flex-direction: column;
   }
 
   .data-table-header {
-    padding: 0.7rem;
-    border-radius: var(--data-table-radius-md);
+    padding: 0.78rem;
   }
 
   .data-table-header__left,
@@ -1409,6 +1685,10 @@
     flex-wrap: wrap;
   }
 
+  .data-table-search {
+    min-width: 0;
+  }
+
   .data-table-page-size {
     flex: 1 1 auto;
     justify-content: space-between;
@@ -1423,13 +1703,33 @@
     flex: 1 1 auto;
   }
 
-  .data-table-pagination {
-    padding: 0.75rem;
+  .data-table-filters-bar {
+    padding: 0.72rem 0.78rem;
   }
 
-  .data-table-pagination__left,
-  .data-table-pagination__right {
-    justify-content: space-between;
+  .data-table-footer {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+
+  .data-table-footer__summary {
+    width: 100%;
+  }
+
+  .data-table-pagination {
+    width: 100%;
+
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .data-table-pagination__button {
+    flex: 0 0 2rem;
+  }
+
+  .data-table-pagination__number {
+    flex: 0 0 auto;
   }
 
   .data-table-filter-card {

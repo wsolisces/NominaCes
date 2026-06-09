@@ -13,8 +13,8 @@
  * - Estilizar tabla principal.
  * - Estilizar paginación, buscador o header del DataTable.
  * - Contener reglas duplicadas de tabla.
+ * - Escribir colores directos fuera de la paleta global.
  */
-
 
 /* ======================================================
    BASE GENERAL DE MODALES
@@ -36,26 +36,30 @@
 }
 
 .data-table-modal {
-  width: min(100%, 38rem);
-  max-height: min(82vh, 42rem);
+  width: min(100%, 34rem);
+  max-height: min(78vh, 38rem);
 
   display: flex;
   flex-direction: column;
 
   overflow: hidden;
 
-  background: var(--color-surface);
-  border-radius: 0.85rem;
+  border-radius: 0.78rem;
 
-  box-shadow:
-    0 1.5rem 4rem color-mix(in srgb, var(--color-text-primary) 22%, transparent),
-    0 0.2rem 0.8rem color-mix(in srgb, var(--color-text-primary) 8%, transparent);
+  background: var(--color-ui-surface);
+  box-shadow: var(--shadow-ui-medium);
+
+  font-family:
+    "Aptos",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
 
   animation: data-table-modal-enter 160ms ease-out;
 }
 
 .data-table-modal--sm {
-  max-width: 34rem;
+  max-width: 30rem;
 }
 
 @keyframes data-table-modal-enter {
@@ -70,7 +74,6 @@
   }
 }
 
-
 /* ======================================================
    BASE GENERAL - HEADER
    ====================================================== */
@@ -83,23 +86,35 @@
   justify-content: space-between;
   gap: 0.85rem;
 
-  padding: 1rem 1.25rem 0.9rem;
+  padding: 0.85rem 1.05rem 0.78rem;
+
+  border-bottom: 1px solid var(--color-border-soft);
 
   background:
     radial-gradient(
       circle at top left,
-      rgba(37, 99, 235, 0.11),
-      transparent 36%
+      color-mix(
+        in srgb,
+        var(--color-ui-blue) 10%,
+        var(--color-transparent)
+      ),
+      var(--color-transparent) 38%
     ),
     linear-gradient(
       90deg,
-      rgba(37, 99, 235, 0.055),
-      rgba(37, 99, 235, 0.018) 48%,
-      transparent
+      color-mix(
+        in srgb,
+        var(--color-ui-blue) 5%,
+        var(--color-transparent)
+      ),
+      color-mix(
+        in srgb,
+        var(--color-ui-blue) 2%,
+        var(--color-transparent)
+      ) 48%,
+      var(--color-transparent)
     ),
-    var(--color-surface);
-
-  border-bottom: 1px solid var(--color-border-soft);
+    var(--color-ui-surface);
 }
 
 .data-table-modal__heading {
@@ -115,15 +130,21 @@
   display: inline-flex;
   align-items: center;
 
-  padding: 0.18rem 0.55rem;
+  padding: 0;
 
-  color: var(--color-text-blue);
-  background: var(--color-surface-blue);
-  border: 1px solid var(--color-border-blue);
-  border-radius: 0.5rem;
+  border: 0;
+  border-radius: 0;
 
+  color: var(--color-ui-muted);
+  background: var(--color-transparent);
+
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
   font-size: 0.62rem;
-  font-weight: 850;
+  font-weight: 760;
   line-height: 1;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -132,25 +153,34 @@
 .data-table-modal__title {
   margin: 0;
 
-  color: var(--color-text-primary);
+  color: var(--color-ui-title);
 
-  font-size: 1rem;
-  font-weight: 850;
+  font-family:
+    "Aptos Display",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.96rem;
+  font-weight: 780;
   line-height: 1.15;
   letter-spacing: -0.02em;
 }
 
 .data-table-modal__subtitle {
-  max-width: 38rem;
+  max-width: 34rem;
   margin: 0;
 
-  color: var(--color-text-secondary);
+  color: var(--color-ui-text);
 
-  font-size: 0.72rem;
-  font-weight: 500;
-  line-height: 1.4;
+  font-family:
+    "Aptos",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.7rem;
+  font-weight: 450;
+  line-height: 1.38;
 }
-
 
 /* ======================================================
    BASE GENERAL - BOTÓN CERRAR
@@ -158,8 +188,8 @@
 
 .data-table-button--close,
 .data-table-modal__close {
-  width: 1.85rem;
-  height: 1.85rem;
+  width: 1.75rem;
+  height: 1.75rem;
   flex: 0 0 auto;
 
   display: inline-flex;
@@ -167,14 +197,15 @@
   justify-content: center;
 
   padding: 0;
-  margin-top: -0.15rem;
+  margin-top: -0.12rem;
 
-  color: var(--color-text-secondary);
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
-  border-radius: 0.58rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 0.52rem;
 
-  font-size: 1.25rem;
+  color: var(--color-ui-text);
+  background: var(--color-ui-surface);
+
+  font-size: 1.18rem;
   font-weight: 350;
   line-height: 1;
 
@@ -184,31 +215,22 @@
     color 150ms ease,
     background-color 150ms ease,
     border-color 150ms ease,
-    box-shadow 150ms ease,
     transform 150ms ease;
 }
 
 .data-table-button--close:hover:not(:disabled),
 .data-table-modal__close:hover:not(:disabled) {
-  color: var(--color-danger);
+  color: var(--color-danger-hover);
   background: var(--color-danger-soft);
-  border-color: color-mix(in srgb, var(--color-danger) 24%, transparent);
-
-  box-shadow: 0 0.25rem 0.65rem color-mix(
-    in srgb,
-    var(--color-danger) 10%,
-    transparent
-  );
+  border-color: var(--color-danger-border);
 
   transform: translateY(-1px);
 }
 
 .data-table-button--close:active:not(:disabled),
 .data-table-modal__close:active:not(:disabled) {
-  box-shadow: none;
   transform: scale(0.96);
 }
-
 
 /* ======================================================
    BASE GENERAL - CUERPO
@@ -221,20 +243,20 @@
   display: flex;
   flex-direction: column;
 
-  overflow: hidden;
-
   padding: 0;
+
+  overflow: hidden;
 }
 
 .data-table-modal__scroll {
   flex: 1 1 auto;
   min-height: 0;
 
-  overflow-y: auto;
-
   display: block;
 
-  padding: 0.2rem 0.85rem;
+  padding: 0.2rem 0.75rem;
+
+  overflow-y: auto;
 }
 
 .data-table-modal__scroll::-webkit-scrollbar {
@@ -242,33 +264,42 @@
 }
 
 .data-table-modal__scroll::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--color-transparent);
 }
 
 .data-table-modal__scroll::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--color-text-muted) 45%, transparent);
   border-radius: 999px;
+
+  background: color-mix(
+    in srgb,
+    var(--color-ui-muted) 45%,
+    var(--color-transparent)
+  );
 }
 
 .data-table-modal__scroll::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--color-text-muted) 65%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--color-ui-muted) 65%,
+    var(--color-transparent)
+  );
 }
 
 .data-table-modal__empty {
-  margin: 0.75rem;
-  padding: 1.5rem 1rem;
+  margin: 0.7rem;
+  padding: 1.25rem 0.9rem;
 
-  color: var(--color-text-muted);
-  background: var(--color-surface-soft);
   border: 1px dashed var(--color-border);
-  border-radius: 0.7rem;
+  border-radius: 0.64rem;
+
+  color: var(--color-ui-muted);
+  background: var(--color-ui-surface-soft);
 
   text-align: center;
 
   font-size: 0.72rem;
   font-weight: 500;
 }
-
 
 /* ======================================================
    BASE GENERAL - FOOTER
@@ -280,27 +311,27 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.55rem;
+  gap: 0.5rem;
 
-  padding: 0.82rem 1.25rem;
+  padding: 0.7rem 1.05rem;
 
-  background: var(--color-surface);
   border-top: 1px solid var(--color-border-soft);
+
+  background: var(--color-ui-surface);
 }
 
 .data-table-modal__footer .data-table-button {
   width: auto;
-  min-width: 7.8rem;
-  min-height: 2.2rem;
+  min-width: 7.2rem;
+  min-height: 2.05rem;
 
-  padding: 0 0.85rem;
+  padding: 0 0.78rem;
 
-  border-radius: 0.62rem;
+  border-radius: 0.56rem;
 
-  font-size: 0.7rem;
-  font-weight: 800;
+  font-size: 0.68rem;
+  font-weight: 760;
 }
-
 
 /* ======================================================
    SECCIÓN 1: MODAL CHIPS
@@ -308,41 +339,58 @@
    ====================================================== */
 
 .data-table-modal--chips {
-  width: min(100%, 40rem);
-  max-height: min(82vh, 34rem);
+  width: min(100%, 36rem);
+  max-height: min(78vh, 31rem);
 
-  border-radius: 0.85rem;
+  border-radius: 0.78rem;
 }
 
 .data-table-modal__header--chips {
   align-items: flex-start;
 
-  padding: 1rem 1.25rem 0.9rem;
+  padding: 0.85rem 1.05rem 0.78rem;
+
+  border-bottom: 1px solid var(--color-border-soft);
 
   background:
     radial-gradient(
       circle at top left,
-      rgba(37, 99, 235, 0.11),
-      transparent 36%
+      color-mix(
+        in srgb,
+        var(--color-ui-blue) 10%,
+        var(--color-transparent)
+      ),
+      var(--color-transparent) 38%
     ),
     linear-gradient(
       90deg,
-      rgba(37, 99, 235, 0.055),
-      rgba(37, 99, 235, 0.018) 48%,
-      transparent
+      color-mix(
+        in srgb,
+        var(--color-ui-blue) 5%,
+        var(--color-transparent)
+      ),
+      color-mix(
+        in srgb,
+        var(--color-ui-blue) 2%,
+        var(--color-transparent)
+      ) 48%,
+      var(--color-transparent)
     ),
-    var(--color-surface);
-
-  border-bottom: 1px solid var(--color-border-soft);
+    var(--color-ui-surface);
 }
 
 .data-table-modal__header--chips .data-table-modal__title {
   margin: 0 0 0.24rem;
 
-  color: var(--color-text-primary);
+  color: var(--color-ui-title);
 
-  font-size: 1rem;
-  font-weight: 850;
+  font-family:
+    "Aptos Display",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.96rem;
+  font-weight: 780;
   line-height: 1.15;
   letter-spacing: -0.02em;
 }
@@ -351,10 +399,10 @@
   max-width: 30rem;
   margin: 0;
 
-  color: var(--color-text-secondary);
+  color: var(--color-ui-text);
 
-  font-size: 0.72rem;
-  font-weight: 500;
+  font-size: 0.7rem;
+  font-weight: 450;
   line-height: 1.35;
 }
 
@@ -363,11 +411,10 @@
 }
 
 .data-table-modal__body--chips {
-  gap: 0.72rem;
+  gap: 0.62rem;
 
-  padding: 0.9rem 1.1rem 1rem;
+  padding: 0.75rem 0.95rem 0.9rem;
 }
-
 
 /* ======================================================
    MODAL CHIPS - BUSCADOR
@@ -376,92 +423,100 @@
 .data-table-chip-search {
   position: relative;
 
-  height: 2.65rem;
+  height: 2.35rem;
 
   display: flex;
   align-items: center;
 
-  padding: 0 2.45rem 0 2.5rem;
+  padding: 0 2.25rem 0 2.25rem;
 
-  background:
-   
-    var(--color-surface);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 0.58rem;
 
-  border: 1px solid color-mix(in srgb, var(--color-primary) 14%, var(--color-border));
-  border-radius: 0.62rem;
-
-  box-shadow: 0 0.16rem 0.42rem color-mix(
-    in srgb,
-    var(--color-primary) 5%,
-    transparent
-  );
+  background: var(--color-ui-surface-soft);
+  box-shadow: none;
 }
 
 .data-table-chip-search:focus-within {
-  border-color: var(--color-border-blue);
-
-  box-shadow:
-    0 0 0 3px color-mix(in srgb, var(--color-primary) 10%, transparent),
-    0 0.24rem 0.65rem color-mix(in srgb, var(--color-primary) 10%, transparent);
+  border-color: var(--color-border);
+  background: var(--color-ui-surface);
+  box-shadow: var(--focus-ring);
 }
 
 .data-table-chip-search__icon {
   position: absolute;
   top: 50%;
-  left: 0.95rem;
+  left: 0.85rem;
+
+  width: 1rem;
+  height: 1rem;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  width: 1.1rem;
-  height: 1.1rem;
+  color: var(--color-ui-muted);
 
-  color: var(--color-text-blue);
-
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   line-height: 1;
 
   pointer-events: none;
   transform: translateY(-50%);
 }
 
+.data-table-chip-search:focus-within .data-table-chip-search__icon {
+  color: var(--color-ui-text);
+}
+
 .data-table-chip-search__input {
   width: 100%;
   height: 100%;
 
-  color: var(--color-text-primary);
-  background: transparent;
   border: 0;
   outline: 0;
 
-  font-size: 0.82rem;
-  font-weight: 550;
+  color: var(--color-ui-title);
+  background: var(--color-transparent);
+
+  font-family:
+    "Aptos",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.8rem;
+  font-weight: 450;
 }
 
 .data-table-chip-search__input::placeholder {
-  color: #94a3b8;
+  color: var(--color-ui-muted);
 }
 
 .data-table-chip-search__clear {
   position: absolute;
   top: 50%;
-  right: 0.65rem;
+  right: 0.55rem;
 
-  width: 1.65rem;
-  height: 1.65rem;
+  width: 1.55rem;
+  height: 1.55rem;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  color: var(--color-text-secondary);
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid color-mix(in srgb, var(--color-border) 65%, transparent);
-  border-radius: 0.52rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 0.48rem;
 
-  font-size: 0.68rem;
-  font-weight: 850;
+  color: var(--color-ui-text);
+  background: var(--color-ui-surface);
+
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.64rem;
+  font-weight: 760;
+  line-height: 1;
 
   cursor: pointer;
   transform: translateY(-50%);
@@ -474,67 +529,55 @@
 }
 
 .data-table-chip-search__clear:hover {
-  color: var(--color-danger);
+  color: var(--color-danger-hover);
   background: var(--color-danger-soft);
-  border-color: color-mix(in srgb, var(--color-danger) 24%, transparent);
+  border-color: var(--color-danger-border);
 }
-
 
 /* ======================================================
    MODAL CHIPS - LISTA
    ====================================================== */
 
 .data-table-chip-list {
-  min-height: 8.5rem;
-  max-height: 14rem;
-
-  overflow-y: auto;
+  min-height: 7.5rem;
+  max-height: 12.5rem;
 
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.42rem;
 
   padding: 0;
+
+  overflow-y: auto;
 }
 
 .data-table-chip-item {
-  min-height: 2.65rem;
+  min-height: 2.35rem;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: 0.7rem;
 
-  padding: 0.62rem 0.72rem 0.62rem 0.9rem;
-
-  color: var(--color-text-primary);
-  background: var(--color-surface);
+  padding: 0.52rem 0.62rem 0.52rem 0.78rem;
 
   border: 1px solid var(--color-border-soft);
-  border-radius: 0.68rem;
+  border-radius: 0.58rem;
 
-  box-shadow: 0 0.14rem 0.4rem color-mix(
-    in srgb,
-    var(--color-text-primary) 4%,
-    transparent
-  );
+  color: var(--color-ui-title);
+  background: var(--color-ui-surface);
+
+  box-shadow: none;
 
   transition:
-    background-color 160ms ease,
-    border-color 160ms ease,
-    box-shadow 160ms ease,
-    transform 160ms ease;
+    background-color 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease;
 }
 
 .data-table-chip-item:hover {
-  background: var(--color-surface);
-  border-color: color-mix(in srgb, var(--color-primary) 20%, var(--color-border));
-
-  box-shadow: 0 0.22rem 0.6rem color-mix(
-    in srgb,
-    var(--color-primary) 7%,
-    transparent
-  );
+  border-color: var(--color-border);
+  background: var(--color-ui-surface-soft);
 }
 
 .data-table-chip-item__text {
@@ -542,18 +585,23 @@
 
   overflow: hidden;
 
-  color: var(--color-text-primary);
+  color: var(--color-ui-title);
 
-  font-size: 0.78rem;
-  font-weight: 700;
+  font-family:
+    "Aptos",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.76rem;
+  font-weight: 650;
   line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .data-table-chip-item__remove {
-  width: 1.75rem;
-  height: 1.75rem;
+  width: 1.6rem;
+  height: 1.6rem;
   flex: 0 0 auto;
 
   display: inline-flex;
@@ -562,46 +610,42 @@
 
   padding: 0;
 
-  color: var(--color-text-muted);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(37, 99, 235, 0.035),
-      transparent
-    ),
-    var(--color-surface);
+  border: 0;
+  border-radius: 0.48rem;
 
-  border: 1px solid color-mix(in srgb, var(--color-primary) 14%, var(--color-border));
-  border-radius: 0.55rem;
+  color: var(--color-ui-muted);
+  background: var(--color-transparent);
 
-  font-size: 0.68rem;
-  font-weight: 850;
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.64rem;
+  font-weight: 760;
   line-height: 1;
 
   cursor: pointer;
 
   transition:
-    color 160ms ease,
-    background-color 160ms ease,
-    border-color 160ms ease,
-    transform 160ms ease;
+    color 150ms ease,
+    background-color 150ms ease,
+    transform 150ms ease;
 }
 
 .data-table-chip-item__remove:hover {
-  color: var(--color-danger);
+  color: var(--color-danger-hover);
   background: var(--color-danger-soft);
-  border-color: color-mix(in srgb, var(--color-danger) 28%, transparent);
 
   transform: translateY(-1px);
 }
-
 
 /* ======================================================
    MODAL CHIPS - ESTADO VACÍO
    ====================================================== */
 
 .data-table-chips-empty {
-  min-height: 7rem;
+  min-height: 6.5rem;
 
   display: flex;
   flex-direction: column;
@@ -609,56 +653,53 @@
   justify-content: center;
   gap: 0.25rem;
 
-  padding: 1rem;
+  padding: 0.9rem;
 
-  background:
-    radial-gradient(
-      circle at top left,
-      rgba(37, 99, 235, 0.08),
-      transparent 40%
-    ),
-    #fbfdff;
+  border: 1px dashed var(--color-border);
+  border-radius: 0.64rem;
 
-  border: 1px dashed color-mix(in srgb, var(--color-primary) 18%, #d1d5db);
-  border-radius: 0.7rem;
+  background: var(--color-ui-surface-soft);
 }
 
 .data-table-chips-empty strong {
-  color: var(--color-text-secondary);
+  color: var(--color-ui-text);
 
-  font-size: 0.84rem;
-  font-weight: 750;
+  font-family:
+    "Aptos Display",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.82rem;
+  font-weight: 760;
   line-height: 1.2;
 }
 
 .data-table-chips-empty span {
   max-width: 18rem;
 
-  color: var(--color-text-muted);
+  color: var(--color-ui-muted);
 
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: 0.76rem;
+  font-weight: 500;
   line-height: 1.35;
   text-align: center;
 }
-
 
 /* ======================================================
    MODAL CHIPS - FOOTER
    ====================================================== */
 
 .data-table-modal__footer--chips {
-  min-height: 4.4rem;
+  min-height: 3.9rem;
 
   justify-content: flex-end;
 
-  padding: 0.82rem 1.25rem;
+  padding: 0.7rem 1.05rem;
 }
 
 .data-table-modal__footer-text {
   display: none;
 }
-
 
 /* ======================================================
    RESPONSIVE GENERAL DE MODALES
@@ -787,52 +828,67 @@
   }
 }
 
-
 /* ======================================================
    SECCIÓN 2: CONFIGURAR COLUMNAS MODAL
    ====================================================== */
 
 .data-table-modal--columns {
-  width: min(100%, 40rem);
-  max-height: min(84vh, 42rem);
+  width: min(100%, 36rem);
+  max-height: min(80vh, 38rem);
 
-  border-radius: 0.85rem;
+  border-radius: 0.78rem;
 }
 
-
 /* ======================================================
-   CONFIGURAR COLUMNAS - HEADER AZUL SUAVE
+   CONFIGURAR COLUMNAS - HEADER
    ====================================================== */
 
 .data-table-modal--columns .data-table-modal__header {
   align-items: flex-start;
 
-  padding: 1rem 1.25rem 0.9rem;
+  padding: 0.85rem 1.05rem 0.78rem;
+
+  border-bottom: 1px solid var(--color-border-soft);
 
   background:
     radial-gradient(
       circle at top left,
-      rgba(37, 99, 235, 0.11),
-      transparent 36%
+      color-mix(
+        in srgb,
+        var(--color-ui-blue) 10%,
+        var(--color-transparent)
+      ),
+      var(--color-transparent) 38%
     ),
     linear-gradient(
       90deg,
-      rgba(37, 99, 235, 0.055),
-      rgba(37, 99, 235, 0.018) 48%,
-      transparent
+      color-mix(
+        in srgb,
+        var(--color-ui-blue) 5%,
+        var(--color-transparent)
+      ),
+      color-mix(
+        in srgb,
+        var(--color-ui-blue) 2%,
+        var(--color-transparent)
+      ) 48%,
+      var(--color-transparent)
     ),
-    var(--color-surface);
-
-  border-bottom: 1px solid var(--color-border-soft);
+    var(--color-ui-surface);
 }
 
 .data-table-modal--columns .data-table-modal__title {
   margin: 0 0 0.24rem;
 
-  color: var(--color-text-primary);
+  color: var(--color-ui-title);
 
-  font-size: 1rem;
-  font-weight: 850;
+  font-family:
+    "Aptos Display",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.96rem;
+  font-weight: 780;
   line-height: 1.15;
   letter-spacing: -0.02em;
 }
@@ -841,42 +897,36 @@
   max-width: 30rem;
   margin: 0;
 
-  color: var(--color-text-secondary);
+  color: var(--color-ui-text);
 
-  font-size: 0.72rem;
-  font-weight: 500;
+  font-size: 0.7rem;
+  font-weight: 450;
   line-height: 1.35;
 }
 
 .data-table-modal--columns .data-table-button--close {
-  width: 1.85rem;
-  height: 1.85rem;
+  width: 1.75rem;
+  height: 1.75rem;
 
-  margin-top: -0.15rem;
+  margin-top: -0.12rem;
 
-  color: var(--color-text-secondary);
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
-  border-radius: 0.58rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 0.52rem;
 
-  font-size: 1.25rem;
+  color: var(--color-ui-text);
+  background: var(--color-ui-surface);
+
+  font-size: 1.18rem;
   font-weight: 350;
 }
 
 .data-table-modal--columns .data-table-button--close:hover:not(:disabled) {
-  color: var(--color-danger);
+  color: var(--color-danger-hover);
   background: var(--color-danger-soft);
-  border-color: color-mix(in srgb, var(--color-danger) 24%, transparent);
-
-  box-shadow: 0 0.25rem 0.65rem color-mix(
-    in srgb,
-    var(--color-danger) 10%,
-    transparent
-  );
+  border-color: var(--color-danger-border);
 
   transform: translateY(-1px);
 }
-
 
 /* ======================================================
    CONFIGURAR COLUMNAS - TOOLBAR
@@ -888,19 +938,13 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.45rem;
+  gap: 0.38rem;
 
-  padding: 0.6rem 1.25rem;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(37, 99, 235, 0.028),
-      transparent
-    ),
-    var(--color-surface);
+  padding: 0.48rem 1.05rem;
 
   border-bottom: 1px solid var(--color-border-soft);
+
+  background: var(--color-ui-surface);
 }
 
 .data-table-modal--columns .data-table-modal__toolbar-info {
@@ -914,28 +958,32 @@
   align-items: center;
   justify-content: flex-end;
   flex-wrap: wrap;
-  gap: 0.34rem;
+  gap: 0.3rem;
 }
 
 .data-table-modal--columns .data-table-button--soft {
-  min-height: 1.65rem;
+  min-height: 1.52rem;
 
-  padding: 0.28rem 0.56rem;
+  padding: 0.24rem 0.5rem;
 
-  color: var(--color-text-secondary);
-  background: var(--color-surface);
-  border: 1px solid color-mix(in srgb, var(--color-primary) 12%, var(--color-border));
-  border-radius: 0.48rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 0.44rem;
 
-  font-size: 0.6rem;
-  font-weight: 800;
+  color: var(--color-ui-text);
+  background: var(--color-ui-surface);
+
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.58rem;
+  font-weight: 760;
   line-height: 1;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
 
-  box-shadow: 0 0.12rem 0.32rem color-mix(
-    in srgb,
-    var(--color-primary) 4%,
-    transparent
-  );
+  box-shadow: none;
 
   cursor: pointer;
 
@@ -943,20 +991,13 @@
     color 150ms ease,
     background-color 150ms ease,
     border-color 150ms ease,
-    box-shadow 150ms ease,
     transform 150ms ease;
 }
 
 .data-table-modal--columns .data-table-button--soft:hover:not(:disabled) {
-  color: var(--color-text-blue);
-  background: var(--color-surface-blue);
-  border-color: var(--color-border-blue);
-
-  box-shadow: 0 0.18rem 0.45rem color-mix(
-    in srgb,
-    var(--color-primary) 8%,
-    transparent
-  );
+  color: var(--color-ui-title);
+  background: var(--color-ui-surface-soft);
+  border-color: var(--color-border);
 
   transform: translateY(-1px);
 }
@@ -965,11 +1006,8 @@
   opacity: 0.42;
   cursor: not-allowed;
 
-  box-shadow: none;
-
   transform: none;
 }
-
 
 /* ======================================================
    CONFIGURAR COLUMNAS - CUERPO Y SCROLL
@@ -980,11 +1018,10 @@
 }
 
 .data-table-modal--columns .data-table-modal__scroll {
-  max-height: min(50vh, 28rem);
+  max-height: min(48vh, 25rem);
 
-  padding: 0.75rem 1.1rem 0.9rem;
+  padding: 0.65rem 0.95rem 0.78rem;
 }
-
 
 /* ======================================================
    CONFIGURAR COLUMNAS - FILAS
@@ -993,46 +1030,40 @@
 .data-table-modal--columns .data-table-modal-row {
   position: relative;
 
-  min-height: 3rem;
+  min-height: 2.65rem;
 
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.48rem;
 
-  padding: 0.58rem 0.72rem;
+  padding: 0.48rem 0.62rem;
 
-  background: var(--color-surface);
   border: 1px solid var(--color-border-soft);
-  border-radius: 0.68rem;
+  border-radius: 0.58rem;
+
+  background: var(--color-ui-surface);
 
   transition:
     background-color 150ms ease,
     border-color 150ms ease,
     opacity 150ms ease,
-    box-shadow 150ms ease,
     transform 150ms ease;
 }
 
 .data-table-modal--columns .data-table-modal-row + .data-table-modal-row {
-  margin-top: 0.5rem;
+  margin-top: 0.42rem;
 }
 
 .data-table-modal--columns .data-table-modal-row:hover {
-  background: var(--color-surface);
-  border-color: color-mix(in srgb, var(--color-primary) 20%, var(--color-border));
-
-  box-shadow: 0 0.22rem 0.6rem color-mix(
-    in srgb,
-    var(--color-primary) 7%,
-    transparent
-  );
+  border-color: var(--color-border);
+  background: var(--color-ui-surface-soft);
 }
 
 .data-table-modal--columns .data-table-modal-row--hidden {
   opacity: 0.64;
 
-  background: var(--color-surface-soft);
+  background: var(--color-ui-surface-soft);
 }
 
 .data-table-modal--columns .data-table-modal-row--hidden:hover {
@@ -1043,65 +1074,61 @@
   z-index: 2;
 
   opacity: 0.72;
-  background: var(--data-table-selected-bg);
 
-  box-shadow: 0 0.6rem 1.4rem color-mix(
-    in srgb,
-    var(--color-text-primary) 11%,
-    transparent
-  );
+  background: var(--color-ui-surface-muted);
+  box-shadow: var(--shadow-ui-soft);
 
   transform: scale(1.004);
 }
 
 .data-table-modal--columns .data-table-modal-row--hover {
-  background: var(--data-table-selected-bg);
-  border-color: var(--color-primary);
-
-  box-shadow: 0 0 0 3px color-mix(
-    in srgb,
-    var(--color-primary) 11%,
-    transparent
-  );
+  border-color: var(--color-border);
+  background: var(--color-ui-surface-soft);
+  box-shadow: none;
 }
 
 .data-table-modal--columns .data-table-modal-row__main {
-  display: grid;
-  grid-template-columns: 1.1rem 1.3rem minmax(0, 1fr);
-  align-items: center;
-  gap: 0.48rem;
-
   min-width: 0;
+
+  display: grid;
+  grid-template-columns: 1rem 1.2rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.42rem;
 }
 
 .data-table-modal--columns .data-table-modal-row__actions {
+  min-width: max-content;
+
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.38rem;
-
-  min-width: max-content;
+  gap: 0.32rem;
 }
-
 
 /* ======================================================
    CONFIGURAR COLUMNAS - CONTROLES DE FILA
    ====================================================== */
 
 .data-table-modal--columns .data-table-drag-handle {
-  width: 1.1rem;
-  height: 1.3rem;
+  width: 1rem;
+  height: 1.2rem;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  color: var(--color-text-muted);
-  background: transparent;
   border: 0;
 
-  font-size: 0.7rem;
-  font-weight: 850;
+  color: var(--color-ui-muted);
+  background: var(--color-transparent);
+
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.66rem;
+  font-weight: 760;
   line-height: 1;
 
   cursor: grab;
@@ -1109,7 +1136,7 @@
 }
 
 .data-table-modal--columns .data-table-drag-handle:hover {
-  color: var(--color-text-primary);
+  color: var(--color-ui-title);
 }
 
 .data-table-modal--columns .data-table-drag-handle:active {
@@ -1117,36 +1144,42 @@
 }
 
 .data-table-modal--columns .data-table-modal-pill {
-  min-width: 1.3rem;
-  height: 1.3rem;
+  min-width: 1.2rem;
+  height: 1.2rem;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  color: var(--color-text-blue);
-  background: var(--color-surface-blue);
-  border: 1px solid color-mix(in srgb, var(--color-primary) 12%, transparent);
-  border-radius: 0.48rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 0.42rem;
 
-  font-size: 0.6rem;
-  font-weight: 850;
+  color: var(--color-ui-text);
+  background: var(--color-ui-surface-soft);
+
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.56rem;
+  font-weight: 760;
   line-height: 1;
 }
 
 .data-table-modal--columns .data-table-modal-check {
+  min-width: 0;
+
   display: flex;
   align-items: center;
-  min-width: 0;
-  gap: 0.48rem;
+  gap: 0.42rem;
 
   cursor: pointer;
 }
 
 .data-table-modal--columns .data-table-modal-checkbox {
-  width: 0.88rem;
-  height: 0.88rem;
-
+  width: 0.82rem;
+  height: 0.82rem;
   flex: 0 0 auto;
 
   margin: 0;
@@ -1165,20 +1198,24 @@
 
   overflow: hidden;
 
-  color: var(--color-text-primary);
+  color: var(--color-ui-title);
 
-  font-size: 0.75rem;
-  font-weight: 760;
+  font-family:
+    "Aptos",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.73rem;
+  font-weight: 650;
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .data-table-modal--columns .data-table-modal-row--hidden .data-table-modal-label {
-  color: var(--color-text-muted);
+  color: var(--color-ui-muted);
   text-decoration: line-through;
 }
-
 
 /* ======================================================
    CONFIGURAR COLUMNAS - BOTONES SIN ORDEN / REPETIDOS
@@ -1187,31 +1224,27 @@
 .data-table-modal--columns .data-table-chip-action {
   position: relative;
 
-  min-height: 1.55rem;
+  min-height: 1.44rem;
 
-  padding: 0.28rem 0.62rem;
+  padding: 0.22rem 0.54rem;
 
-  color: var(--color-text-secondary);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(37, 99, 235, 0.04),
-      transparent
-    ),
-    var(--color-surface);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 0.48rem;
 
-  border: 1px solid color-mix(in srgb, var(--color-primary) 16%, var(--color-border));
-  border-radius: 0.56rem;
+  color: var(--color-ui-text);
+  background: var(--color-ui-surface);
 
-  font-size: 0.62rem;
-  font-weight: 800;
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-size: 0.58rem;
+  font-weight: 760;
   line-height: 1;
+  letter-spacing: 0.02em;
 
-  box-shadow: 0 0.14rem 0.4rem color-mix(
-    in srgb,
-    var(--color-primary) 5%,
-    transparent
-  );
+  box-shadow: none;
 
   cursor: pointer;
 
@@ -1219,46 +1252,28 @@
     color 150ms ease,
     background-color 150ms ease,
     border-color 150ms ease,
-    box-shadow 150ms ease,
     transform 150ms ease;
 }
 
 .data-table-modal--columns .data-table-chip-action:hover:not(:disabled) {
-  color: var(--color-text-blue);
-  background: var(--color-surface-blue);
-  border-color: var(--color-border-blue);
-
-  box-shadow: 0 0.22rem 0.58rem color-mix(
-    in srgb,
-    var(--color-primary) 10%,
-    transparent
-  );
+  color: var(--color-ui-title);
+  background: var(--color-ui-surface-soft);
+  border-color: var(--color-border);
 
   transform: translateY(-1px);
 }
 
 .data-table-modal--columns .data-table-chip-action--active {
-  color: var(--color-text-blue);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(37, 99, 235, 0.12),
-      rgba(37, 99, 235, 0.05)
-    ),
-    var(--color-surface-blue);
-
-  border-color: color-mix(in srgb, var(--color-primary) 32%, var(--color-border));
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--color-white) 65%, transparent),
-    0 0.2rem 0.58rem color-mix(in srgb, var(--color-primary) 11%, transparent);
+  color: var(--color-ui-title);
+  background: var(--color-ui-surface-muted);
+  border-color: var(--color-border);
 }
 
 .data-table-modal--columns .data-table-chip-action--active:hover:not(:disabled) {
-  color: var(--color-text-inverse);
+  color: var(--color-primary-contrast);
   background: var(--color-primary);
   border-color: var(--color-primary);
 }
-
 
 /* ======================================================
    CONFIGURAR COLUMNAS - FOOTER
@@ -1268,36 +1283,37 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.55rem;
+  gap: 0.5rem;
 
-  padding: 0.82rem 1.25rem;
+  padding: 0.7rem 1.05rem;
 
   border-top: 1px solid var(--color-border-soft);
 }
 
 .data-table-modal--columns .data-table-modal__footer .data-table-button {
   width: auto;
-  min-width: 7.8rem;
-  min-height: 2.2rem;
+  min-width: 7.2rem;
+  min-height: 2.05rem;
 
-  border-radius: 0.62rem;
+  border-radius: 0.56rem;
 
-  font-size: 0.7rem;
-  font-weight: 800;
+  font-size: 0.68rem;
+  font-weight: 760;
 }
 
 .data-table-modal--columns .data-table-modal__footer .data-table-button--danger {
-  color: var(--color-danger);
-  background: var(--color-surface);
-  border-color: color-mix(in srgb, var(--color-danger) 26%, transparent);
+  color: var(--color-danger-hover);
+  background: var(--color-ui-surface);
+  border-color: var(--color-danger-border);
 }
 
-.data-table-modal--columns .data-table-modal__footer .data-table-button--danger:hover:not(:disabled) {
-  color: var(--color-text-inverse);
+.data-table-modal--columns
+  .data-table-modal__footer
+  .data-table-button--danger:hover:not(:disabled) {
+  color: var(--color-primary-contrast);
   background: var(--color-danger);
   border-color: var(--color-danger);
 }
-
 
 /* ======================================================
    CONFIGURAR COLUMNAS - RESPONSIVE

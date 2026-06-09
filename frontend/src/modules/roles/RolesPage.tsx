@@ -24,7 +24,7 @@ import {
   Button,
   InputField,
   Modal,
-  Page
+  PageHeader
 } from "../../shared/ui";
 
 import { RolesTable } from "./RolesTable";
@@ -626,52 +626,42 @@ export default function RolesPage() {
     : "Configuración del rol";
 
   return (
-    <Page
-      breadcrumb="Administración / Roles"
-      title="Roles del sistema"
-      description="Consulta, crea y administra los roles que agrupan permisos para controlar el acceso de usuarios dentro de NominaCes."
-      actions={
-        <>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => void loadRoles()}
-            disabled={isLoading}
-          >
-            {isLoading ? "Actualizando..." : "Actualizar"}
-          </Button>
-
-          <Button
-            type="button"
-            onClick={openCreateModal}
-            disabled={isLoading}
-          >
-            Nuevo rol
-          </Button>
-        </>
-      }
-    >
-      <section className="roles-kpis" aria-label="Resumen de roles">
-        <article className="roles-kpi">
-          <span className="roles-kpi__label">Total de roles</span>
-          <strong className="roles-kpi__value">{summary.total}</strong>
-        </article>
-
-        <article className="roles-kpi">
-          <span className="roles-kpi__label">Roles activos</span>
-          <strong className="roles-kpi__value">{summary.active}</strong>
-        </article>
-
-        <article className="roles-kpi">
-          <span className="roles-kpi__label">Roles inactivos</span>
-          <strong className="roles-kpi__value">{summary.inactive}</strong>
-        </article>
-
-        <article className="roles-kpi">
-          <span className="roles-kpi__label">Roles protegidos</span>
-          <strong className="roles-kpi__value">{summary.system}</strong>
-        </article>
-      </section>
+    <main className="roles-page">
+      <PageHeader
+        eyebrow="Administración"
+        section="Roles"
+        title="Roles del sistema"
+        description="Consulta, crea y administra los roles que agrupan permisos para controlar el acceso de usuarios dentro de NominaCes."
+        action={{
+          label: "Nuevo rol",
+          icon: "+",
+          onClick: openCreateModal,
+          disabled: isLoading || isSaving
+        }}
+       
+        metrics={[
+          {
+            label: "Total",
+            value: summary.total,
+            variant: "neutral"
+          },
+          {
+            label: "Activos",
+            value: summary.active,
+            variant: "success"
+          },
+          {
+            label: "Inactivos",
+            value: summary.inactive,
+            variant: "danger"
+          },
+          {
+            label: "Protegidos",
+            value: summary.system,
+            variant: "info"
+          }
+        ]}
+      />
 
       {successMessage ? (
         <div
@@ -1205,6 +1195,6 @@ export default function RolesPage() {
           </div>
         ) : null}
       </Modal>
-    </Page>
+    </main>
   );
 }

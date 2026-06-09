@@ -89,7 +89,7 @@
   min-height: 0;
 
   margin-left: var(--sidebar-width);
-  padding: 0.935rem;
+  padding: 0;
 
   overflow-y: auto;
   overflow-x: hidden;
@@ -534,7 +534,7 @@
   }
 
   .app-shell__main {
-    padding: 0.792rem;
+    padding: 0;
   }
 
   .sidebar__brand {
@@ -598,7 +598,7 @@
   .app-shell__main,
   .app-shell--sidebar-collapsed .app-shell__main {
     margin-left: var(--sidebar-collapsed-width);
-    padding: 0.638rem;
+    padding: 0;
   }
 
   .sidebar__section-title,

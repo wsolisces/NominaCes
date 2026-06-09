@@ -24,6 +24,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import {
   ActionFeedbackModal,
+  PageHeader,
   useConfirmAction
 } from "../../shared/ui";
 
@@ -135,6 +136,16 @@ export default function PermisosPage() {
   }, [permissions]);
 
   const inactivePermissions = totalPermissions - activePermissions;
+
+  const moduleCount = useMemo(() => {
+    const modules = new Set(
+      permissions
+        .map((permission) => permission.module_name)
+        .filter(Boolean)
+    );
+
+    return modules.size;
+  }, [permissions]);
 
   /**
    * Muestra retroalimentación visual de éxito.
@@ -271,6 +282,7 @@ export default function PermisosPage() {
 
         showSuccessFeedback(
           "Permiso creado",
+          "El permiso se registró correctamente."
         );
 
         return;
@@ -286,6 +298,7 @@ export default function PermisosPage() {
 
       showSuccessFeedback(
         "Permiso actualizado",
+        "Los cambios se guardaron correctamente."
       );
     } catch (error) {
       const message = getErrorMessage(
@@ -336,8 +349,8 @@ export default function PermisosPage() {
           ? "Permiso desactivado"
           : "Permiso activado",
         permission.is_active
-          ? `El permiso se desactivó correctamente.`
-          : `El permiso se activó correctamente.`
+          ? "El permiso se desactivó correctamente."
+          : "El permiso se activó correctamente."
       );
     } catch (error) {
       const message = getErrorMessage(
@@ -382,7 +395,7 @@ export default function PermisosPage() {
 
       showSuccessFeedback(
         "Permiso eliminado",
-        
+        "El permiso se eliminó correctamente."
       );
     } catch (error) {
       const message = getErrorMessage(
@@ -401,47 +414,41 @@ export default function PermisosPage() {
 
   return (
     <main className="permissions-page">
-      <section className="permissions-page__header">
-        <div>
-          <p className="permissions-page__eyebrow">
-            Administración
-          </p>
-
-          <h1 className="permissions-page__title">
-            Permisos
-          </h1>
-
-          <p className="permissions-page__subtitle">
-            Administra las funcionalidades que pueden asignarse a los roles del
-            sistema.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          className="permission-button permission-button--primary"
-          onClick={openCreateModal}
-        >
-          Nuevo permiso
-        </button>
-      </section>
-
-      <section className="permissions-summary">
-        <article className="permissions-summary__card">
-          <span>Total</span>
-          <strong>{totalPermissions}</strong>
-        </article>
-
-        <article className="permissions-summary__card">
-          <span>Activos</span>
-          <strong>{activePermissions}</strong>
-        </article>
-
-        <article className="permissions-summary__card">
-          <span>Inactivos</span>
-          <strong>{inactivePermissions}</strong>
-        </article>
-      </section>
+      <PageHeader
+        eyebrow="Administración"
+        section="Permisos"
+        title="Permisos del sistema"
+        description="Consulta, organiza y administra los permisos disponibles para controlar el acceso a módulos, vistas y acciones dentro de NominaCes."
+        action={{
+          label: "Nuevo permiso",
+          icon: "+",
+          onClick: openCreateModal,
+          disabled: saving
+        }}
+       
+        metrics={[
+          {
+            label: "Total",
+            value: totalPermissions,
+            variant: "neutral"
+          },
+          {
+            label: "Activos",
+            value: activePermissions,
+            variant: "success"
+          },
+          {
+            label: "Inactivos",
+            value: inactivePermissions,
+            variant: "danger"
+          },
+          {
+            label: "Módulos",
+            value: moduleCount,
+            variant: "info"
+          }
+        ]}
+      />
 
       {pageError ? (
         <div className="permissions-alert" role="alert">
@@ -449,13 +456,13 @@ export default function PermisosPage() {
         </div>
       ) : null}
 
-      <PermissionsTable
-        permissions={permissions}
-        loading={loadingList}
-        onEdit={openEditModal}
-        onToggleStatus={handleToggleStatus}
-        onDelete={handleDelete}
-      />
+        <PermissionsTable
+          permissions={permissions}
+          loading={loadingList}
+          onEdit={openEditModal}
+          onToggleStatus={handleToggleStatus}
+          onDelete={handleDelete}
+        />
 
       <PermissionFormModal
         open={modal.open}

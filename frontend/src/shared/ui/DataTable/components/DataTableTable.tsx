@@ -12,12 +12,14 @@
  * - Soportar modos visuales scroll y fit.
  * - Soportar columnas fijas a izquierda o derecha.
  * - Soportar columnas compactas reutilizables.
+ * - Delegar la paginación visual al componente PaginacionTable.
  *
  * No debe:
  * - Filtrar datos.
  * - Ordenar datos directamente.
  * - Persistir configuración.
  * - Consultar APIs.
+ * - Renderizar selector de registros por página.
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -27,6 +29,8 @@ import type {
   MouseEvent,
   ReactNode
 } from "react";
+
+import PaginacionTable from "./PaginacionTable";
 
 /**
  * Modos visuales permitidos para la tabla.
@@ -96,10 +100,6 @@ function getColumnWidth(width?: number | string): string | undefined {
 
 /**
  * Calcula el ancho compacto como el doble del encabezado.
- *
- * Ejemplo:
- * - "Estado" tiene 6 caracteres.
- * - compact: true genera 12ch.
  */
 function getCompactHeaderWidth<T extends Record<string, unknown>>(
   column: DataTableColumn<T>
@@ -279,7 +279,6 @@ function getCellStyle<T extends Record<string, unknown>>(
 /**
  * Genera las clases de contenido de una celda.
  */
-
 function getContentClass<T extends Record<string, unknown>>(
   column: DataTableColumn<T>,
   tableMode: TableMode
@@ -320,8 +319,6 @@ export default function DataTableTable<T extends Record<string, unknown>>({
   onRowDoubleClick,
   totals,
   pageSize: controlledPageSize,
-  onPageSizeChange,
-  showPageSizeSelector = false,
   tableMode = "scroll"
 }: DataTableTableProps<T>) {
   const safeRows = Array.isArray(rows) ? rows : [];
@@ -329,7 +326,7 @@ export default function DataTableTable<T extends Record<string, unknown>>({
 
   const hasTotals = safeVisibleDefs.some((column) => column.isTotal);
 
-  const [internalPageSize, setInternalPageSize] = useState(10);
+  const internalPageSize = 10;
   const [currentPage, setCurrentPage] = useState(1);
 
   const normalizedControlledPageSize = Number(controlledPageSize);
@@ -342,11 +339,9 @@ export default function DataTableTable<T extends Record<string, unknown>>({
 
   const totalRows = safeRows.length;
   const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
-
   const safePage = Math.min(Math.max(currentPage, 1), totalPages);
 
   const startIndex = totalRows === 0 ? 0 : (safePage - 1) * pageSize;
-
   const endIndex = Math.min(startIndex + pageSize, totalRows);
 
   const pageRows = useMemo(() => {
@@ -362,16 +357,17 @@ export default function DataTableTable<T extends Record<string, unknown>>({
   }, [totalPages]);
 
   /**
-   * Actualiza el tamaño de página controlado o interno.
+   * Cambia a la página anterior.
    */
-  function setPageSize(nextPageSize: number) {
-    if (onPageSizeChange) {
-      onPageSizeChange(nextPageSize);
-    } else {
-      setInternalPageSize(nextPageSize);
-    }
+  function goToPreviousPage(): void {
+    setCurrentPage((previous) => Math.max(1, previous - 1));
+  }
 
-    setCurrentPage(1);
+  /**
+   * Cambia a la página siguiente.
+   */
+  function goToNextPage(): void {
+    setCurrentPage((previous) => Math.min(totalPages, previous + 1));
   }
 
   const rowsAreClickable = Boolean(onRowClick || onRowDoubleClick);
@@ -573,70 +569,17 @@ export default function DataTableTable<T extends Record<string, unknown>>({
         </table>
       </div>
 
-      <div className="data-table-pagination">
-        <div className="data-table-pagination__left">
-          <span>
-            {totalRows === 0
-              ? "0 registros"
-              : `${startIndex + 1} - ${endIndex} de ${totalRows}`}
-          </span>
-
-          {showPageSizeSelector ? (
-            <>
-              <span className="data-table-pagination__divider" />
-
-              <div className="data-table-page-size">
-                <span className="data-table-page-size__label">
-                  Registros
-                </span>
-
-                <select
-                  value={pageSize}
-                  className="data-table-select"
-                  onChange={(event) => setPageSize(Number(event.target.value))}
-                >
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                  <option value={25}>25</option>
-                  <option value={50}>50</option>
-                  <option value={100}>100</option>
-                  <option value={250}>250</option>
-                </select>
-              </div>
-            </>
-          ) : null}
-        </div>
-
-        <div className="data-table-pagination__right">
-          <button
-            type="button"
-            disabled={safePage <= 1}
-            className="data-table-button data-table-button--icon"
-            title="Página anterior"
-            onClick={() =>
-              setCurrentPage((previous) => Math.max(1, previous - 1))
-            }
-          >
-            ‹
-          </button>
-
-          <span className="data-table-pagination__page">
-            {safePage} / {totalPages}
-          </span>
-
-          <button
-            type="button"
-            disabled={safePage >= totalPages}
-            className="data-table-button data-table-button--icon"
-            title="Página siguiente"
-            onClick={() =>
-              setCurrentPage((previous) => Math.min(totalPages, previous + 1))
-            }
-          >
-            ›
-          </button>
-        </div>
-      </div>
+      <PaginacionTable
+        currentPage={safePage}
+        totalPages={totalPages}
+        totalRows={totalRows}
+        startIndex={startIndex}
+        endIndex={endIndex}
+        onPrevious={goToPreviousPage}
+        onNext={goToNextPage}
+        onPageChange={setCurrentPage}
+        label="permisos"
+      />
     </div>
   );
 }
