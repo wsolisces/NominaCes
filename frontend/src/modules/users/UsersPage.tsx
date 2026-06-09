@@ -1,5 +1,5 @@
 // ======================================================
-// PATH: src/modules/usuarios/pages/UsuariosPage.tsx
+// PATH: frontend/src/modules/users/UsersPage.tsx
 // Pantalla de administración de usuarios
 // ======================================================
 
@@ -39,8 +39,12 @@ import type {
   UserStatusFilter
 } from "./users.types";
 
-import "../usuarios.css";
+import "./users-page.css";
 
+/**
+ * Normaliza textos para búsquedas sin distinguir mayúsculas,
+ * espacios sobrantes ni acentos.
+ */
 function normalizeSearch(value: string): string {
   return value
     .trim()
@@ -49,6 +53,9 @@ function normalizeSearch(value: string): string {
     .replace(/\p{Diacritic}/gu, "");
 }
 
+/**
+ * Valida si un usuario cumple con el filtro de estado seleccionado.
+ */
 function matchesStatusFilter(user: UserDto, filter: UserStatusFilter): boolean {
   if (filter === "ACTIVE") return user.is_active && !user.is_locked;
   if (filter === "INACTIVE") return !user.is_active;
@@ -57,6 +64,10 @@ function matchesStatusFilter(user: UserDto, filter: UserStatusFilter): boolean {
   return true;
 }
 
+/**
+ * Convierte el valor seleccionado del rol a número válido.
+ * Devuelve null cuando el valor no representa un rol existente.
+ */
 function getRoleId(value: string): number | null {
   const parsed = Number(value);
 
@@ -67,7 +78,10 @@ function getRoleId(value: string): number | null {
   return parsed;
 }
 
-export default function UsuariosPage() {
+/**
+ * Pantalla principal del módulo de usuarios.
+ */
+export function UsersPage() {
   const [users, setUsers] = useState<UserDto[]>([]);
   const [roles, setRoles] = useState<RoleOptionDto[]>([]);
 
@@ -108,7 +122,10 @@ export default function UsuariosPage() {
   }, [search, statusFilter, users]);
 
   const counters = useMemo(() => {
-    const active = users.filter((user) => user.is_active && !user.is_locked).length;
+    const active = users.filter(
+      (user) => user.is_active && !user.is_locked
+    ).length;
+
     const inactive = users.filter((user) => !user.is_active).length;
     const locked = users.filter((user) => user.is_locked).length;
 
@@ -120,6 +137,9 @@ export default function UsuariosPage() {
     };
   }, [users]);
 
+  /**
+   * Carga usuarios y roles disponibles desde el backend.
+   */
   async function loadData(): Promise<void> {
     try {
       setLoading(true);
@@ -147,6 +167,9 @@ export default function UsuariosPage() {
     void loadData();
   }, []);
 
+  /**
+   * Abre el modal en modo creación.
+   */
   function openCreateModal(): void {
     setSelectedUser(null);
     setModalMode("create");
@@ -154,6 +177,9 @@ export default function UsuariosPage() {
     setModalOpen(true);
   }
 
+  /**
+   * Abre el modal en modo edición.
+   */
   function openEditModal(user: UserDto): void {
     setSelectedUser(user);
     setModalMode("edit");
@@ -161,6 +187,9 @@ export default function UsuariosPage() {
     setModalOpen(true);
   }
 
+  /**
+   * Cierra el modal cuando no existe una operación de guardado activa.
+   */
   function closeModal(): void {
     if (saving) return;
 
@@ -169,6 +198,9 @@ export default function UsuariosPage() {
     setModalError(null);
   }
 
+  /**
+   * Crea o actualiza un usuario según el modo actual del modal.
+   */
   async function handleSubmit(values: UserFormValues): Promise<void> {
     try {
       setSaving(true);
@@ -195,6 +227,7 @@ export default function UsuariosPage() {
 
       setModalOpen(false);
       setSelectedUser(null);
+
       await loadData();
     } catch (error) {
       setModalError(
@@ -207,9 +240,13 @@ export default function UsuariosPage() {
     }
   }
 
+  /**
+   * Activa un usuario inactivo.
+   */
   async function handleActivate(user: UserDto): Promise<void> {
     try {
       setPageError(null);
+
       await activateUserRequest(user.id);
       await loadData();
     } catch (error) {
@@ -221,15 +258,19 @@ export default function UsuariosPage() {
     }
   }
 
+  /**
+   * Inactiva un usuario después de confirmar la acción.
+   */
   async function handleDeactivate(user: UserDto): Promise<void> {
     const confirmed = window.confirm(
-      `¿Seguro que deseas inactivar el usuario "${user.username}"?`
+      `¿Seguro que deseas inactivar el usuario "${user.username}" ?`
     );
 
     if (!confirmed) return;
 
     try {
       setPageError(null);
+
       await deactivateUserRequest(user.id);
       await loadData();
     } catch (error) {
@@ -241,9 +282,13 @@ export default function UsuariosPage() {
     }
   }
 
+  /**
+   * Desbloquea un usuario bloqueado por intentos fallidos.
+   */
   async function handleUnlock(user: UserDto): Promise<void> {
     try {
       setPageError(null);
+
       await unlockUserRequest(user.id);
       await loadData();
     } catch (error) {
@@ -255,15 +300,19 @@ export default function UsuariosPage() {
     }
   }
 
+  /**
+   * Elimina un usuario después de confirmar la acción.
+   */
   async function handleDelete(user: UserDto): Promise<void> {
     const confirmed = window.confirm(
-      `¿Seguro que deseas eliminar el usuario "${user.username}"?`
+      `¿Seguro que deseas eliminar el usuario "${user.username}" ?`
     );
 
     if (!confirmed) return;
 
     try {
       setPageError(null);
+
       await deleteUserRequest(user.id);
       await loadData();
     } catch (error) {
@@ -372,3 +421,5 @@ export default function UsuariosPage() {
     </main>
   );
 }
+
+export default UsersPage;

@@ -1,14 +1,14 @@
 // ======================================================
 // PATH: src/shared/ui/DataTable/modals/ConfigurarColumnasModal.tsx
-// Modal compacto de configuración de columnas
+// Modal de configuración de columnas del DataTable
 // ======================================================
 
 /**
  * Responsabilidades:
  * - Configurar columnas visibles.
- * - Reordenar columnas.
+ * - Reordenar columnas mediante drag and drop.
  * - Configurar ordenamiento múltiple.
- * - Configurar columnas únicas.
+ * - Configurar columnas con valores únicos.
  *
  * No debe:
  * - Filtrar datos.
@@ -47,7 +47,7 @@ type ColumnsModalProps = {
 };
 
 /**
- * Mueve un elemento dentro de un arreglo.
+ * Mueve un elemento dentro de un arreglo sin modificar el arreglo original.
  */
 function moveItem<T>(items: T[], fromIndex: number, toIndex: number): T[] {
   const copy = [...items];
@@ -63,7 +63,7 @@ function moveItem<T>(items: T[], fromIndex: number, toIndex: number): T[] {
 }
 
 /**
- * Construye una cadena de clases válida.
+ * Une clases condicionales en una cadena válida.
  */
 function classNames(
   ...classes: Array<string | false | null | undefined>
@@ -72,7 +72,7 @@ function classNames(
 }
 
 /**
- * Modal compacto para configurar las columnas del DataTable.
+ * Modal para configurar columnas visibles, orden y reglas del DataTable.
  */
 export default function ColumnsModal({
   open,
@@ -195,6 +195,11 @@ export default function ColumnsModal({
     setHoverColumn(null);
   }
 
+  function handleReset() {
+    onClearSorts();
+    onReset();
+  }
+
   return (
     <div
       className="data-table-modal-backdrop"
@@ -209,13 +214,14 @@ export default function ColumnsModal({
         onMouseDown={(event) => event.stopPropagation()}
       >
         <header className="data-table-modal__header">
-          <div>
+          <div className="data-table-modal__heading">
             <h3 className="data-table-modal__title">
               Configurar columnas
             </h3>
 
             <p className="data-table-modal__subtitle">
-              Selecciona, ordena y configura las columnas.
+              Define qué columnas se muestran, cambia su orden y configura
+              reglas especiales para esta vista.
             </p>
           </div>
 
@@ -230,31 +236,37 @@ export default function ColumnsModal({
           </button>
         </header>
 
-        <div className="data-table-modal__quick-actions">
-          <button
-            type="button"
-            className="data-table-button data-table-button--small"
-            onClick={onSelectAll}
-          >
-            Mostrar todas
-          </button>
+        <div className="data-table-modal__toolbar">
+          <div className="data-table-modal__toolbar-info">
+            <span className="data-table-modal__section-title" />
+          </div>
 
-          <button
-            type="button"
-            className="data-table-button data-table-button--small"
-            onClick={onClearAll}
-          >
-            Ocultar todas
-          </button>
+          <div className="data-table-modal__toolbar-actions">
+            <button
+              type="button"
+              className="data-table-button data-table-button--soft"
+              onClick={onSelectAll}
+            >
+              Mostrar
+            </button>
 
-          <button
-            type="button"
-            className="data-table-button data-table-button--small"
-            onClick={onClearSorts}
-            disabled={sorts.length === 0}
-          >
-            Limpiar orden
-          </button>
+            <button
+              type="button"
+              className="data-table-button data-table-button--soft"
+              onClick={onClearAll}
+            >
+              Ocultar
+            </button>
+
+            <button
+              type="button"
+              className="data-table-button data-table-button--soft"
+              onClick={onClearSorts}
+              disabled={sorts.length === 0}
+            >
+              Limpiar
+            </button>
+          </div>
         </div>
 
         <div className="data-table-modal__body">
@@ -262,15 +274,13 @@ export default function ColumnsModal({
             {orderedColumns.map((column, index) => {
               const isVisible = visibleColumns.includes(column.key);
               const isUnique = uniqueColumns.includes(column.key);
+
               const sort = sorts.find(
-                (item) => item.key === column.key
-              );
-              const sortIndex = sorts.findIndex(
                 (item) => item.key === column.key
               );
 
               return (
-                <div
+                <article
                   key={column.key}
                   className={classNames(
                     "data-table-modal-row",
@@ -294,59 +304,65 @@ export default function ColumnsModal({
                     setHoverColumn(null);
                   }}
                 >
-                  <span
-                    className="data-table-drag-handle"
-                    title="Arrastrar para mover"
-                  >
-                    ⋮⋮
-                  </span>
+                  <div className="data-table-modal-row__main">
+                    <span
+                      className="data-table-drag-handle"
+                      title="Arrastrar para mover"
+                    >
+                      ⋮⋮
+                    </span>
 
-                  <input
-                    type="checkbox"
-                    checked={isVisible}
-                    onChange={() => onToggleColumn(column.key)}
-                    className="data-table-modal-checkbox"
-                    aria-label={`Mostrar columna ${column.header}`}
-                  />
+                    <span className="data-table-modal-pill">
+                      {index + 1}
+                    </span>
 
-                  <span className="data-table-modal-pill">
-                    {index + 1}
-                  </span>
+                    <label className="data-table-modal-check">
+                      <input
+                        type="checkbox"
+                        checked={isVisible}
+                        onChange={() => onToggleColumn(column.key)}
+                        className="data-table-modal-checkbox"
+                        aria-label={`Mostrar columna ${column.header}`}
+                      />
 
-                  <span className="data-table-modal-label">
-                    {column.header}
-                  </span>
+                      <span className="data-table-modal-checkmark" />
 
-                  <button
-                    type="button"
-                    className={classNames(
-                      "data-table-button",
-                      "data-table-button--small",
-                      sort && "data-table-button--primary"
-                    )}
-                    onClick={() => toggleSort(column.key)}
-                    title="Cambiar orden"
-                  >
-                    {sort
-                      ? `${
-                          sort.dir === "asc" ? "↑" : "↓"
-                        } ${sortIndex + 1}`
-                      : "Orden"}
-                  </button>
+                      <span className="data-table-modal-label">
+                        {column.header}
+                      </span>
+                    </label>
+                  </div>
 
-                  <button
-                    type="button"
-                    className={classNames(
-                      "data-table-button",
-                      "data-table-button--small",
-                      isUnique && "data-table-button--primary"
-                    )}
-                    onClick={() => toggleUnique(column.key)}
-                    title="Mostrar valores únicos"
-                  >
-                    Único
-                  </button>
-                </div>
+                  <div className="data-table-modal-row__actions">
+                    <button
+                      type="button"
+                      className={classNames(
+                        "data-table-chip-action",
+                        sort && "data-table-chip-action--active"
+                      )}
+                      onClick={() => toggleSort(column.key)}
+                      title="Cambiar orden"
+                    >
+                      {sort
+                        ? sort.dir === "asc"
+                          ? "Asc"
+                          : "Dsc"
+                        : "Sin orden"}
+                    </button>
+
+                    <button
+                      type="button"
+                      className={classNames(
+                        "data-table-chip-action",
+                        isUnique && "data-table-chip-action--active"
+                      )}
+                      onClick={() => toggleUnique(column.key)}
+                      title="Configurar valores únicos"
+                    >
+                      {isUnique ? "Única" : "Repetidos"}
+                    </button>
+                  </div>
+                </article>
               );
             })}
           </div>
@@ -356,7 +372,7 @@ export default function ColumnsModal({
           <button
             type="button"
             className="data-table-button data-table-button--danger"
-            onClick={onReset}
+            onClick={handleReset}
           >
             Restablecer
           </button>
@@ -366,7 +382,7 @@ export default function ColumnsModal({
             className="data-table-button data-table-button--primary"
             onClick={onClose}
           >
-            Listo
+            Aplicar cambios
           </button>
         </footer>
       </section>

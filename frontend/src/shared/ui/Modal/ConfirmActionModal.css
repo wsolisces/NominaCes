@@ -1,0 +1,299 @@
+/* ======================================================
+   PATH: src/shared/ui/Modal/ConfirmActionModal.css
+   Estilos del modal global de confirmación
+   ====================================================== */
+
+/**
+ * Responsabilidades:
+ * - Definir la apariencia del modal estándar de confirmación.
+ * - Manejar variantes visuales: default, danger, warning y success.
+ * - Mantener diseño compacto, accesible y responsive.
+ *
+ * No debe:
+ * - Definir estilos específicos de permisos, roles o usuarios.
+ * - Sobrescribir estilos globales del layout.
+ * - Definir reglas de formularios complejos.
+ */
+
+/* ======================================================
+   BACKDROP
+   ====================================================== */
+
+.confirm-action-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 1rem;
+
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+/* ======================================================
+   MODAL
+   ====================================================== */
+
+.confirm-action-modal {
+  width: min(100%, 28rem);
+
+  padding: 1.15rem;
+
+  color: #111827;
+  background: #ffffff;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
+
+  box-shadow:
+    0 1.5rem 3rem rgba(15, 23, 42, 0.18),
+    0 0.25rem 0.8rem rgba(15, 23, 42, 0.08);
+
+  animation: confirm-action-modal-enter 150ms ease-out;
+}
+
+@keyframes confirm-action-modal-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.35rem) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ======================================================
+   HEADER
+   ====================================================== */
+
+.confirm-action-modal__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+
+.confirm-action-modal__icon {
+  width: 2.15rem;
+  height: 2.15rem;
+
+  flex: 0 0 auto;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 999px;
+
+  color: #1f2937;
+  background: #f3f4f6;
+
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.confirm-action-modal__heading {
+  min-width: 0;
+}
+
+.confirm-action-modal__eyebrow {
+  margin: 0 0 0.15rem;
+
+  color: #64748b;
+
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.confirm-action-modal__title {
+  margin: 0;
+
+  color: #111827;
+
+  font-size: 1rem;
+  font-weight: 750;
+  line-height: 1.25;
+}
+
+/* ======================================================
+   MESSAGE
+   ====================================================== */
+
+.confirm-action-modal__message {
+  margin: 0.95rem 0 0;
+
+  color: #475569;
+
+  font-size: 0.86rem;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+/* ======================================================
+   FOOTER
+   ====================================================== */
+
+.confirm-action-modal__footer {
+  margin-top: 1.15rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.55rem;
+}
+
+.confirm-action-modal__button {
+  min-height: 2.25rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 0.95rem;
+
+  border-radius: 0.65rem;
+
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease,
+    opacity 150ms ease;
+}
+
+.confirm-action-modal__button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.confirm-action-modal__button--secondary {
+  color: #334155;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+}
+
+.confirm-action-modal__button--secondary:hover:not(:disabled) {
+  color: #111827;
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.confirm-action-modal__button--primary {
+  color: #ffffff;
+  background: #111827;
+  border: 1px solid #111827;
+}
+
+.confirm-action-modal__button--primary:hover:not(:disabled) {
+  box-shadow: 0 0.45rem 0.9rem rgba(15, 23, 42, 0.16);
+  transform: translateY(-1px);
+}
+
+.confirm-action-modal__button--primary:active:not(:disabled) {
+  box-shadow: none;
+  transform: translateY(0);
+}
+
+/* ======================================================
+   VARIANTES
+   ====================================================== */
+
+.confirm-action-modal--danger .confirm-action-modal__icon {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+.confirm-action-modal--danger .confirm-action-modal__button--primary {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+.confirm-action-modal--danger .confirm-action-modal__button--primary:hover:not(:disabled) {
+  background: #b91c1c;
+  border-color: #b91c1c;
+}
+
+.confirm-action-modal--warning .confirm-action-modal__icon {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.confirm-action-modal--warning .confirm-action-modal__button--primary {
+  background: #d97706;
+  border-color: #d97706;
+}
+
+.confirm-action-modal--warning .confirm-action-modal__button--primary:hover:not(:disabled) {
+  background: #b45309;
+  border-color: #b45309;
+}
+
+.confirm-action-modal--success .confirm-action-modal__icon {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.confirm-action-modal--success .confirm-action-modal__button--primary {
+  background: #16a34a;
+  border-color: #16a34a;
+}
+
+.confirm-action-modal--success .confirm-action-modal__button--primary:hover:not(:disabled) {
+  background: #15803d;
+  border-color: #15803d;
+}
+
+/* ======================================================
+   RESPONSIVE
+   ====================================================== */
+
+@media (max-width: 640px) {
+  .confirm-action-modal-backdrop {
+    align-items: flex-end;
+    padding: 0.75rem;
+  }
+
+  .confirm-action-modal {
+    width: 100%;
+    border-radius: 1rem;
+  }
+
+  .confirm-action-modal__footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .confirm-action-modal__button {
+    width: 100%;
+  }
+}
+
+/* ======================================================
+   ACCESIBILIDAD
+   ====================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .confirm-action-modal {
+    animation: none;
+  }
+
+  .confirm-action-modal__button {
+    transition: none;
+  }
+}

@@ -72,7 +72,7 @@ export default function DataTableFilters({
         onClick={() => setFilters({})}
         className="data-table-filters-bar__clear"
       >
-        Borrar todos
+        Limpiar
       </button>
     </div>
   );

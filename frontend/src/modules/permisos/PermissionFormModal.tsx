@@ -8,11 +8,13 @@
  * - Capturar la información editable de un permiso.
  * - Validar campos obligatorios antes de enviar.
  * - Reutilizarse para crear y editar permisos.
+ * - Generar automáticamente permission_key al crear permisos.
  *
  * No debe:
  * - Llamar directamente al backend.
  * - Modificar la lista de permisos.
  * - Conocer reglas de navegación.
+ * - Solicitar manualmente la clave del permiso al crear.
  */
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
@@ -72,20 +74,45 @@ export type PermissionFormModalProps = {
   onSubmit: (values: PermissionFormValues) => void;
 };
 
-function normalizePermissionKey(value: string): string {
+/**
+ * Normaliza texto para usarlo como segmento de clave técnica.
+ */
+function normalizeKeySegment(value: string): string {
   return value
     .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .toUpperCase()
+    .replace(/Ñ/g, "N")
     .replace(/\s+/g, "_")
-    .replace(/[^A-Z0-9_]/g, "");
+    .replace(/[^A-Z0-9_]/g, "")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "");
 }
 
+/**
+ * Normaliza claves de módulo.
+ */
 function normalizeModuleKey(value: string): string {
-  return value
-    .trim()
-    .toUpperCase()
-    .replace(/\s+/g, "_")
-    .replace(/[^A-Z0-9_]/g, "");
+  return normalizeKeySegment(value);
+}
+
+/**
+ * Genera la clave técnica del permiso.
+ *
+ * Regla:
+ * - La clave no la captura el usuario.
+ * - Se forma con módulo + nombre del permiso.
+ */
+function buildPermissionKey(moduleKey: string, permissionName: string): string {
+  const normalizedModuleKey = normalizeModuleKey(moduleKey);
+  const normalizedPermissionName = normalizeKeySegment(permissionName);
+
+  if (!normalizedModuleKey || !normalizedPermissionName) {
+    return "";
+  }
+
+  return `${normalizedModuleKey}_${normalizedPermissionName}`;
 }
 
 export function PermissionFormModal({
@@ -103,6 +130,14 @@ export function PermissionFormModal({
   const title = useMemo(() => {
     return mode === "create" ? "Crear permiso" : "Editar permiso";
   }, [mode]);
+
+  const generatedPermissionKey = useMemo(() => {
+    if (mode === "edit") {
+      return values.permission_key;
+    }
+
+    return buildPermissionKey(values.module_key, values.permission_name);
+  }, [mode, values.module_key, values.permission_key, values.permission_name]);
 
   useEffect(() => {
     if (!open) return;
@@ -137,19 +172,17 @@ export function PermissionFormModal({
   }
 
   function handleModuleChange(moduleKey: string) {
+    const normalizedModuleKey = normalizeModuleKey(moduleKey);
+
     const selectedModule = MODULE_OPTIONS.find(
-      (moduleOption) => moduleOption.module_key === moduleKey
+      (moduleOption) => moduleOption.module_key === normalizedModuleKey
     );
 
-    updateField("module_key", normalizeModuleKey(moduleKey));
+    updateField("module_key", normalizedModuleKey);
     updateField("module_name", selectedModule?.module_name ?? "");
   }
 
   function validateForm(): string | null {
-    if (!values.permission_key.trim()) {
-      return "Captura la clave del permiso.";
-    }
-
     if (!values.permission_name.trim()) {
       return "Captura el nombre del permiso.";
     }
@@ -159,7 +192,15 @@ export function PermissionFormModal({
     }
 
     if (!values.module_name.trim()) {
-      return "Captura el nombre del módulo.";
+      return "Selecciona un módulo válido.";
+    }
+
+    if (mode === "create" && !generatedPermissionKey) {
+      return "No fue posible generar la clave del permiso.";
+    }
+
+    if (mode === "edit" && !values.permission_key.trim()) {
+      return "La clave del permiso no es válida.";
     }
 
     return null;
@@ -178,7 +219,10 @@ export function PermissionFormModal({
     setLocalError(null);
 
     onSubmit({
-      permission_key: normalizePermissionKey(values.permission_key),
+      permission_key:
+        mode === "create"
+          ? generatedPermissionKey
+          : values.permission_key.trim(),
       permission_name: values.permission_name.trim(),
       module_key: normalizeModuleKey(values.module_key),
       module_name: values.module_name.trim(),
@@ -218,21 +262,18 @@ export function PermissionFormModal({
 
         <form className="permission-form" onSubmit={handleSubmit}>
           <div className="permission-form__grid">
-            <label className="permission-form__field">
-              <span>Clave del permiso</span>
-              <input
-                value={values.permission_key}
-                onChange={(event) =>
-                  updateField(
-                    "permission_key",
-                    normalizePermissionKey(event.target.value)
-                  )
-                }
-                placeholder="USERS_VIEW"
-                disabled={loading || mode === "edit"}
-              />
-            </label>
-
+            {mode === "edit" ? (
+              <label className="permission-form__field">
+                <span>Clave técnica</span>
+                <input
+                  value={values.permission_key}
+                  disabled
+                  readOnly
+                  aria-readonly="true"
+                />
+              </label>
+            ) : null}
+            
             <label className="permission-form__field">
               <span>Nombre del permiso</span>
               <input
@@ -263,6 +304,8 @@ export function PermissionFormModal({
                 ))}
               </select>
             </label>
+
+            
 
             <label className="permission-form__field">
               <span>Estado</span>

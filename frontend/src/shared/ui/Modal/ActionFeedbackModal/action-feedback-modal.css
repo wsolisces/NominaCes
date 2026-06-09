@@ -1,0 +1,163 @@
+/* ======================================================
+   PATH: frontend\src\shared\ui\Modal\ActionFeedbackModal\action-feedback-modal.css
+   Estilos del modal pequeño de resultado de acción
+   ====================================================== */
+
+/**
+ * Responsabilidades:
+ * - Dar presentación compacta a mensajes de éxito o error.
+ * - Mantener una estética limpia y consistente con el sistema.
+ * - Evitar estilos específicos de módulos.
+ *
+ * No debe:
+ * - Definir colores globales.
+ * - Modificar estilos de otros modales.
+ */
+
+.action-feedback-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+
+  display: grid;
+  place-items: center;
+
+  padding: 1.5rem;
+
+  background: rgba(15, 23, 42, 0.42);
+  backdrop-filter: blur(4px);
+}
+
+.action-feedback-modal {
+  width: min(100%, 24rem);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.15rem;
+
+  padding: 1.6rem 1.5rem 1.4rem;
+
+  border-radius: 1.25rem;
+  border: 1px solid rgba(226, 232, 240, 0.95);
+
+  background:
+    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+
+  box-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.2),
+    0 10px 24px rgba(15, 23, 42, 0.12);
+
+  animation: action-feedback-modal-in 160ms ease-out;
+}
+
+.action-feedback-modal__icon {
+  width: 4.2rem;
+  height: 4.2rem;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 999px;
+}
+
+.action-feedback-modal__icon svg {
+  width: 2rem;
+  height: 2rem;
+
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.action-feedback-modal__icon--success {
+  color: #15803d;
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+}
+
+.action-feedback-modal__icon--error {
+  color: #b91c1c;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+}
+
+.action-feedback-modal__content {
+  text-align: center;
+}
+
+.action-feedback-modal__content h2 {
+  margin: 0;
+
+  color: #111827;
+
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.action-feedback-modal__content p {
+  margin: 0.45rem 0 0;
+
+  color: #64748b;
+
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.action-feedback-modal__actions {
+  width: 100%;
+
+  display: flex;
+  justify-content: center;
+
+  padding-top: 0.15rem;
+}
+
+.action-feedback-modal__button {
+  min-width: 8.5rem;
+
+  border: 0;
+  border-radius: 999px;
+
+  padding: 0.72rem 1.2rem;
+
+  color: #ffffff;
+  background: #111827;
+
+  font-size: 0.86rem;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.18);
+
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease,
+    background 140ms ease;
+}
+
+.action-feedback-modal__button:hover {
+  transform: translateY(-1px);
+  background: #020617;
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.24);
+}
+
+.action-feedback-modal__button:active {
+  transform: translateY(0);
+}
+
+@keyframes action-feedback-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.35rem) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

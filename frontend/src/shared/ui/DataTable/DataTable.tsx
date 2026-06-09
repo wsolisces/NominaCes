@@ -57,6 +57,9 @@ export type ColumnDef<T> = {
   isTotal?: boolean;
   wrap?: boolean;
   fitWidth?: number | string;
+  sticky?: "left" | "right";
+  stickyOffset?: number;
+  compact?: boolean;
 };
 
 /**
@@ -380,6 +383,18 @@ export default function DataTable<T extends Record<string, unknown>>({
 
   return (
     <div className="data-table">
+      
+
+      <DataTableHeader
+        search={search}
+        setSearch={setSearch}
+        loading={loading}
+        pageSize={pageSize}
+        setPageSize={handlePageSizeChange}
+        showColumnsButton={!disableColumnConfig}
+        onOpenColumns={() => setOpenModal(true)}
+      />
+
       <DataTableFilters
         hasFilters={hasFilters}
         filterGroups={filterGroups}
@@ -393,16 +408,6 @@ export default function DataTable<T extends Record<string, unknown>>({
         group={activeFilterGroup}
         setFilters={setFilters}
         setOpen={setOpenFiltersModal}
-      />
-
-      <DataTableHeader
-        search={search}
-        setSearch={setSearch}
-        loading={loading}
-        pageSize={pageSize}
-        setPageSize={handlePageSizeChange}
-        showColumnsButton={!disableColumnConfig}
-        onOpenColumns={() => setOpenModal(true)}
       />
 
       <div className="data-table__card">

@@ -47,7 +47,7 @@ import type {
   RolesSummary
 } from "./roles.types";
 
-import "../roles.css";
+import "./roles.css";
 
 /**
  * Estado inicial del formulario.

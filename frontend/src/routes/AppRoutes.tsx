@@ -25,7 +25,7 @@ import Login from "../pages/Login";
 import ResetPassword from "../pages/ResetPassword";
 
 import PanelPage from "../pages/Panel/PanelPage";
-import { UsersPage } from "../modules/users/pages/UsersPage";
+import { UsersPage } from "../modules/users/UsersPage";
 import RolesPage from "../modules/roles/RolesPage";
 import PermisosPage from "../modules/permisos/PermisosPage";
 

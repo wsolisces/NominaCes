@@ -90,7 +90,24 @@ export type {
   ModalActionsProps
 } from "./Modal/Modal";
 
+/* ======================================================
+   CONFIRM ACTION MODAL
+   ====================================================== */
 
+/**
+ * ConfirmAction:
+ * Modal global reutilizable para confirmar acciones sensibles
+ * como eliminar, activar, desactivar o cancelar procesos.
+ */
+export {
+  ConfirmActionProvider,
+  useConfirmAction
+} from "./Modal/ConfirmActionModal";
+
+export type {
+  ConfirmActionOptions,
+  ConfirmActionVariant
+} from "./Modal/ConfirmActionModal";
 
 /* ======================================================
    DATA TABLE
@@ -121,3 +138,10 @@ export type {
   UiScale,
   UiScaleSelectProps
 } from "./UiScaleSelect/UiScaleSelect";
+
+
+export { ActionFeedbackModal } from "./Modal/ActionFeedbackModal/ActionFeedbackModal";
+export type {
+  ActionFeedbackModalProps,
+  ActionFeedbackVariant
+} from "./Modal/ActionFeedbackModal/ActionFeedbackModal";

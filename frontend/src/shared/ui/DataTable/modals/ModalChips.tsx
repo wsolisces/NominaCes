@@ -64,9 +64,10 @@ const ChipItem = memo(function ChipItem({
 
       <button
         type="button"
-        className="data-table-button data-table-button--icon data-table-button--danger"
+        className="data-table-chip-item__remove"
         onClick={() => onRemove(value)}
         aria-label={`Eliminar filtro ${value}`}
+        title="Eliminar valor"
       >
         ✕
       </button>
@@ -109,6 +110,8 @@ export default function ModalChips({
 
     return filteredValues.slice(0, 200);
   }, [search, values]);
+
+  const hasSearch = search.trim().length > 0;
 
   /**
    * Elimina un valor del filtro activo.
@@ -182,43 +185,69 @@ export default function ModalChips({
       onClick={closeModal}
     >
       <div
-        className="data-table-modal data-table-modal--sm"
+        className="data-table-modal data-table-modal--chips"
         onClick={(event) => event.stopPropagation()}
       >
-        <header className="data-table-modal__header">
-          <div>
+        <header className="data-table-modal__header data-table-modal__header--chips">
+          <div className="data-table-modal__heading">
+           
             <h2 className="data-table-modal__title">
               {group.label}
             </h2>
 
             <p className="data-table-modal__subtitle">
-              {values.length} valores seleccionados
+              Administra los valores aplicados a esta columna.
             </p>
           </div>
 
           <button
             type="button"
-            className="data-table-button data-table-button--icon"
+            className="data-table-modal__close"
             onClick={closeModal}
             aria-label="Cerrar"
+            title="Cerrar"
           >
             ✕
           </button>
         </header>
 
-        <div className="data-table-modal__body">
-          <input
-            type="search"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Buscar valor..."
-            className="data-table-filter-card__input"
-          />
+        
+
+        <div className="data-table-modal__body data-table-modal__body--chips">
+          <div className="data-table-chip-search">
+            <span className="data-table-chip-search__icon">
+              ⌕
+            </span>
+
+            <input
+              type="search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Buscar valor seleccionado..."
+              className="data-table-chip-search__input"
+            />
+
+            {hasSearch ? (
+              <button
+                type="button"
+                className="data-table-chip-search__clear"
+                onClick={() => setSearch("")}
+                aria-label="Limpiar búsqueda"
+                title="Limpiar búsqueda"
+              >
+                ✕
+              </button>
+            ) : null}
+          </div>
 
           <div className="data-table-chip-list">
             {visibleValues.length === 0 ? (
-              <div className="data-table-modal__empty">
-                Sin resultados
+              <div className="data-table-chips-empty">
+                <strong>Sin resultados</strong>
+
+                <span>
+                  No se encontraron valores con la búsqueda actual.
+                </span>
               </div>
             ) : null}
 
@@ -232,14 +261,12 @@ export default function ModalChips({
           </div>
         </div>
 
-        <footer className="data-table-modal__footer">
-          <span className="data-table-modal__subtitle">
-            {values.length} activos
-          </span>
+        <footer className="data-table-modal__footer data-table-modal__footer--chips">
+         
 
           <button
             type="button"
-            className="data-table-button data-table-button--danger"
+            className="data-table-button data-table-button--danger data-table-button--soft-danger"
             onClick={clearColumn}
           >
             Limpiar columna

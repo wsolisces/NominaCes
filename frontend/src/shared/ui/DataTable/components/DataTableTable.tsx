@@ -10,6 +10,8 @@
  * - Permitir abrir filtros por columna.
  * - Permitir ordenar mediante click derecho.
  * - Soportar modos visuales scroll y fit.
+ * - Soportar columnas fijas a izquierda o derecha.
+ * - Soportar columnas compactas reutilizables.
  *
  * No debe:
  * - Filtrar datos.
@@ -32,6 +34,11 @@ import type {
 type TableMode = "scroll" | "fit";
 
 /**
+ * Posiciones sticky permitidas por columna.
+ */
+type StickyPosition = "left" | "right";
+
+/**
  * Definición interna compatible con columnas genéricas.
  */
 type DataTableColumn<T extends Record<string, unknown>> = {
@@ -44,6 +51,9 @@ type DataTableColumn<T extends Record<string, unknown>> = {
   isTotal?: boolean;
   wrap?: boolean;
   fitWidth?: number | string;
+  sticky?: StickyPosition;
+  stickyOffset?: number;
+  compact?: boolean;
 };
 
 /**
@@ -85,6 +95,22 @@ function getColumnWidth(width?: number | string): string | undefined {
 }
 
 /**
+ * Calcula el ancho compacto como el doble del encabezado.
+ *
+ * Ejemplo:
+ * - "Estado" tiene 6 caracteres.
+ * - compact: true genera 12ch.
+ */
+function getCompactHeaderWidth<T extends Record<string, unknown>>(
+  column: DataTableColumn<T>
+): string {
+  const headerLength = String(column.header || "").trim().length;
+  const safeLength = Math.max(headerLength, 4);
+
+  return `${safeLength * 2}ch`;
+}
+
+/**
  * Devuelve texto utilizable como tooltip.
  */
 function getTextTitle(value: unknown): string | undefined {
@@ -120,6 +146,12 @@ function getRowKey<T extends Record<string, unknown>>(
 
   if (rowKey !== undefined && rowKey !== null) {
     return String(rowKey);
+  }
+
+  const permissionKey = getRowValue(row, "permission_key");
+
+  if (permissionKey !== undefined && permissionKey !== null) {
+    return `permission-${String(permissionKey)}-${rowIndex}`;
   }
 
   const id = getRowValue(row, "id");
@@ -165,10 +197,7 @@ function getFitColumnWidth<T extends Record<string, unknown>>(
     return getColumnWidth(column.fitWidth) ?? "auto";
   }
 
-  if (
-    typeof column.width === "string" &&
-    column.width.includes("%")
-  ) {
+  if (typeof column.width === "string" && column.width.includes("%")) {
     return column.width;
   }
 
@@ -176,37 +205,81 @@ function getFitColumnWidth<T extends Record<string, unknown>>(
 }
 
 /**
+ * Calcula el desplazamiento sticky.
+ */
+function getStickyOffset<T extends Record<string, unknown>>(
+  column: DataTableColumn<T>
+): number {
+  if (typeof column.stickyOffset === "number") {
+    return column.stickyOffset;
+  }
+
+  return 0;
+}
+
+/**
+ * Genera clases sticky para th y td.
+ */
+function getStickyClass<T extends Record<string, unknown>>(
+  column: DataTableColumn<T>
+): string {
+  if (!column.sticky) {
+    return "";
+  }
+
+  return column.sticky === "left"
+    ? "data-table-table__cell--sticky-left"
+    : "data-table-table__cell--sticky-right";
+}
+
+/**
  * Genera los estilos mínimos necesarios para una celda.
- *
- * Los anchos dinámicos deben permanecer inline porque dependen
- * de la configuración recibida por cada columna.
  */
 function getCellStyle<T extends Record<string, unknown>>(
   column: DataTableColumn<T>,
   tableMode: TableMode
 ): CSSProperties {
-  const width = getColumnWidth(column.width);
+  const width = column.compact
+    ? getCompactHeaderWidth(column)
+    : getColumnWidth(column.width);
 
-  if (tableMode === "scroll") {
-    return {
-      width: width ?? "auto",
-      minWidth: width ?? "78px",
-      maxWidth: width ?? "220px",
-      textAlign: column.align ?? "left"
-    };
+  const defaultMinWidth = column.compact ? width : "78px";
+  const defaultMaxWidth = column.compact ? width : "220px";
+
+  const baseStyle: CSSProperties =
+    tableMode === "scroll"
+      ? {
+          width: width ?? "auto",
+          minWidth: width ?? defaultMinWidth,
+          maxWidth: width ?? defaultMaxWidth,
+          textAlign: column.align ?? "left"
+        }
+      : {
+          width: "auto",
+          minWidth: column.compact ? width : 0,
+          maxWidth: column.compact ? width : "none",
+          textAlign: column.align ?? "left"
+        };
+
+  if (!column.sticky) {
+    return baseStyle;
   }
 
+  const offset = getStickyOffset(column);
+
   return {
-    width: "auto",
-    minWidth: 0,
-    maxWidth: "none",
-    textAlign: column.align ?? "left"
+    ...baseStyle,
+    position: "sticky",
+    zIndex: 3,
+    left: column.sticky === "left" ? offset : undefined,
+    right: column.sticky === "right" ? offset : undefined
   };
 }
 
 /**
  * Genera las clases de contenido de una celda.
  */
+
 function getContentClass<T extends Record<string, unknown>>(
   column: DataTableColumn<T>,
   tableMode: TableMode
@@ -215,23 +288,28 @@ function getContentClass<T extends Record<string, unknown>>(
     `data-table-table__content--${column.align ?? "left"}`;
 
   const wrapClass =
-    tableMode === "fit" || column.wrap
+    column.compact || tableMode === "fit" || column.wrap
       ? "data-table-table__content--wrap"
       : "data-table-table__content--truncate";
+
+  const compactClass = column.compact
+    ? "data-table-table__content--compact"
+    : "";
 
   return [
     "data-table-table__content",
     alignClass,
-    wrapClass
-  ].join(" ");
+    wrapClass,
+    compactClass
+  ]
+    .filter(Boolean)
+    .join(" ");
 }
 
 /**
  * Tabla visual interna del DataTable.
  */
-export default function DataTableTable<
-  T extends Record<string, unknown>
->({
+export default function DataTableTable<T extends Record<string, unknown>>({
   rows,
   visibleDefs,
   sorts,
@@ -247,13 +325,9 @@ export default function DataTableTable<
   tableMode = "scroll"
 }: DataTableTableProps<T>) {
   const safeRows = Array.isArray(rows) ? rows : [];
-  const safeVisibleDefs = Array.isArray(visibleDefs)
-    ? visibleDefs
-    : [];
+  const safeVisibleDefs = Array.isArray(visibleDefs) ? visibleDefs : [];
 
-  const hasTotals = safeVisibleDefs.some(
-    (column) => column.isTotal
-  );
+  const hasTotals = safeVisibleDefs.some((column) => column.isTotal);
 
   const [internalPageSize, setInternalPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -269,18 +343,11 @@ export default function DataTableTable<
   const totalRows = safeRows.length;
   const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
 
-  const safePage = Math.min(
-    Math.max(currentPage, 1),
-    totalPages
-  );
+  const safePage = Math.min(Math.max(currentPage, 1), totalPages);
 
-  const startIndex =
-    totalRows === 0 ? 0 : (safePage - 1) * pageSize;
+  const startIndex = totalRows === 0 ? 0 : (safePage - 1) * pageSize;
 
-  const endIndex = Math.min(
-    startIndex + pageSize,
-    totalRows
-  );
+  const endIndex = Math.min(startIndex + pageSize, totalRows);
 
   const pageRows = useMemo(() => {
     return safeRows.slice(startIndex, endIndex);
@@ -291,9 +358,7 @@ export default function DataTableTable<
   }, [safeRows, pageSize]);
 
   useEffect(() => {
-    setCurrentPage((previous) =>
-      Math.min(Math.max(previous, 1), totalPages)
-    );
+    setCurrentPage((previous) => Math.min(Math.max(previous, 1), totalPages));
   }, [totalPages]);
 
   /**
@@ -309,18 +374,14 @@ export default function DataTableTable<
     setCurrentPage(1);
   }
 
-  const rowsAreClickable = Boolean(
-    onRowClick || onRowDoubleClick
-  );
+  const rowsAreClickable = Boolean(onRowClick || onRowDoubleClick);
 
   return (
     <div className="data-table-table">
       <div
         className={[
           "data-table-table__scroll",
-          tableMode === "fit"
-            ? "data-table-table__scroll--fit"
-            : ""
+          tableMode === "fit" ? "data-table-table__scroll--fit" : ""
         ]
           .filter(Boolean)
           .join(" ")}
@@ -339,10 +400,7 @@ export default function DataTableTable<
                 <col
                   key={`column-${String(column.key)}`}
                   style={{
-                    width: getFitColumnWidth(
-                      column,
-                      safeVisibleDefs.length
-                    )
+                    width: getFitColumnWidth(column, safeVisibleDefs.length)
                   }}
                 />
               ))}
@@ -353,21 +411,24 @@ export default function DataTableTable<
             <tr>
               {safeVisibleDefs.map((column) => {
                 const key = String(column.key);
-
-                const activeSort = sorts.find(
-                  (sort) => sort.key === key
-                );
-
+                const activeSort = sorts.find((sort) => sort.key === key);
                 const sortPriority =
-                  sorts.findIndex(
-                    (sort) => sort.key === key
-                  ) + 1;
+                  sorts.findIndex((sort) => sort.key === key) + 1;
 
                 return (
                   <th
                     key={key}
-                    className="data-table-table__th"
-                    style={getCellStyle(column, tableMode)}
+                    className={[
+                      "data-table-table__th",
+                      column.compact ? "data-table-table__th--compact" : "",
+                      getStickyClass(column)
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    style={{
+                      ...getCellStyle(column, tableMode),
+                      zIndex: column.sticky ? 8 : undefined
+                    }}
                     title={`${column.header} | Click: filtrar | Click derecho: ordenar`}
                     onClick={(event) => {
                       const rectangle =
@@ -391,9 +452,7 @@ export default function DataTableTable<
                     <div
                       className={[
                         "data-table-table__th-inner",
-                        `data-table-table__th-inner--${
-                          column.align ?? "left"
-                        }`
+                        `data-table-table__th-inner--${column.align ?? "left"}`
                       ].join(" ")}
                     >
                       <span className="data-table-table__content data-table-table__content--truncate">
@@ -433,18 +492,12 @@ export default function DataTableTable<
                     key={rowKey}
                     className={[
                       "data-table-table__tr",
-                      rowsAreClickable
-                        ? "data-table-table__tr--clickable"
-                        : ""
+                      rowsAreClickable ? "data-table-table__tr--clickable" : ""
                     ]
                       .filter(Boolean)
                       .join(" ")}
-                    onClick={() =>
-                      onRowClick?.(row, realIndex)
-                    }
-                    onDoubleClick={() =>
-                      onRowDoubleClick?.(row, realIndex)
-                    }
+                    onClick={() => onRowClick?.(row, realIndex)}
+                    onDoubleClick={() => onRowDoubleClick?.(row, realIndex)}
                   >
                     {safeVisibleDefs.map((column) => {
                       const key = String(column.key);
@@ -456,17 +509,19 @@ export default function DataTableTable<
                       return (
                         <td
                           key={`${rowKey}-${key}`}
-                          className="data-table-table__td"
-                          style={getCellStyle(
-                            column,
-                            tableMode
-                          )}
+                          className={[
+                            "data-table-table__td",
+                            column.compact
+                              ? "data-table-table__td--compact"
+                              : "",
+                            getStickyClass(column)
+                          ]
+                            .filter(Boolean)
+                            .join(" ")}
+                          style={getCellStyle(column, tableMode)}
                         >
                           <div
-                            className={getContentClass(
-                              column,
-                              tableMode
-                            )}
+                            className={getContentClass(column, tableMode)}
                             title={getTextTitle(value)}
                           >
                             {value as ReactNode}
@@ -489,25 +544,24 @@ export default function DataTableTable<
                   return (
                     <td
                       key={`total-${key}`}
-                      className="data-table-table__td"
-                      style={getCellStyle(
-                        column,
-                        tableMode
-                      )}
+                      className={[
+                        "data-table-table__td",
+                        column.compact ? "data-table-table__td--compact" : "",
+                        getStickyClass(column)
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
+                      style={getCellStyle(column, tableMode)}
                     >
-                      <div
-                        className={getContentClass(
-                          column,
-                          tableMode
-                        )}
-                      >
+                      <div className={getContentClass(column, tableMode)}>
                         {column.isTotal
-                          ? Number(
-                              totals?.[key] ?? 0
-                            ).toLocaleString("es-MX", {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2
-                            })
+                          ? Number(totals?.[key] ?? 0).toLocaleString(
+                              "es-MX",
+                              {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                              }
+                            )
                           : ""}
                       </div>
                     </td>
@@ -539,9 +593,7 @@ export default function DataTableTable<
                 <select
                   value={pageSize}
                   className="data-table-select"
-                  onChange={(event) =>
-                    setPageSize(Number(event.target.value))
-                  }
+                  onChange={(event) => setPageSize(Number(event.target.value))}
                 >
                   <option value={5}>5</option>
                   <option value={10}>10</option>
@@ -562,9 +614,7 @@ export default function DataTableTable<
             className="data-table-button data-table-button--icon"
             title="Página anterior"
             onClick={() =>
-              setCurrentPage((previous) =>
-                Math.max(1, previous - 1)
-              )
+              setCurrentPage((previous) => Math.max(1, previous - 1))
             }
           >
             ‹
@@ -580,9 +630,7 @@ export default function DataTableTable<
             className="data-table-button data-table-button--icon"
             title="Página siguiente"
             onClick={() =>
-              setCurrentPage((previous) =>
-                Math.min(totalPages, previous + 1)
-              )
+              setCurrentPage((previous) => Math.min(totalPages, previous + 1))
             }
           >
             ›

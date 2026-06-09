@@ -6,16 +6,26 @@
 /**
  * Responsabilidades:
  * - Mostrar el catálogo de permisos del sistema.
- * - Administrar búsqueda, creación, edición, activación y eliminación.
+ * - Administrar creación, edición, activación y eliminación.
  * - Coordinar tabla, modal y llamadas HTTP del módulo.
+ * - Usar permission_key como identificador real del permiso.
+ * - Usar el modal global ConfirmActionModal para confirmar acciones sensibles.
+ * - Mostrar retroalimentación visual de éxito o error al terminar acciones.
  *
  * No debe:
  * - Definir el layout principal de la aplicación.
  * - Duplicar estilos globales.
  * - Consultar permisos de sesión directamente.
+ * - Usar id, porque app_permission no tiene columna id.
+ * - Usar window.confirm para confirmaciones del sistema.
  */
 
 import { useEffect, useMemo, useState } from "react";
+
+import {
+  ActionFeedbackModal,
+  useConfirmAction
+} from "../../shared/ui";
 
 import {
   activatePermissionRequest,
@@ -34,7 +44,7 @@ import type {
   PermissionFormValues
 } from "./permisos.types";
 
-import "../permisos.css";
+import "./permisos.css";
 
 type ModalState =
   | {
@@ -53,42 +63,70 @@ type ModalState =
       permission: PermissionDto;
     };
 
+type FeedbackState = {
+  open: boolean;
+  variant: "success" | "error";
+  title: string;
+  message?: string;
+};
+
 const CLOSED_MODAL: ModalState = {
   open: false,
   mode: "create",
   permission: null
 };
 
-function matchesSearch(permission: PermissionDto, search: string): boolean {
-  const normalizedSearch = search.trim().toLowerCase();
+const CLOSED_FEEDBACK: FeedbackState = {
+  open: false,
+  variant: "success",
+  title: ""
+};
 
-  if (!normalizedSearch) return true;
-
-  const searchableText = [
-    permission.permission_key,
-    permission.permission_name,
-    permission.module_key,
-    permission.module_name,
-    permission.description ?? ""
-  ]
-    .join(" ")
-    .toLowerCase();
-
-  return searchableText.includes(normalizedSearch);
+/**
+ * Estado inicial cerrado del modal de permisos.
+ */
+function getClosedModal(): ModalState {
+  return CLOSED_MODAL;
 }
 
+/**
+ * Estado inicial cerrado del modal de retroalimentación.
+ */
+function getClosedFeedback(): FeedbackState {
+  return CLOSED_FEEDBACK;
+}
+
+/**
+ * Reemplaza un permiso dentro del arreglo usando permission_key.
+ */
+function replacePermissionByKey(
+  permissions: PermissionDto[],
+  updatedPermission: PermissionDto
+): PermissionDto[] {
+  return permissions.map((permission) =>
+    permission.permission_key === updatedPermission.permission_key
+      ? updatedPermission
+      : permission
+  );
+}
+
+/**
+ * Pantalla principal de administración de permisos.
+ */
 export default function PermisosPage() {
+  const { confirmAction } = useConfirmAction();
+
   const [permissions, setPermissions] = useState<PermissionDto[]>([]);
-  const [search, setSearch] = useState("");
+
   const [loadingList, setLoadingList] = useState(true);
   const [saving, setSaving] = useState(false);
+
   const [pageError, setPageError] = useState<string | null>(null);
   const [modalError, setModalError] = useState<string | null>(null);
-  const [modal, setModal] = useState<ModalState>(CLOSED_MODAL);
 
-  const filteredPermissions = useMemo(() => {
-    return permissions.filter((permission) => matchesSearch(permission, search));
-  }, [permissions, search]);
+  const [modal, setModal] = useState<ModalState>(getClosedModal);
+  const [feedback, setFeedback] =
+    useState<FeedbackState>(getClosedFeedback);
 
   const totalPermissions = permissions.length;
 
@@ -98,11 +136,48 @@ export default function PermisosPage() {
 
   const inactivePermissions = totalPermissions - activePermissions;
 
-  useEffect(() => {
-    void loadPermissions();
-  }, []);
+  /**
+   * Muestra retroalimentación visual de éxito.
+   */
+  function showSuccessFeedback(title: string, message?: string): void {
+    setFeedback({
+      open: true,
+      variant: "success",
+      title,
+      message
+    });
+  }
 
-  async function loadPermissions() {
+  /**
+   * Muestra retroalimentación visual de error.
+   */
+  function showErrorFeedback(title: string, message?: string): void {
+    setFeedback({
+      open: true,
+      variant: "error",
+      title,
+      message
+    });
+  }
+
+  /**
+   * Cierra el modal de retroalimentación visual.
+   */
+  function closeFeedback(): void {
+    setFeedback(CLOSED_FEEDBACK);
+  }
+
+  /**
+   * Obtiene un mensaje legible a partir de un error desconocido.
+   */
+  function getErrorMessage(error: unknown, fallback: string): string {
+    return error instanceof Error ? error.message : fallback;
+  }
+
+  /**
+   * Carga el catálogo de permisos desde el backend.
+   */
+  async function loadPermissions(): Promise<void> {
     try {
       setLoadingList(true);
       setPageError(null);
@@ -111,18 +186,32 @@ export default function PermisosPage() {
 
       setPermissions(response);
     } catch (error) {
-      setPageError(
-        error instanceof Error
-          ? error.message
-          : "No fue posible cargar los permisos."
+      const message = getErrorMessage(
+        error,
+        "No fue posible cargar los permisos."
+      );
+
+      setPageError(message);
+
+      showErrorFeedback(
+        "No se pudieron cargar los permisos",
+        message
       );
     } finally {
       setLoadingList(false);
     }
   }
 
-  function openCreateModal() {
+  useEffect(() => {
+    void loadPermissions();
+  }, []);
+
+  /**
+   * Abre el modal en modo creación.
+   */
+  function openCreateModal(): void {
     setModalError(null);
+
     setModal({
       open: true,
       mode: "create",
@@ -130,8 +219,12 @@ export default function PermisosPage() {
     });
   }
 
-  function openEditModal(permission: PermissionDto) {
+  /**
+   * Abre el modal en modo edición.
+   */
+  function openEditModal(permission: PermissionDto): void {
     setModalError(null);
+
     setModal({
       open: true,
       mode: "edit",
@@ -139,22 +232,29 @@ export default function PermisosPage() {
     });
   }
 
-  function closeModal() {
+  /**
+   * Cierra el modal si no hay una operación de guardado activa.
+   */
+  function closeModal(): void {
     if (saving) return;
 
     setModalError(null);
     setModal(CLOSED_MODAL);
   }
 
-  function replacePermission(updatedPermission: PermissionDto) {
+  /**
+   * Actualiza el permiso dentro del estado local.
+   */
+  function replacePermission(updatedPermission: PermissionDto): void {
     setPermissions((currentPermissions) =>
-      currentPermissions.map((permission) =>
-        permission.id === updatedPermission.id ? updatedPermission : permission
-      )
+      replacePermissionByKey(currentPermissions, updatedPermission)
     );
   }
 
-  async function handleSubmit(values: PermissionFormValues) {
+  /**
+   * Crea o actualiza un permiso según el modo del modal.
+   */
+  async function handleSubmit(values: PermissionFormValues): Promise<void> {
     try {
       setSaving(true);
       setModalError(null);
@@ -168,67 +268,133 @@ export default function PermisosPage() {
         ]);
 
         setModal(CLOSED_MODAL);
+
+        showSuccessFeedback(
+          "Permiso creado",
+        );
+
         return;
       }
 
       const updatedPermission = await updatePermissionRequest(
-        modal.permission.id,
+        modal.permission.permission_key,
         values
       );
 
       replacePermission(updatedPermission);
       setModal(CLOSED_MODAL);
+
+      showSuccessFeedback(
+        "Permiso actualizado",
+      );
     } catch (error) {
-      setModalError(
-        error instanceof Error
-          ? error.message
-          : "No fue posible guardar el permiso."
+      const message = getErrorMessage(
+        error,
+        "No fue posible guardar el permiso."
+      );
+
+      setModalError(message);
+
+      showErrorFeedback(
+        "No se pudo guardar",
+        message
       );
     } finally {
       setSaving(false);
     }
   }
 
-  async function handleToggleStatus(permission: PermissionDto) {
-    try {
-      setPageError(null);
-
-      const updatedPermission = permission.is_active
-        ? await deactivatePermissionRequest(permission.id)
-        : await activatePermissionRequest(permission.id);
-
-      replacePermission(updatedPermission);
-    } catch (error) {
-      setPageError(
-        error instanceof Error
-          ? error.message
-          : "No fue posible cambiar el estado del permiso."
-      );
-    }
-  }
-
-  async function handleDelete(permission: PermissionDto) {
-    const confirmed = window.confirm(
-      `¿Eliminar el permiso "${permission.permission_name}"?`
-    );
+  /**
+   * Activa o desactiva un permiso usando confirmación global.
+   */
+  async function handleToggleStatus(permission: PermissionDto): Promise<void> {
+    const confirmed = await confirmAction({
+      variant: permission.is_active ? "warning" : "success",
+      title: permission.is_active
+        ? "Desactivar permiso"
+        : "Activar permiso",
+      message: permission.is_active
+        ? `¿Seguro que deseas desactivar el permiso "${permission.permission_name}"?`
+        : `¿Seguro que deseas activar el permiso "${permission.permission_name}"?`,
+      confirmLabel: permission.is_active ? "Desactivar" : "Activar",
+      cancelLabel: "Cancelar"
+    });
 
     if (!confirmed) return;
 
     try {
       setPageError(null);
 
-      await deletePermissionRequest(permission.id);
+      const updatedPermission = permission.is_active
+        ? await deactivatePermissionRequest(permission.permission_key)
+        : await activatePermissionRequest(permission.permission_key);
+
+      replacePermission(updatedPermission);
+
+      showSuccessFeedback(
+        permission.is_active
+          ? "Permiso desactivado"
+          : "Permiso activado",
+        permission.is_active
+          ? `El permiso se desactivó correctamente.`
+          : `El permiso se activó correctamente.`
+      );
+    } catch (error) {
+      const message = getErrorMessage(
+        error,
+        "No fue posible cambiar el estado del permiso."
+      );
+
+      setPageError(message);
+
+      showErrorFeedback(
+        "No se pudo cambiar el estado",
+        message
+      );
+    }
+  }
+
+  /**
+   * Elimina un permiso usando permission_key y confirmación global.
+   */
+  async function handleDelete(permission: PermissionDto): Promise<void> {
+    const confirmed = await confirmAction({
+      variant: "danger",
+      title: "Eliminar permiso",
+      message: `¿Seguro que deseas eliminar el permiso "${permission.permission_name}"? Esta acción no se puede deshacer.`,
+      confirmLabel: "Eliminar",
+      cancelLabel: "Cancelar"
+    });
+
+    if (!confirmed) return;
+
+    try {
+      setPageError(null);
+
+      await deletePermissionRequest(permission.permission_key);
 
       setPermissions((currentPermissions) =>
         currentPermissions.filter(
-          (currentPermission) => currentPermission.id !== permission.id
+          (currentPermission) =>
+            currentPermission.permission_key !== permission.permission_key
         )
       );
+
+      showSuccessFeedback(
+        "Permiso eliminado",
+        
+      );
     } catch (error) {
-      setPageError(
-        error instanceof Error
-          ? error.message
-          : "No fue posible eliminar el permiso."
+      const message = getErrorMessage(
+        error,
+        "No fue posible eliminar el permiso."
+      );
+
+      setPageError(message);
+
+      showErrorFeedback(
+        "No se pudo eliminar",
+        message
       );
     }
   }
@@ -246,7 +412,8 @@ export default function PermisosPage() {
           </h1>
 
           <p className="permissions-page__subtitle">
-            Administra las funcionalidades que pueden asignarse a los roles del sistema.
+            Administra las funcionalidades que pueden asignarse a los roles del
+            sistema.
           </p>
         </div>
 
@@ -276,28 +443,6 @@ export default function PermisosPage() {
         </article>
       </section>
 
-      <section className="permissions-filter-card">
-        <div className="permissions-filter-card__content">
-          <label className="permissions-search">
-            <span>Buscar permiso</span>
-            <input
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Buscar por clave, nombre o módulo"
-            />
-          </label>
-
-          <button
-            type="button"
-            className="permission-button permission-button--secondary"
-            onClick={() => void loadPermissions()}
-            disabled={loadingList}
-          >
-            Actualizar
-          </button>
-        </div>
-      </section>
-
       {pageError ? (
         <div className="permissions-alert" role="alert">
           {pageError}
@@ -305,7 +450,7 @@ export default function PermisosPage() {
       ) : null}
 
       <PermissionsTable
-        permissions={filteredPermissions}
+        permissions={permissions}
         loading={loadingList}
         onEdit={openEditModal}
         onToggleStatus={handleToggleStatus}
@@ -320,6 +465,14 @@ export default function PermisosPage() {
         error={modalError}
         onClose={closeModal}
         onSubmit={handleSubmit}
+      />
+
+      <ActionFeedbackModal
+        open={feedback.open}
+        variant={feedback.variant}
+        title={feedback.title}
+        message={feedback.message}
+        onClose={closeFeedback}
       />
     </main>
   );

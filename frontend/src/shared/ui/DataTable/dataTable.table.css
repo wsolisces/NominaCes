@@ -1,0 +1,1458 @@
+/* ======================================================
+   PATH: src/shared/ui/DataTable/dataTable.table.css
+   Estilos de tabla, buscador, filtros, paginación y estados
+   ====================================================== */
+
+/**
+ * Responsabilidades:
+ * - Definir estructura visual principal del DataTable.
+ * - Estilizar header, buscador, botones, filtros, tabla y paginación.
+ * - Estilizar columnas sticky, columnas compactas y acciones de tabla.
+ *
+ * No debe:
+ * - Contener estilos de modales.
+ * - Contener estilos de ModalChips.
+ * - Contener estilos de ConfigurarColumnasModal.
+ */
+
+/* ======================================================
+   VARIABLES INTERNAS
+   ====================================================== */
+
+.data-table {
+  --data-table-radius-sm: 0.55rem;
+  --data-table-radius-md: 0.75rem;
+  --data-table-radius-lg: 1rem;
+
+  --data-table-control-height: 2.7rem;
+  --data-table-row-height: 3.25rem;
+
+  --data-table-header-bg: var(--color-surface-blue);
+  --data-table-header-hover-bg: var(--color-surface-blue-hover);
+  --data-table-header-border: var(--color-border-blue);
+  --data-table-header-text: var(--color-text-blue);
+  --data-table-header-hover-text: var(--color-text-blue-strong);
+
+  --data-table-sort-bg: var(--color-blue-700);
+  --data-table-sort-hover-bg: var(--color-blue-800);
+  --data-table-sort-accent: var(--color-blue-400);
+  --data-table-sort-badge-bg: var(--color-blue-500);
+  --data-table-sort-badge-hover-bg: var(--color-blue-600);
+
+  --data-table-hover-bg: var(--color-surface-blue);
+  --data-table-selected-bg: var(--color-surface-blue-hover);
+
+  --data-table-focus: var(--color-focus-soft);
+  --data-table-focus-border: var(--color-focus-strong);
+
+  --data-table-shadow:
+    0 0.2rem 0.55rem color-mix(
+      in srgb,
+      var(--color-text-primary) 4%,
+      transparent
+    ),
+    0 1rem 2.4rem color-mix(
+      in srgb,
+      var(--color-text-primary) 5%,
+      transparent
+    );
+
+  --data-table-floating-shadow:
+    0 1.4rem 3.8rem var(--color-overlay-soft),
+    0 0.2rem 0.8rem color-mix(
+      in srgb,
+      var(--color-text-primary) 10%,
+      transparent
+    );
+
+  width: 100%;
+  min-width: 0;
+  gap: 1rem;
+
+  display: grid;
+  grid-auto-rows: max-content;
+  align-content: start;
+
+  color: var(--color-text-primary);
+  font-size: 0.82rem;
+  margin-top: 2rem;
+}
+
+/* ======================================================
+   BASE Y CARD PRINCIPAL
+   ====================================================== */
+
+.data-table__card {
+  position: relative;
+
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+
+  overflow: visible;
+
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--data-table-radius-lg);
+
+  box-shadow: var(--data-table-shadow);
+}
+
+.data-table button,
+.data-table input,
+.data-table select {
+  font-family: inherit;
+}
+
+.data-table button:focus-visible,
+.data-table input:focus-visible,
+.data-table select:focus-visible {
+  outline: none;
+  border-color: var(--data-table-focus-border);
+  box-shadow: 0 0 0 3px var(--data-table-focus);
+}
+
+/* ======================================================
+   SCROLLBARS INTERNOS
+   ====================================================== */
+
+.data-table * {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--color-text-secondary) 20%, transparent) transparent;
+}
+
+.data-table *::-webkit-scrollbar {
+  width: 0.42rem;
+  height: 0.42rem;
+}
+
+.data-table *::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.data-table *::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-text-secondary) 20%, transparent);
+  border: 0.08rem solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+
+.data-table *::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--color-text-secondary) 40%, transparent);
+  border: 0.05rem solid transparent;
+  background-clip: padding-box;
+}
+
+/* ======================================================
+   HEADER
+   ====================================================== */
+
+.data-table-header {
+  width: 100%;
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+}
+
+.data-table-header__left {
+  flex: 1 1 auto;
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.data-table-header__right {
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+/* ======================================================
+   BUSCADOR
+   ====================================================== */
+
+.data-table-search {
+  position: relative;
+
+  width: min(100%, 25rem);
+  min-width: 12rem;
+  height: 2.15rem;
+
+  display: flex;
+  align-items: center;
+}
+
+.data-table-search__icon {
+  position: absolute;
+  top: 50%;
+  left: 0.7rem;
+  z-index: 1;
+
+  width: 0.9rem;
+  height: 0.9rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--color-text-muted);
+
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.data-table-search__icon svg,
+.data-table-search__clear svg,
+.data-table-page-size__icon svg,
+.data-table-button__icon svg {
+  width: 0.9rem;
+  height: 0.9rem;
+
+  fill: currentColor;
+}
+
+.data-table-search__input {
+  width: 100%;
+  height: 100%;
+
+  padding: 0 2.25rem 0 2rem;
+
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--data-table-radius-sm);
+  background: var(--color-surface);
+
+  font-size: 0.75rem;
+  font-weight: 500;
+
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.data-table-search__input:hover {
+  border-color: var(--color-border-strong);
+}
+
+.data-table-search__input:focus {
+  background: var(--color-surface);
+  border-color: var(--data-table-focus-border);
+  box-shadow: 0 0 0 3px var(--data-table-focus);
+}
+
+.data-table-search__input::placeholder {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.data-table-search__input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.data-table-search__clear {
+  position: absolute;
+  top: 50%;
+  right: 0.35rem;
+
+  width: 1.65rem;
+  height: 1.65rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  color: var(--color-text-muted);
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+
+  cursor: pointer;
+  transform: translateY(-50%);
+
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+.data-table-search__clear:hover {
+  color: var(--color-text-primary);
+  background: var(--color-surface-muted);
+}
+
+/* ======================================================
+   INDICADOR DE CARGA
+   ====================================================== */
+
+.data-table-header__loading {
+  flex: 0 0 auto;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  color: var(--color-text-secondary);
+
+  font-size: 0.76rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.data-table-header__loading-indicator {
+  width: 0.55rem;
+  height: 0.55rem;
+
+  background: var(--color-text-secondary);
+  border-radius: 50%;
+
+  animation: data-table-loading-pulse 1.15s ease-in-out infinite;
+}
+
+@keyframes data-table-loading-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ======================================================
+   SELECTOR DE REGISTROS
+   ====================================================== */
+
+.data-table-page-size {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.data-table-page-size__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+
+  color: var(--color-text-secondary);
+
+  font-size: 0.76rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.data-table-page-size__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--color-text-muted);
+}
+
+.data-table-select {
+  min-width: 7.7rem;
+  height: 1.85rem;
+
+  padding: 0 0.45rem;
+
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--data-table-radius-sm);
+
+  font-size: 0.75rem;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.data-table-select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ======================================================
+   BOTONES GENERALES
+   ====================================================== */
+
+.data-table-button {
+  min-width: max-content;
+  height: var(--data-table-control-height);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.48rem;
+
+  padding: 0 0.95rem;
+
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--data-table-radius-md);
+
+  font-size: 0.77rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease,
+    opacity 160ms ease;
+}
+
+.data-table-button__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--color-text-secondary);
+}
+
+.data-table-button:hover:not(:disabled) {
+  background: var(--color-surface-soft);
+  border-color: var(--color-border-strong);
+  box-shadow: 0 0.25rem 0.65rem color-mix(in srgb, var(--color-text-primary) 6%, transparent);
+
+  transform: translateY(-1px);
+}
+
+.data-table-button:active:not(:disabled) {
+  box-shadow: none;
+  transform: translateY(0);
+}
+
+.data-table-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.data-table-button--primary {
+  color: var(--color-text-inverse);
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.data-table-button--primary .data-table-button__icon {
+  color: var(--color-text-inverse);
+}
+
+.data-table-button--primary:hover:not(:disabled) {
+  color: var(--color-text-inverse);
+  background: var(--color-black);
+  border-color: var(--color-black);
+}
+
+.data-table-button--danger {
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  border-color: color-mix(in srgb, var(--color-danger) 18%, transparent);
+}
+
+.data-table-button--danger:hover:not(:disabled) {
+  background: var(--color-danger-soft);
+  border-color: color-mix(in srgb, var(--color-danger) 30%, transparent);
+}
+
+.data-table-button--icon {
+  width: 2.15rem;
+  min-width: 2.15rem;
+  height: 2.15rem;
+
+  padding: 0;
+}
+
+.data-table-button--small {
+  height: 1.9rem;
+
+  padding: 0 0.65rem;
+
+  border-radius: 0.48rem;
+
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.data-table-button--soft-danger {
+  height: 2.45rem;
+  padding: 0 1rem;
+
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  border-color: color-mix(in srgb, var(--color-danger) 22%, transparent);
+  border-radius: 10px;
+
+  font-size: 0.76rem;
+}
+
+.data-table-button--soft-danger:hover:not(:disabled) {
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 12%, var(--color-surface));
+  border-color: color-mix(in srgb, var(--color-danger) 34%, transparent);
+}
+
+/* ======================================================
+   BARRA DE FILTROS
+   ====================================================== */
+
+.data-table-filters-bar {
+  width: 100%;
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+
+  margin: 0;
+  padding: 0;
+}
+
+.data-table-filters-bar__list {
+  flex: 1 1 auto;
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+
+  overflow-x: auto;
+
+  margin: 0;
+  padding: 0;
+}
+
+.data-table-filter-chip {
+  min-width: max-content;
+  height: 1.78rem;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+
+  padding: 0 0.65rem;
+
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+
+  font-size: 0.7rem;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.data-table-filter-chip:hover {
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  border-color: var(--color-border-strong);
+}
+
+.data-table-filter-chip__count {
+  min-width: 1.15rem;
+  height: 1.15rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 0.32rem;
+
+  color: var(--color-text-primary);
+  background: var(--color-surface-muted);
+  border-radius: 999px;
+
+  font-size: 0.58rem;
+  font-weight: 700;
+}
+
+.data-table-filters-bar__clear {
+  flex: 0 0 auto;
+
+  padding: 0;
+
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 0;
+
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition: color 160ms ease;
+}
+
+.data-table-filters-bar__clear:hover {
+  color: var(--color-text-primary);
+  text-decoration: underline;
+}
+
+/* ======================================================
+   CONTENEDOR DE TABLA
+   ====================================================== */
+
+.data-table-table {
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+
+  overflow: visible;
+
+  background: var(--color-surface);
+  border-radius: var(--data-table-radius-lg);
+}
+
+.data-table-table__scroll {
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  overscroll-behavior-x: contain;
+
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--color-text-secondary) 20%, transparent) transparent;
+}
+
+.data-table-table__scroll--fit {
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
+/* ======================================================
+   SCROLL HORIZONTAL DISCRETO
+   ====================================================== */
+
+.data-table-table__scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0.4rem;
+}
+
+.data-table-table__scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.data-table-table__scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-text-secondary) 18%, transparent);
+  border: 0.08rem solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+
+.data-table-table__scroll:hover::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-text-secondary) 30%, transparent);
+  border: 0.06rem solid transparent;
+  background-clip: padding-box;
+}
+
+.data-table-table__scroll::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--color-text-primary) 45%, transparent);
+  border: 0.04rem solid transparent;
+  background-clip: padding-box;
+}
+
+.data-table-table__scroll::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ======================================================
+   TABLA
+   ====================================================== */
+
+.data-table-table__table {
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+
+  border-collapse: separate;
+  border-spacing: 0;
+
+  font-size: 0.78rem;
+}
+
+.data-table-table__table--scroll {
+  min-width: max-content;
+}
+
+.data-table-table__table--fit {
+  min-width: 0;
+  table-layout: fixed;
+}
+
+/* ======================================================
+   ENCABEZADOS DE TABLA
+   ====================================================== */
+
+.data-table-table__head {
+  position: relative;
+  z-index: 2;
+
+  background: var(--data-table-header-bg);
+}
+
+.data-table-table__th {
+  position: relative;
+
+  padding: 0.82rem 0.78rem;
+
+  color: var(--data-table-header-text);
+  background: var(--data-table-header-bg);
+  border-bottom: 1px solid var(--data-table-header-border);
+
+  font-size: 0.69rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+
+  cursor: pointer;
+  user-select: none;
+
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.data-table-table__th:hover {
+  color: var(--data-table-header-hover-text);
+  background: var(--data-table-header-hover-bg);
+
+  box-shadow: inset 0 -2px 0 var(--color-focus);
+}
+
+.data-table-table__th:first-child {
+  padding-left: 1rem;
+}
+
+.data-table-table__th:last-child {
+  padding-right: 1rem;
+}
+
+.data-table-table__th-inner {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.data-table-table__th-inner--left {
+  justify-content: flex-start;
+}
+
+.data-table-table__th-inner--center {
+  justify-content: center;
+}
+
+.data-table-table__th-inner--right {
+  justify-content: flex-end;
+}
+
+/* ======================================================
+   ORDENAMIENTO
+   ====================================================== */
+
+.data-table-table__th[aria-sort="ascending"],
+.data-table-table__th[aria-sort="descending"] {
+  color: var(--color-text-inverse);
+  background: var(--data-table-sort-bg);
+
+  box-shadow: inset 0 -3px 0 var(--data-table-sort-accent);
+}
+
+.data-table-table__th[aria-sort="ascending"]:hover,
+.data-table-table__th[aria-sort="descending"]:hover {
+  color: var(--color-text-inverse);
+  background: var(--data-table-sort-hover-bg);
+}
+
+.data-table-table__sort-badge {
+  flex: 0 0 auto;
+
+  min-width: 1.32rem;
+  height: 1.08rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 0.28rem;
+
+  color: var(--color-text-inverse);
+  background: var(--data-table-sort-badge-bg);
+  border-radius: 999px;
+
+  font-size: 0.54rem;
+  font-weight: 700;
+  line-height: 1;
+
+  transition:
+    background-color 160ms ease,
+    transform 160ms ease;
+}
+
+.data-table-table__th:hover .data-table-table__sort-badge {
+  background: var(--data-table-sort-badge-hover-bg);
+  transform: translateY(-1px);
+}
+
+.data-table-table__th[aria-sort="ascending"]
+  .data-table-table__sort-badge,
+.data-table-table__th[aria-sort="descending"]
+  .data-table-table__sort-badge {
+  color: var(--color-text-inverse);
+  background: var(--data-table-sort-accent);
+}
+
+/* ======================================================
+   ENCABEZADOS NO ORDENABLES
+   ====================================================== */
+
+.data-table-table__th[data-sortable="false"] {
+  cursor: default;
+}
+
+.data-table-table__th[data-sortable="false"]:hover {
+  color: var(--data-table-header-text);
+  background: var(--data-table-header-bg);
+  box-shadow: none;
+}
+
+/* ======================================================
+   FILAS Y CELDAS
+   ====================================================== */
+
+.data-table-table__body {
+  background: var(--color-surface);
+}
+
+.data-table-table__tr {
+  min-height: var(--data-table-row-height);
+
+  transition:
+    background-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.data-table-table__tr:hover {
+  background: var(--data-table-hover-bg);
+}
+
+.data-table-table__tr--clickable {
+  cursor: pointer;
+}
+
+.data-table-table__tr--clickable:hover {
+  box-shadow: inset 0.18rem 0 var(--color-primary);
+}
+
+.data-table-table__td {
+  min-height: var(--data-table-row-height);
+
+  padding: 0.78rem;
+
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border-soft);
+
+  font-size: 0.78rem;
+  font-weight: 400;
+  line-height: 1.45;
+  vertical-align: middle;
+}
+
+.data-table-table__td:first-child {
+  padding-left: 1rem;
+}
+
+.data-table-table__td:last-child {
+  padding-right: 1rem;
+}
+
+.data-table-table__tr:last-child .data-table-table__td {
+  border-bottom: 0;
+}
+
+.data-table-table__content {
+  display: block;
+
+  width: 100%;
+  min-width: 0;
+}
+
+.data-table-table__content--truncate {
+  overflow: hidden;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.data-table-table__content--wrap {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.data-table-table__content--left {
+  text-align: left;
+}
+
+.data-table-table__content--center {
+  text-align: center;
+}
+
+.data-table-table__content--right {
+  text-align: right;
+}
+
+.data-table-table__empty {
+  padding: 4rem 1.25rem;
+
+  color: var(--color-text-muted);
+  text-align: center;
+
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+/* ======================================================
+   PIE DE TABLA
+   ====================================================== */
+
+.data-table-table__foot {
+  position: relative;
+  z-index: 2;
+
+  background: var(--data-table-header-bg);
+  box-shadow: 0 -1px 0 var(--color-border);
+}
+
+.data-table-table__foot .data-table-table__td {
+  color: var(--color-text-primary);
+  background: var(--data-table-header-bg);
+
+  font-weight: 700;
+}
+
+/* ======================================================
+   PAGINACIÓN
+   ====================================================== */
+
+.data-table-pagination {
+  min-height: 3.4rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+
+  padding: 0.7rem 0.9rem;
+
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+
+  font-size: 0.74rem;
+  font-weight: 500;
+}
+
+.data-table-pagination__left,
+.data-table-pagination__right {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.data-table-pagination__divider {
+  width: 1px;
+  height: 1.15rem;
+
+  background: var(--color-border);
+}
+
+.data-table-pagination__page {
+  min-width: 4.5rem;
+
+  color: var(--color-text-primary);
+  text-align: center;
+
+  font-weight: 700;
+}
+
+/* ======================================================
+   TARJETA FLOTANTE DE FILTRO
+   ====================================================== */
+
+.data-table-filter-card {
+  position: fixed;
+  z-index: 999;
+
+  width: 17rem;
+
+  padding: 0.75rem;
+
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--data-table-radius-lg);
+
+  box-shadow: var(--data-table-floating-shadow);
+}
+
+.data-table-filter-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+
+  margin-bottom: 0.65rem;
+  padding-bottom: 0.6rem;
+
+  border-bottom: 1px solid var(--color-border-soft);
+
+  cursor: move;
+  user-select: none;
+}
+
+.data-table-filter-card__title {
+  min-width: 0;
+  margin: 0;
+
+  overflow: hidden;
+
+  color: var(--color-text-primary);
+
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.data-table-filter-card__input {
+  width: 100%;
+  height: 2.35rem;
+
+  margin-bottom: 0.65rem;
+  padding: 0 0.7rem;
+
+  color: var(--color-text-primary);
+  background: var(--color-surface-soft);
+  border: 1px solid var(--color-border);
+  border-radius: var(--data-table-radius-sm);
+
+  font-size: 0.76rem;
+  font-weight: 500;
+}
+
+.data-table-filter-card__input:focus {
+  background: var(--color-surface);
+}
+
+.data-table-filter-card__list {
+  max-height: 12rem;
+
+  overflow-y: auto;
+
+  display: grid;
+  gap: 0.18rem;
+
+  padding-right: 0.2rem;
+}
+
+.data-table-filter-card__option {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  padding: 0.48rem 0.5rem;
+
+  color: var(--color-text-secondary);
+  border-radius: var(--data-table-radius-sm);
+
+  font-size: 0.74rem;
+  font-weight: 500;
+
+  cursor: pointer;
+
+  transition:
+    color 150ms ease,
+    background-color 150ms ease;
+}
+
+.data-table-filter-card__option:hover,
+.data-table-filter-card__option--active {
+  color: var(--color-text-primary);
+  background: var(--color-surface-soft);
+}
+
+.data-table-filter-card__checkbox {
+  width: 0.9rem;
+  height: 0.9rem;
+
+  accent-color: var(--color-primary);
+}
+
+.data-table-filter-card__option-text {
+  min-width: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.data-table-filter-card__footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+
+  margin-top: 0.7rem;
+  padding-top: 0.65rem;
+
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.data-table-link-button {
+  padding: 0.25rem;
+
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 0;
+
+  font-size: 0.7rem;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.data-table-link-button:hover {
+  color: var(--color-text-primary);
+  text-decoration: underline;
+}
+
+/* ======================================================
+   ACCIONES CON ICONOS DENTRO DE LA TABLA
+   ====================================================== */
+
+.security-table-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.security-action-icon-button {
+  width: 2.15rem;
+  height: 2.15rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  color: var(--color-text-secondary);
+  background: transparent;
+
+  border: 1px solid transparent;
+  border-radius: 0.55rem;
+
+  cursor: pointer;
+
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.security-action-icon-button svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex-shrink: 0;
+}
+
+.security-action-icon-button:hover:not(:disabled) {
+  color: var(--color-text-primary);
+  background: var(--color-surface-soft);
+  border-color: var(--color-border);
+  transform: translateY(-1px);
+}
+
+.security-action-icon-button--success:hover:not(:disabled) {
+  color: var(--color-success);
+  background: var(--color-success-soft);
+  border-color: var(--color-success-border);
+}
+
+.security-action-icon-button--danger:hover:not(:disabled) {
+  color: var(--color-danger-hover);
+  background: var(--color-danger-soft);
+  border-color: var(--color-danger-border);
+}
+
+.security-action-icon-button:focus-visible {
+  outline: 2px solid var(--color-text-secondary);
+  outline-offset: 2px;
+}
+
+.security-action-icon-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ======================================================
+   STICKY COLUMNS
+   ====================================================== */
+
+.data-table-table__cell--sticky-left,
+.data-table-table__cell--sticky-right {
+  position: sticky;
+  background: #ffffff;
+}
+
+.data-table-table__cell--sticky-left {
+  left: 0;
+  box-shadow: 0.45rem 0 0.75rem rgba(15, 23, 42, 0.06);
+}
+
+.data-table-table__cell--sticky-right {
+  right: 0;
+  box-shadow: -0.45rem 0 0.75rem rgba(15, 23, 42, 0.06);
+}
+
+.data-table-table__th.data-table-table__cell--sticky-left,
+.data-table-table__th.data-table-table__cell--sticky-right {
+  background: #eef4fb;
+}
+
+.data-table-table__tr:hover .data-table-table__cell--sticky-left,
+.data-table-table__tr:hover .data-table-table__cell--sticky-right {
+  background: #f8fafc;
+}
+
+/* ======================================================
+   COMPACT COLUMNS
+   ====================================================== */
+
+.data-table-table__th--compact,
+.data-table-table__td--compact {
+  padding-left: 0.45rem;
+  padding-right: 0.45rem;
+}
+
+.data-table-table__content--compact {
+  min-width: 0;
+
+  overflow: visible;
+
+  color: inherit;
+
+  font-size: 0.82rem;
+  line-height: 1.35;
+
+  white-space: normal;
+  text-overflow: initial;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.data-table-table__th--compact .data-table-table__th-inner {
+  gap: 0.25rem;
+}
+
+.data-table-table__td--compact .data-table-table__content {
+  min-width: 0;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: initial;
+  overflow-wrap: anywhere;
+}
+
+/* ======================================================
+   ERROR
+   ====================================================== */
+
+.data-table-error {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+
+  padding: 0.85rem 0.95rem;
+
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 18%, transparent);
+  border-radius: var(--data-table-radius-md);
+
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+/* ======================================================
+   ESTADOS DESHABILITADOS
+   ====================================================== */
+
+.data-table input:disabled,
+.data-table select:disabled,
+.data-table button:disabled {
+  cursor: not-allowed;
+}
+
+.data-table input:disabled,
+.data-table select:disabled {
+  color: var(--color-text-muted);
+  background: var(--color-surface-soft);
+}
+
+/* ======================================================
+   RESPONSIVE: TABLET
+   ====================================================== */
+
+@media (max-width: 900px) {
+  .data-table-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .data-table-header__left,
+  .data-table-header__right {
+    width: 100%;
+  }
+
+  .data-table-search {
+    width: 100%;
+    max-width: none;
+  }
+
+  .data-table-header__right {
+    justify-content: space-between;
+  }
+}
+
+/* ======================================================
+   RESPONSIVE: MÓVIL
+   ====================================================== */
+
+@media (max-width: 640px) {
+  .data-table {
+    gap: 0.45rem;
+  }
+
+  .data-table-header,
+  .data-table-pagination,
+  .data-table-filters-bar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .data-table-header {
+    padding: 0.7rem;
+    border-radius: var(--data-table-radius-md);
+  }
+
+  .data-table-header__left,
+  .data-table-header__right,
+  .data-table-pagination__left,
+  .data-table-pagination__right {
+    width: 100%;
+  }
+
+  .data-table-header__left {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .data-table-header__right,
+  .data-table-pagination__right {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .data-table-page-size {
+    flex: 1 1 auto;
+    justify-content: space-between;
+  }
+
+  .data-table-select {
+    flex: 1;
+    min-width: 6rem;
+  }
+
+  .data-table-button {
+    flex: 1 1 auto;
+  }
+
+  .data-table-pagination {
+    padding: 0.75rem;
+  }
+
+  .data-table-pagination__left,
+  .data-table-pagination__right {
+    justify-content: space-between;
+  }
+
+  .data-table-filter-card {
+    right: 0.75rem;
+    left: 0.75rem;
+
+    width: auto;
+  }
+}
+
+/* ======================================================
+   ACCESIBILIDAD: REDUCIR MOVIMIENTO
+   ====================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .data-table *,
+  .data-table *::before,
+  .data-table *::after {
+    scroll-behavior: auto !important;
+
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+
+    transition-duration: 0.01ms !important;
+  }
+}

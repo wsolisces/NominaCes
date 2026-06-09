@@ -5,17 +5,30 @@
 
 /**
  * Responsabilidades:
- * - Mostrar permisos en formato tabular.
- * - Renderizar estado, módulo y acciones disponibles.
- * - Mantener la tabla independiente de las llamadas HTTP.
+ * - Mostrar permisos en formato tabular usando DataTable reutilizable.
+ * - Renderizar estado, módulo, descripción, fechas y acciones disponibles.
+ * - Mantener la tabla independiente de llamadas HTTP.
+ * - Usar permission_key como identificador real del permiso.
+ * - Permitir columna principal y acciones fijas cuando exista scroll horizontal.
+ * - Usar columnas compactas para aprovechar mejor el espacio.
  *
  * No debe:
  * - Consultar directamente el backend.
  * - Abrir modales por sí misma.
  * - Mutar el estado global de permisos.
+ * - Usar id, porque app_permission no tiene columna id.
  */
 
+import DataTable, {
+  type ColumnDef
+} from "../../shared/ui/DataTable/DataTable";
+
 import type { PermissionDto } from "./permisos.types";
+
+type PermissionTableRow = PermissionDto &
+  Record<string, unknown> & {
+    row_key: string;
+  };
 
 export type PermissionsTableProps = {
   permissions: PermissionDto[];
@@ -25,10 +38,13 @@ export type PermissionsTableProps = {
   onDelete: (permission: PermissionDto) => void;
 };
 
-function formatDate(value?: string): string {
+/**
+ * Formatea fechas recibidas desde el backend.
+ */
+function formatDate(value?: string | Date | null): string {
   if (!value) return "—";
 
-  const date = new Date(value);
+  const date = value instanceof Date ? value : new Date(value);
 
   if (Number.isNaN(date.getTime())) return "—";
 
@@ -39,6 +55,132 @@ function formatDate(value?: string): string {
   }).format(date);
 }
 
+/**
+ * Obtiene el nombre visible del módulo.
+ */
+function getModuleLabel(permission: PermissionDto): string {
+  return (
+    permission.module_name?.trim() ||
+    permission.module_key?.trim() ||
+    "Sin módulo"
+  );
+}
+
+/**
+ * Renderiza la celda principal del permiso.
+ */
+function renderPermissionCell(permission: PermissionDto) {
+  return (
+    <div className="permissions-table__main-cell">
+      <strong>{permission.permission_name}</strong>
+    </div>
+  );
+}
+
+/**
+ * Renderiza la celda del módulo.
+ */
+function renderModuleCell(permission: PermissionDto) {
+  return (
+    <div className="permissions-table__module-cell">
+      <strong>{getModuleLabel(permission)}</strong>
+    </div>
+  );
+}
+
+/**
+ * Renderiza la descripción del permiso.
+ */
+function renderDescriptionCell(permission: PermissionDto) {
+  return (
+    <span className="permissions-table__description">
+      {permission.description || "—"}
+    </span>
+  );
+}
+
+/**
+ * Renderiza el estado activo/inactivo.
+ */
+function renderStatusCell(permission: PermissionDto) {
+  return (
+    <span
+      className={
+        permission.is_active
+          ? "permission-status permission-status--active"
+          : "permission-status permission-status--inactive"
+      }
+    >
+      {permission.is_active ? "Activo" : "Inactivo"}
+    </span>
+  );
+}
+
+/**
+ * Renderiza los botones de acción del permiso.
+ */
+function renderActionsCell(
+  permission: PermissionDto,
+  handlers: Pick<
+    PermissionsTableProps,
+    "onEdit" | "onToggleStatus" | "onDelete"
+  >
+) {
+  return (
+    <div className="permissions-actions">
+      <button
+        type="button"
+        className="permissions-icon-button"
+        onClick={(event) => {
+          event.stopPropagation();
+          handlers.onEdit(permission);
+        }}
+        aria-label={`Editar ${permission.permission_name}`}
+        title="Editar"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M4 20h4.6L19.2 9.4a2.1 2.1 0 0 0 0-3L17.6 4.8a2.1 2.1 0 0 0-3 0L4 15.4V20Z" />
+          <path d="m13.5 5.9 4.6 4.6" />
+        </svg>
+      </button>
+
+      
+
+      <button
+        type="button"
+        className="permissions-icon-button permissions-icon-button--danger"
+        onClick={(event) => {
+          event.stopPropagation();
+          handlers.onDelete(permission);
+        }}
+        aria-label={`Eliminar ${permission.permission_name}`}
+        title="Eliminar"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M4 7h16" />
+          <path d="M10 11v6" />
+          <path d="M14 11v6" />
+          <path d="M6 7l1 13h10l1-13" />
+          <path d="M9 7V4h6v3" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+/**
+ * Convierte permisos al tipo requerido por el DataTable.
+ */
+function toTableRows(permissions: PermissionDto[]): PermissionTableRow[] {
+  return permissions.map((permission) => ({
+    ...permission,
+    row_key: permission.permission_key
+  }));
+}
+
+/**
+ * Tabla reutilizable del catálogo de permisos.
+ */
 export function PermissionsTable({
   permissions,
   loading = false,
@@ -46,152 +188,83 @@ export function PermissionsTable({
   onToggleStatus,
   onDelete
 }: PermissionsTableProps) {
-  if (loading) {
-    return (
-      <div className="permissions-table-empty">
-        Cargando permisos...
-      </div>
-    );
-  }
+  const rows = toTableRows(permissions);
 
-  if (permissions.length === 0) {
-    return (
-      <div className="permissions-table-empty">
-        No se encontraron permisos.
-      </div>
-    );
-  }
+  const columns: ColumnDef<PermissionTableRow>[] = [
+    {
+      key: "permission_name",
+      header: "Permiso",
+      width: "13rem",
+      sticky: "left",
+      cell: (permission) => renderPermissionCell(permission),
+      filterValue: (permission) =>
+        `${permission.permission_name} `,
+      wrap: true
+    },
+    {
+      key: "module_name",
+      header: "Módulo",
+      width: "13rem",
+      
+      cell: (permission) => renderModuleCell(permission),
+      filterValue: (permission) =>
+        `${permission.module_name ?? ""} `,
+      wrap: true
+    },
+    {
+      key: "description",
+      header: "Descripción",
+      compact: true,
+      cell: (permission) => renderDescriptionCell(permission),
+      filterValue: (permission) => permission.description ?? "",
+      wrap: true,
+      disableSort: true
+    },
+    {
+      key: "is_active",
+      header: "Estado",
+      align: "center",
+      compact: true,
+      cell: (permission) => renderStatusCell(permission),
+      filterValue: (permission) =>
+        permission.is_active ? "Activo" : "Inactivo"
+    },
+    {
+      key: "updated_at",
+      header: "Actualizado",
+      align: "center",
+      compact: true,
+      cell: (permission) =>
+        formatDate(permission.updated_at ?? permission.created_at),
+      filterValue: (permission) =>
+        formatDate(permission.updated_at ?? permission.created_at)
+    },
+    {
+      key: "actions",
+      header: "Acciones",
+      align: "right",
+      compact: true,
+      disableSort: true,
+      cell: (permission) =>
+        renderActionsCell(permission, {
+          onEdit,
+          onToggleStatus,
+          onDelete
+        })
+    }
+  ];
 
   return (
-    <div className="permissions-table-card">
-      <div className="permissions-table-scroll">
-        <table className="permissions-table">
-          <thead>
-            <tr>
-              <th>Permiso</th>
-              <th>Módulo</th>
-              <th>Descripción</th>
-              <th>Estado</th>
-              <th>Actualizado</th>
-              <th className="permissions-table__actions-heading">
-                Acciones
-              </th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {permissions.map((permission) => (
-              <tr key={permission.id}>
-                <td>
-                  <div className="permissions-table__main-cell">
-                    <strong>{permission.permission_name}</strong>
-                    <span>{permission.permission_key}</span>
-                  </div>
-                </td>
-
-                <td>
-                  <div className="permissions-table__module-cell">
-                    <strong>{permission.module_name}</strong>
-                    <span>{permission.module_key}</span>
-                  </div>
-                </td>
-
-                <td>
-                  <span className="permissions-table__description">
-                    {permission.description || "—"}
-                  </span>
-                </td>
-
-                <td>
-                  <span
-                    className={
-                      permission.is_active
-                        ? "permission-status permission-status--active"
-                        : "permission-status permission-status--inactive"
-                    }
-                  >
-                    {permission.is_active ? "Activo" : "Inactivo"}
-                  </span>
-                </td>
-
-                <td>{formatDate(permission.updated_at ?? permission.created_at)}</td>
-
-                <td>
-                  <div className="permissions-actions">
-                    <button
-                      type="button"
-                      className="permissions-icon-button"
-                      onClick={() => onEdit(permission)}
-                      aria-label={`Editar ${permission.permission_name}`}
-                      title="Editar"
-                    >
-                      <svg
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                        focusable="false"
-                      >
-                        <path d="M4 20h4.6L19.2 9.4a2.1 2.1 0 0 0 0-3L17.6 4.8a2.1 2.1 0 0 0-3 0L4 15.4V20Z" />
-                        <path d="m13.5 5.9 4.6 4.6" />
-                      </svg>
-                    </button>
-
-                    <button
-                      type="button"
-                      className="permissions-icon-button"
-                      onClick={() => onToggleStatus(permission)}
-                      aria-label={
-                        permission.is_active
-                          ? `Desactivar ${permission.permission_name}`
-                          : `Activar ${permission.permission_name}`
-                      }
-                      title={permission.is_active ? "Desactivar" : "Activar"}
-                    >
-                      {permission.is_active ? (
-                        <svg
-                          viewBox="0 0 24 24"
-                          aria-hidden="true"
-                          focusable="false"
-                        >
-                          <path d="M18 6 6 18" />
-                          <path d="m6 6 12 12" />
-                        </svg>
-                      ) : (
-                        <svg
-                          viewBox="0 0 24 24"
-                          aria-hidden="true"
-                          focusable="false"
-                        >
-                          <path d="m5 12 4 4L19 6" />
-                        </svg>
-                      )}
-                    </button>
-
-                    <button
-                      type="button"
-                      className="permissions-icon-button permissions-icon-button--danger"
-                      onClick={() => onDelete(permission)}
-                      aria-label={`Eliminar ${permission.permission_name}`}
-                      title="Eliminar"
-                    >
-                      <svg
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                        focusable="false"
-                      >
-                        <path d="M4 7h16" />
-                        <path d="M10 11v6" />
-                        <path d="M14 11v6" />
-                        <path d="M6 7l1 13h10l1-13" />
-                        <path d="M9 7V4h6v3" />
-                      </svg>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <DataTable<PermissionTableRow>
+      tableId="permissions-table"
+      sourceRows={rows}
+      columns={columns}
+      loading={loading}
+      disableColumnConfig={false}
+      forceColumnOrder
+      tableMode="scroll"
+    />
   );
 }
+
+export default PermissionsTable;

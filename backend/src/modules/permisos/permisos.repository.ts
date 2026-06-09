@@ -8,6 +8,7 @@
  * - Ejecutar consultas SQL sobre app_permission.
  * - Encapsular el acceso a PostgreSQL.
  * - Devolver datos tipados al servicio.
+ * - Usar permission_key como llave primaria real de la tabla.
  *
  * No debe:
  * - Contener lógica HTTP.
@@ -26,27 +27,61 @@ import type {
 } from "./permisos.types.js";
 
 type PermissionRow = {
-  id: number;
   permission_key: string;
   permission_name: string;
-  module_key: string | null;
+  module_key: string;
+  module_name: string | null;
   description: string | null;
   is_active: boolean;
   created_at: Date;
   updated_at: Date;
+  updated_by_user_id: number | null;
 };
 
+/**
+ * Columnas públicas del catálogo de permisos.
+ */
+const PERMISSION_SELECT = `
+  permission_key,
+  permission_name,
+  module_key,
+  module_name,
+  description,
+  is_active,
+  created_at,
+  updated_at,
+  updated_by_user_id
+`;
+
+/**
+ * Convierte una fila SQL a DTO del módulo.
+ */
 function mapPermissionRow(row: PermissionRow): PermissionDto {
   return {
-    id: row.id,
     permission_key: row.permission_key,
     permission_name: row.permission_name,
     module_key: row.module_key,
+    module_name: row.module_name,
     description: row.description,
     is_active: row.is_active,
     created_at: row.created_at,
-    updated_at: row.updated_at
+    updated_at: row.updated_at,
+    updated_by_user_id: row.updated_by_user_id
   };
+}
+
+/**
+ * Normaliza claves de permisos para evitar espacios accidentales.
+ */
+function normalizePermissionKey(value: string): string {
+  return value.trim().toUpperCase();
+}
+
+/**
+ * Normaliza claves de módulo para mantener consistencia en filtros y escritura.
+ */
+function normalizeModuleKey(value: string): string {
+  return value.trim().toUpperCase();
 }
 
 /**
@@ -58,19 +93,22 @@ export async function findPermissions(
   const where: string[] = [];
   const values: unknown[] = [];
 
-  if (filters.search) {
-    values.push(`%${filters.search}%`);
+  if (filters.search?.trim()) {
+    values.push(`%${filters.search.trim()}%`);
+
     where.push(`
       (
         permission_key ILIKE $${values.length}
         OR permission_name ILIKE $${values.length}
+        OR module_key ILIKE $${values.length}
+        OR COALESCE(module_name, '') ILIKE $${values.length}
         OR COALESCE(description, '') ILIKE $${values.length}
       )
     `);
   }
 
-  if (filters.module_key) {
-    values.push(filters.module_key);
+  if (filters.module_key?.trim()) {
+    values.push(normalizeModuleKey(filters.module_key));
     where.push(`module_key = $${values.length}`);
   }
 
@@ -84,18 +122,11 @@ export async function findPermissions(
   const result = await db.query<PermissionRow>(
     `
     SELECT
-      id,
-      permission_key,
-      permission_name,
-      module_key,
-      description,
-      is_active,
-      created_at,
-      updated_at
+      ${PERMISSION_SELECT}
     FROM app_permission
     ${whereClause}
     ORDER BY
-      module_key ASC NULLS LAST,
+      module_key ASC,
       permission_key ASC
     `,
     values
@@ -105,32 +136,16 @@ export async function findPermissions(
 }
 
 /**
- * Busca un permiso por id.
+ * Busca un permiso por llave primaria.
+ *
+ * Nota:
+ * PermissionId debe representar permission_key porque app_permission
+ * no tiene columna id.
  */
 export async function findPermissionById(
   id: PermissionId
 ): Promise<PermissionDto | null> {
-  const result = await db.query<PermissionRow>(
-    `
-    SELECT
-      id,
-      permission_key,
-      permission_name,
-      module_key,
-      description,
-      is_active,
-      created_at,
-      updated_at
-    FROM app_permission
-    WHERE id = $1
-    LIMIT 1
-    `,
-    [id]
-  );
-
-  const row = result.rows[0];
-
-  return row ? mapPermissionRow(row) : null;
+  return findPermissionByKey(String(id));
 }
 
 /**
@@ -142,19 +157,12 @@ export async function findPermissionByKey(
   const result = await db.query<PermissionRow>(
     `
     SELECT
-      id,
-      permission_key,
-      permission_name,
-      module_key,
-      description,
-      is_active,
-      created_at,
-      updated_at
+      ${PERMISSION_SELECT}
     FROM app_permission
     WHERE permission_key = $1
     LIMIT 1
     `,
-    [permissionKey]
+    [normalizePermissionKey(permissionKey)]
   );
 
   const row = result.rows[0];
@@ -174,25 +182,20 @@ export async function createPermission(
       permission_key,
       permission_name,
       module_key,
+      module_name,
       description,
       is_active
     )
-    VALUES ($1, $2, $3, $4, $5)
+    VALUES ($1, $2, $3, $4, $5, $6)
     RETURNING
-      id,
-      permission_key,
-      permission_name,
-      module_key,
-      description,
-      is_active,
-      created_at,
-      updated_at
+      ${PERMISSION_SELECT}
     `,
     [
-      input.permission_key,
-      input.permission_name,
-      input.module_key ?? null,
-      input.description ?? null,
+      normalizePermissionKey(input.permission_key),
+      input.permission_name.trim(),
+      normalizeModuleKey(input.module_key),
+      input.module_name?.trim() || null,
+      input.description?.trim() || null,
       input.is_active ?? true
     ]
   );
@@ -202,6 +205,9 @@ export async function createPermission(
 
 /**
  * Actualiza un permiso existente.
+ *
+ * La búsqueda se hace por permission_key actual.
+ * Si se modifica permission_key, PostgreSQL validará relaciones y duplicados.
  */
 export async function updatePermission(
   id: PermissionId,
@@ -214,26 +220,21 @@ export async function updatePermission(
       permission_key = $2,
       permission_name = $3,
       module_key = $4,
-      description = $5,
-      is_active = $6,
+      module_name = $5,
+      description = $6,
+      is_active = $7,
       updated_at = NOW()
-    WHERE id = $1
+    WHERE permission_key = $1
     RETURNING
-      id,
-      permission_key,
-      permission_name,
-      module_key,
-      description,
-      is_active,
-      created_at,
-      updated_at
+      ${PERMISSION_SELECT}
     `,
     [
-      id,
-      input.permission_key,
-      input.permission_name,
-      input.module_key,
-      input.description,
+      normalizePermissionKey(String(id)),
+      normalizePermissionKey(input.permission_key),
+      input.permission_name.trim(),
+      normalizeModuleKey(input.module_key),
+      input.module_name?.trim() || null,
+      input.description?.trim() || null,
       input.is_active
     ]
   );
@@ -256,18 +257,11 @@ export async function setPermissionActiveState(
     SET
       is_active = $2,
       updated_at = NOW()
-    WHERE id = $1
+    WHERE permission_key = $1
     RETURNING
-      id,
-      permission_key,
-      permission_name,
-      module_key,
-      description,
-      is_active,
-      created_at,
-      updated_at
+      ${PERMISSION_SELECT}
     `,
-    [id, isActive]
+    [normalizePermissionKey(String(id)), isActive]
   );
 
   const row = result.rows[0];
@@ -288,9 +282,9 @@ export async function deletePermissionById(
   const result = await db.query(
     `
     DELETE FROM app_permission
-    WHERE id = $1
+    WHERE permission_key = $1
     `,
-    [id]
+    [normalizePermissionKey(String(id))]
   );
 
   return Number(result.rowCount) > 0;

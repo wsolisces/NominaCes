@@ -8,11 +8,13 @@
  * - Aplicar reglas de negocio del catálogo de permisos.
  * - Normalizar claves, nombres y módulos.
  * - Validar duplicados antes de crear o modificar.
+ * - Usar permission_key como identificador real del permiso.
  *
  * No debe:
  * - Acceder directamente a req/res de Express.
  * - Crear conexiones directas a PostgreSQL.
  * - Definir rutas HTTP.
+ * - Validar ids numéricos, porque app_permission no tiene columna id.
  */
 
 import {
@@ -38,19 +40,31 @@ import {
 const PERMISSION_KEY_PATTERN = /^[A-Z0-9_]+$/;
 const MODULE_KEY_PATTERN = /^[A-Z0-9_]+$/;
 
+/**
+ * Normaliza texto simple eliminando espacios laterales.
+ */
 function normalizeText(value: unknown): string {
   return String(value ?? "").trim();
 }
 
+/**
+ * Normaliza texto opcional.
+ */
 function normalizeNullableText(value: unknown): string | null {
   const normalized = normalizeText(value);
   return normalized.length > 0 ? normalized : null;
 }
 
+/**
+ * Normaliza claves de permiso.
+ */
 function normalizePermissionKey(value: unknown): string {
   return normalizeText(value).toUpperCase().replace(/\s+/g, "_");
 }
 
+/**
+ * Normaliza claves de módulo.
+ */
 function normalizeModuleKey(value: unknown): string | null {
   const normalized = normalizeNullableText(value);
 
@@ -59,6 +73,9 @@ function normalizeModuleKey(value: unknown): string | null {
   return normalized.toUpperCase().replace(/\s+/g, "_");
 }
 
+/**
+ * Valida la clave única del permiso.
+ */
 function assertPermissionKey(permissionKey: string): void {
   if (!permissionKey) {
     throw new PermissionDomainError(
@@ -76,15 +93,18 @@ function assertPermissionKey(permissionKey: string): void {
     );
   }
 
-  if (permissionKey.length > 100) {
+  if (permissionKey.length > 120) {
     throw new PermissionDomainError(
-      "La clave del permiso no puede exceder 100 caracteres.",
+      "La clave del permiso no puede exceder 120 caracteres.",
       400,
       "PERMISSION_KEY_TOO_LONG"
     );
   }
 }
 
+/**
+ * Valida el nombre visible del permiso.
+ */
 function assertPermissionName(permissionName: string): void {
   if (!permissionName) {
     throw new PermissionDomainError(
@@ -94,17 +114,30 @@ function assertPermissionName(permissionName: string): void {
     );
   }
 
-  if (permissionName.length > 150) {
+  if (permissionName.length > 160) {
     throw new PermissionDomainError(
-      "El nombre del permiso no puede exceder 150 caracteres.",
+      "El nombre del permiso no puede exceder 160 caracteres.",
       400,
       "PERMISSION_NAME_TOO_LONG"
     );
   }
 }
 
-function assertModuleKey(moduleKey: string | null): void {
-  if (!moduleKey) return;
+/**
+ * Valida y estrecha el tipo de module_key.
+ *
+ * Después de esta función TypeScript sabe que moduleKey ya no es null.
+ */
+function assertModuleKey(
+  moduleKey: string | null
+): asserts moduleKey is string {
+  if (!moduleKey) {
+    throw new PermissionDomainError(
+      "El módulo del permiso es obligatorio.",
+      400,
+      "MODULE_KEY_REQUIRED"
+    );
+  }
 
   if (!MODULE_KEY_PATTERN.test(moduleKey)) {
     throw new PermissionDomainError(
@@ -114,15 +147,33 @@ function assertModuleKey(moduleKey: string | null): void {
     );
   }
 
-  if (moduleKey.length > 100) {
+  if (moduleKey.length > 80) {
     throw new PermissionDomainError(
-      "El módulo no puede exceder 100 caracteres.",
+      "El módulo no puede exceder 80 caracteres.",
       400,
       "MODULE_KEY_TOO_LONG"
     );
   }
 }
 
+/**
+ * Valida el nombre visible del módulo cuando se proporciona.
+ */
+function assertModuleName(moduleName: string | null): void {
+  if (!moduleName) return;
+
+  if (moduleName.length > 120) {
+    throw new PermissionDomainError(
+      "El nombre del módulo no puede exceder 120 caracteres.",
+      400,
+      "MODULE_NAME_TOO_LONG"
+    );
+  }
+}
+
+/**
+ * Normaliza booleanos recibidos desde formularios o query params.
+ */
 function normalizeBoolean(value: unknown, fallback: boolean): boolean {
   if (typeof value === "boolean") return value;
   if (value === "true") return true;
@@ -130,18 +181,26 @@ function normalizeBoolean(value: unknown, fallback: boolean): boolean {
   return fallback;
 }
 
-function normalizeId(value: unknown): PermissionId {
-  const id = Number(value);
+/**
+ * Normaliza el identificador público del permiso.
+ *
+ * Aunque el parámetro se llame id en algunas rutas, realmente representa
+ * permission_key porque app_permission no tiene columna id.
+ */
+function normalizePermissionId(value: unknown): PermissionId {
+  const permissionKey = normalizePermissionKey(value);
 
-  if (!Number.isInteger(id) || id <= 0) {
+  if (!permissionKey) {
     throw new PermissionDomainError(
-      "El id del permiso no es válido.",
+      "La clave del permiso no es válida.",
       400,
-      "PERMISSION_ID_INVALID"
+      "PERMISSION_KEY_INVALID"
     );
   }
 
-  return id;
+  assertPermissionKey(permissionKey);
+
+  return permissionKey;
 }
 
 /**
@@ -158,13 +217,13 @@ export async function listPermissionsService(
 }
 
 /**
- * Obtiene un permiso por id.
+ * Obtiene un permiso por permission_key.
  */
 export async function getPermissionByIdService(
   rawId: unknown
 ): Promise<PermissionDto> {
-  const id = normalizeId(rawId);
-  const permission = await findPermissionById(id);
+  const permissionKey = normalizePermissionId(rawId);
+  const permission = await findPermissionById(permissionKey);
 
   if (!permission) {
     throw new PermissionDomainError(
@@ -186,12 +245,14 @@ export async function createPermissionService(
   const permissionKey = normalizePermissionKey(input.permission_key);
   const permissionName = normalizeText(input.permission_name);
   const moduleKey = normalizeModuleKey(input.module_key);
+  const moduleName = normalizeNullableText(input.module_name);
   const description = normalizeNullableText(input.description);
   const isActive = normalizeBoolean(input.is_active, true);
 
   assertPermissionKey(permissionKey);
   assertPermissionName(permissionName);
   assertModuleKey(moduleKey);
+  assertModuleName(moduleName);
 
   const existing = await findPermissionByKey(permissionKey);
 
@@ -207,6 +268,7 @@ export async function createPermissionService(
     permission_key: permissionKey,
     permission_name: permissionName,
     module_key: moduleKey,
+    module_name: moduleName,
     description,
     is_active: isActive
   });
@@ -221,9 +283,9 @@ export async function updatePermissionService(
   rawId: unknown,
   input: UpdatePermissionInput
 ): Promise<PermissionMutationResult> {
-  const id = normalizeId(rawId);
+  const currentPermissionKey = normalizePermissionId(rawId);
 
-  const current = await findPermissionById(id);
+  const current = await findPermissionById(currentPermissionKey);
 
   if (!current) {
     throw new PermissionDomainError(
@@ -248,6 +310,11 @@ export async function updatePermissionService(
       ? normalizeModuleKey(input.module_key)
       : current.module_key;
 
+  const moduleName =
+    input.module_name !== undefined
+      ? normalizeNullableText(input.module_name)
+      : current.module_name;
+
   const description =
     input.description !== undefined
       ? normalizeNullableText(input.description)
@@ -261,11 +328,15 @@ export async function updatePermissionService(
   assertPermissionKey(permissionKey);
   assertPermissionName(permissionName);
   assertModuleKey(moduleKey);
+  assertModuleName(moduleName);
 
   if (permissionKey !== current.permission_key) {
     const duplicated = await findPermissionByKey(permissionKey);
 
-    if (duplicated && duplicated.id !== id) {
+    if (
+      duplicated &&
+      duplicated.permission_key !== current.permission_key
+    ) {
       throw new PermissionDomainError(
         "Ya existe otro permiso con esa clave.",
         409,
@@ -274,10 +345,11 @@ export async function updatePermissionService(
     }
   }
 
-  const permission = await updatePermission(id, {
+  const permission = await updatePermission(currentPermissionKey, {
     permission_key: permissionKey,
     permission_name: permissionName,
     module_key: moduleKey,
+    module_name: moduleName,
     description,
     is_active: isActive
   });
@@ -299,8 +371,8 @@ export async function updatePermissionService(
 export async function activatePermissionService(
   rawId: unknown
 ): Promise<PermissionMutationResult> {
-  const id = normalizeId(rawId);
-  const permission = await setPermissionActiveState(id, true);
+  const permissionKey = normalizePermissionId(rawId);
+  const permission = await setPermissionActiveState(permissionKey, true);
 
   if (!permission) {
     throw new PermissionDomainError(
@@ -319,8 +391,8 @@ export async function activatePermissionService(
 export async function deactivatePermissionService(
   rawId: unknown
 ): Promise<PermissionMutationResult> {
-  const id = normalizeId(rawId);
-  const permission = await setPermissionActiveState(id, false);
+  const permissionKey = normalizePermissionId(rawId);
+  const permission = await setPermissionActiveState(permissionKey, false);
 
   if (!permission) {
     throw new PermissionDomainError(
@@ -334,13 +406,13 @@ export async function deactivatePermissionService(
 }
 
 /**
- * Elimina un permiso por id.
+ * Elimina un permiso por permission_key.
  */
 export async function deletePermissionService(
   rawId: unknown
 ): Promise<void> {
-  const id = normalizeId(rawId);
-  const deleted = await deletePermissionById(id);
+  const permissionKey = normalizePermissionId(rawId);
+  const deleted = await deletePermissionById(permissionKey);
 
   if (!deleted) {
     throw new PermissionDomainError(

@@ -8,6 +8,7 @@
 // Responsabilidades:
 //   - Montar React en el DOM.
 //   - Envolver la app con AuthProvider.
+//   - Envolver la app con ConfirmActionProvider.
 //   - Renderizar AppRoutes.
 //
 // No debe:
@@ -22,6 +23,8 @@ import ReactDOM from "react-dom/client";
 import { AuthProvider } from "./auth/AuthProvider";
 import AppRoutes from "./routes/AppRoutes";
 
+import { ConfirmActionProvider } from "./shared/ui";
+
 import "./index.css";
 
 /**
@@ -29,11 +32,16 @@ import "./index.css";
  *
  * AuthProvider debe envolver AppRoutes para que Login,
  * RequireAuth y AppLayout puedan consumir useAuth().
+ *
+ * ConfirmActionProvider se monta una sola vez para permitir
+ * confirmaciones globales reutilizables en todo el sistema.
  */
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <AuthProvider>
-      <AppRoutes />
-    </AuthProvider>
+    <ConfirmActionProvider>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </ConfirmActionProvider>
   </React.StrictMode>
 );

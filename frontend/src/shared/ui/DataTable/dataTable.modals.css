@@ -1,0 +1,1358 @@
+/* ======================================================
+   PATH: src/shared/ui/DataTable/dataTable.modals.css
+   Estilos de modales del DataTable
+   ====================================================== */
+
+/**
+ * Responsabilidades:
+ * - Definir la base visual de modales del DataTable.
+ * - Estilizar ModalChips.
+ * - Estilizar ConfigurarColumnasModal.
+ *
+ * No debe:
+ * - Estilizar tabla principal.
+ * - Estilizar paginación, buscador o header del DataTable.
+ * - Contener reglas duplicadas de tabla.
+ */
+
+
+/* ======================================================
+   BASE GENERAL DE MODALES
+   ====================================================== */
+
+.data-table-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 1rem;
+
+  background: var(--color-overlay);
+  backdrop-filter: blur(3px);
+}
+
+.data-table-modal {
+  width: min(100%, 38rem);
+  max-height: min(82vh, 42rem);
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  background: var(--color-surface);
+  border-radius: 0.85rem;
+
+  box-shadow:
+    0 1.5rem 4rem color-mix(in srgb, var(--color-text-primary) 22%, transparent),
+    0 0.2rem 0.8rem color-mix(in srgb, var(--color-text-primary) 8%, transparent);
+
+  animation: data-table-modal-enter 160ms ease-out;
+}
+
+.data-table-modal--sm {
+  max-width: 34rem;
+}
+
+@keyframes data-table-modal-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.35rem) scale(0.99);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+/* ======================================================
+   BASE GENERAL - HEADER
+   ====================================================== */
+
+.data-table-modal__header {
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.85rem;
+
+  padding: 1rem 1.25rem 0.9rem;
+
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(37, 99, 235, 0.11),
+      transparent 36%
+    ),
+    linear-gradient(
+      90deg,
+      rgba(37, 99, 235, 0.055),
+      rgba(37, 99, 235, 0.018) 48%,
+      transparent
+    ),
+    var(--color-surface);
+
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.data-table-modal__heading {
+  min-width: 0;
+
+  display: grid;
+  gap: 0.24rem;
+}
+
+.data-table-modal__eyebrow {
+  width: fit-content;
+
+  display: inline-flex;
+  align-items: center;
+
+  padding: 0.18rem 0.55rem;
+
+  color: var(--color-text-blue);
+  background: var(--color-surface-blue);
+  border: 1px solid var(--color-border-blue);
+  border-radius: 0.5rem;
+
+  font-size: 0.62rem;
+  font-weight: 850;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.data-table-modal__title {
+  margin: 0;
+
+  color: var(--color-text-primary);
+
+  font-size: 1rem;
+  font-weight: 850;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.data-table-modal__subtitle {
+  max-width: 38rem;
+  margin: 0;
+
+  color: var(--color-text-secondary);
+
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+
+/* ======================================================
+   BASE GENERAL - BOTÓN CERRAR
+   ====================================================== */
+
+.data-table-button--close,
+.data-table-modal__close {
+  width: 1.85rem;
+  height: 1.85rem;
+  flex: 0 0 auto;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+  margin-top: -0.15rem;
+
+  color: var(--color-text-secondary);
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  border-radius: 0.58rem;
+
+  font-size: 1.25rem;
+  font-weight: 350;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+
+.data-table-button--close:hover:not(:disabled),
+.data-table-modal__close:hover:not(:disabled) {
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  border-color: color-mix(in srgb, var(--color-danger) 24%, transparent);
+
+  box-shadow: 0 0.25rem 0.65rem color-mix(
+    in srgb,
+    var(--color-danger) 10%,
+    transparent
+  );
+
+  transform: translateY(-1px);
+}
+
+.data-table-button--close:active:not(:disabled),
+.data-table-modal__close:active:not(:disabled) {
+  box-shadow: none;
+  transform: scale(0.96);
+}
+
+
+/* ======================================================
+   BASE GENERAL - CUERPO
+   ====================================================== */
+
+.data-table-modal__body {
+  flex: 1 1 auto;
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  padding: 0;
+}
+
+.data-table-modal__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+
+  overflow-y: auto;
+
+  display: block;
+
+  padding: 0.2rem 0.85rem;
+}
+
+.data-table-modal__scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.data-table-modal__scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.data-table-modal__scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-text-muted) 45%, transparent);
+  border-radius: 999px;
+}
+
+.data-table-modal__scroll::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--color-text-muted) 65%, transparent);
+}
+
+.data-table-modal__empty {
+  margin: 0.75rem;
+  padding: 1.5rem 1rem;
+
+  color: var(--color-text-muted);
+  background: var(--color-surface-soft);
+  border: 1px dashed var(--color-border);
+  border-radius: 0.7rem;
+
+  text-align: center;
+
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+
+/* ======================================================
+   BASE GENERAL - FOOTER
+   ====================================================== */
+
+.data-table-modal__footer {
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.55rem;
+
+  padding: 0.82rem 1.25rem;
+
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.data-table-modal__footer .data-table-button {
+  width: auto;
+  min-width: 7.8rem;
+  min-height: 2.2rem;
+
+  padding: 0 0.85rem;
+
+  border-radius: 0.62rem;
+
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+
+/* ======================================================
+   SECCIÓN 1: MODAL CHIPS
+   Valores activos de filtros
+   ====================================================== */
+
+.data-table-modal--chips {
+  width: min(100%, 40rem);
+  max-height: min(82vh, 34rem);
+
+  border-radius: 0.85rem;
+}
+
+.data-table-modal__header--chips {
+  align-items: flex-start;
+
+  padding: 1rem 1.25rem 0.9rem;
+
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(37, 99, 235, 0.11),
+      transparent 36%
+    ),
+    linear-gradient(
+      90deg,
+      rgba(37, 99, 235, 0.055),
+      rgba(37, 99, 235, 0.018) 48%,
+      transparent
+    ),
+    var(--color-surface);
+
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.data-table-modal__header--chips .data-table-modal__title {
+  margin: 0 0 0.24rem;
+
+  color: var(--color-text-primary);
+
+  font-size: 1rem;
+  font-weight: 850;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.data-table-modal__header--chips .data-table-modal__subtitle {
+  max-width: 30rem;
+  margin: 0;
+
+  color: var(--color-text-secondary);
+
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.data-table-chips-summary {
+  display: none;
+}
+
+.data-table-modal__body--chips {
+  gap: 0.72rem;
+
+  padding: 0.9rem 1.1rem 1rem;
+}
+
+
+/* ======================================================
+   MODAL CHIPS - BUSCADOR
+   ====================================================== */
+
+.data-table-chip-search {
+  position: relative;
+
+  height: 2.65rem;
+
+  display: flex;
+  align-items: center;
+
+  padding: 0 2.45rem 0 2.5rem;
+
+  background:
+   
+    var(--color-surface);
+
+  border: 1px solid color-mix(in srgb, var(--color-primary) 14%, var(--color-border));
+  border-radius: 0.62rem;
+
+  box-shadow: 0 0.16rem 0.42rem color-mix(
+    in srgb,
+    var(--color-primary) 5%,
+    transparent
+  );
+}
+
+.data-table-chip-search:focus-within {
+  border-color: var(--color-border-blue);
+
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--color-primary) 10%, transparent),
+    0 0.24rem 0.65rem color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+.data-table-chip-search__icon {
+  position: absolute;
+  top: 50%;
+  left: 0.95rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 1.1rem;
+  height: 1.1rem;
+
+  color: var(--color-text-blue);
+
+  font-size: 0.88rem;
+  line-height: 1;
+
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.data-table-chip-search__input {
+  width: 100%;
+  height: 100%;
+
+  color: var(--color-text-primary);
+  background: transparent;
+  border: 0;
+  outline: 0;
+
+  font-size: 0.82rem;
+  font-weight: 550;
+}
+
+.data-table-chip-search__input::placeholder {
+  color: #94a3b8;
+}
+
+.data-table-chip-search__clear {
+  position: absolute;
+  top: 50%;
+  right: 0.65rem;
+
+  width: 1.65rem;
+  height: 1.65rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--color-text-secondary);
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid color-mix(in srgb, var(--color-border) 65%, transparent);
+  border-radius: 0.52rem;
+
+  font-size: 0.68rem;
+  font-weight: 850;
+
+  cursor: pointer;
+  transform: translateY(-50%);
+
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease;
+}
+
+.data-table-chip-search__clear:hover {
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  border-color: color-mix(in srgb, var(--color-danger) 24%, transparent);
+}
+
+
+/* ======================================================
+   MODAL CHIPS - LISTA
+   ====================================================== */
+
+.data-table-chip-list {
+  min-height: 8.5rem;
+  max-height: 14rem;
+
+  overflow-y: auto;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  padding: 0;
+}
+
+.data-table-chip-item {
+  min-height: 2.65rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+
+  padding: 0.62rem 0.72rem 0.62rem 0.9rem;
+
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+
+  border: 1px solid var(--color-border-soft);
+  border-radius: 0.68rem;
+
+  box-shadow: 0 0.14rem 0.4rem color-mix(
+    in srgb,
+    var(--color-text-primary) 4%,
+    transparent
+  );
+
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.data-table-chip-item:hover {
+  background: var(--color-surface);
+  border-color: color-mix(in srgb, var(--color-primary) 20%, var(--color-border));
+
+  box-shadow: 0 0.22rem 0.6rem color-mix(
+    in srgb,
+    var(--color-primary) 7%,
+    transparent
+  );
+}
+
+.data-table-chip-item__text {
+  min-width: 0;
+
+  overflow: hidden;
+
+  color: var(--color-text-primary);
+
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.data-table-chip-item__remove {
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: 0 0 auto;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  color: var(--color-text-muted);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(37, 99, 235, 0.035),
+      transparent
+    ),
+    var(--color-surface);
+
+  border: 1px solid color-mix(in srgb, var(--color-primary) 14%, var(--color-border));
+  border-radius: 0.55rem;
+
+  font-size: 0.68rem;
+  font-weight: 850;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.data-table-chip-item__remove:hover {
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  border-color: color-mix(in srgb, var(--color-danger) 28%, transparent);
+
+  transform: translateY(-1px);
+}
+
+
+/* ======================================================
+   MODAL CHIPS - ESTADO VACÍO
+   ====================================================== */
+
+.data-table-chips-empty {
+  min-height: 7rem;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+
+  padding: 1rem;
+
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(37, 99, 235, 0.08),
+      transparent 40%
+    ),
+    #fbfdff;
+
+  border: 1px dashed color-mix(in srgb, var(--color-primary) 18%, #d1d5db);
+  border-radius: 0.7rem;
+}
+
+.data-table-chips-empty strong {
+  color: var(--color-text-secondary);
+
+  font-size: 0.84rem;
+  font-weight: 750;
+  line-height: 1.2;
+}
+
+.data-table-chips-empty span {
+  max-width: 18rem;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: center;
+}
+
+
+/* ======================================================
+   MODAL CHIPS - FOOTER
+   ====================================================== */
+
+.data-table-modal__footer--chips {
+  min-height: 4.4rem;
+
+  justify-content: flex-end;
+
+  padding: 0.82rem 1.25rem;
+}
+
+.data-table-modal__footer-text {
+  display: none;
+}
+
+
+/* ======================================================
+   RESPONSIVE GENERAL DE MODALES
+   ====================================================== */
+
+@media (max-width: 720px) {
+  .data-table-modal__summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .data-table-modal__toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .data-table-modal__toolbar-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .data-table-button--soft {
+    flex: 1 1 auto;
+  }
+
+  .data-table-modal-row--column {
+    grid-template-columns: 1fr;
+  }
+
+  .data-table-modal-row__actions {
+    justify-content: flex-start;
+
+    min-width: 0;
+    padding-left: 3.2rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .data-table-modal-backdrop {
+    align-items: flex-end;
+
+    padding: 0;
+  }
+
+  .data-table-modal {
+    width: 100%;
+    max-height: 94vh;
+
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 1rem 1rem 0 0;
+  }
+
+  .data-table-modal__header {
+    padding: 0.9rem 1rem 0.75rem;
+  }
+
+  .data-table-modal__summary,
+  .data-table-modal__toolbar {
+    padding-right: 1rem;
+    padding-left: 1rem;
+  }
+
+  .data-table-modal__scroll {
+    padding-right: 0.75rem;
+    padding-left: 0.75rem;
+  }
+
+  .data-table-modal__footer {
+    flex-direction: column-reverse;
+
+    padding: 0.75rem 1rem;
+  }
+
+  .data-table-modal__footer .data-table-button {
+    width: 100%;
+  }
+
+  .data-table-modal-row__main {
+    grid-template-columns: 1.25rem 1.45rem minmax(0, 1fr);
+  }
+
+  .data-table-modal-row__actions {
+    padding-left: 3.2rem;
+  }
+
+  .data-table-modal-row--sort {
+    grid-template-columns: 1.5rem 1.5rem minmax(0, 1fr);
+  }
+
+  .data-table-modal-row--sort .data-table-button,
+  .data-table-modal-row--sort .data-table-modal-select {
+    grid-column: span 3;
+  }
+}
+
+@media (max-width: 560px) {
+  .data-table-modal--chips {
+    width: min(100%, 94vw);
+  }
+
+  .data-table-modal__header--chips,
+  .data-table-modal__body--chips,
+  .data-table-modal__footer--chips {
+    padding-right: 1rem;
+    padding-left: 1rem;
+  }
+}
+
+@media (max-width: 460px) {
+  .data-table-modal__summary {
+    grid-template-columns: 1fr;
+  }
+
+  .data-table-modal-row__main {
+    grid-template-columns: 1.15rem 1.35rem minmax(0, 1fr);
+    gap: 0.45rem;
+  }
+
+  .data-table-modal-row__actions {
+    padding-left: 0;
+  }
+
+  .data-table-chip-action {
+    flex: 1 1 auto;
+  }
+}
+
+
+/* ======================================================
+   SECCIÓN 2: CONFIGURAR COLUMNAS MODAL
+   ====================================================== */
+
+.data-table-modal--columns {
+  width: min(100%, 40rem);
+  max-height: min(84vh, 42rem);
+
+  border-radius: 0.85rem;
+}
+
+
+/* ======================================================
+   CONFIGURAR COLUMNAS - HEADER AZUL SUAVE
+   ====================================================== */
+
+.data-table-modal--columns .data-table-modal__header {
+  align-items: flex-start;
+
+  padding: 1rem 1.25rem 0.9rem;
+
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(37, 99, 235, 0.11),
+      transparent 36%
+    ),
+    linear-gradient(
+      90deg,
+      rgba(37, 99, 235, 0.055),
+      rgba(37, 99, 235, 0.018) 48%,
+      transparent
+    ),
+    var(--color-surface);
+
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.data-table-modal--columns .data-table-modal__title {
+  margin: 0 0 0.24rem;
+
+  color: var(--color-text-primary);
+
+  font-size: 1rem;
+  font-weight: 850;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.data-table-modal--columns .data-table-modal__subtitle {
+  max-width: 30rem;
+  margin: 0;
+
+  color: var(--color-text-secondary);
+
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.data-table-modal--columns .data-table-button--close {
+  width: 1.85rem;
+  height: 1.85rem;
+
+  margin-top: -0.15rem;
+
+  color: var(--color-text-secondary);
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  border-radius: 0.58rem;
+
+  font-size: 1.25rem;
+  font-weight: 350;
+}
+
+.data-table-modal--columns .data-table-button--close:hover:not(:disabled) {
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  border-color: color-mix(in srgb, var(--color-danger) 24%, transparent);
+
+  box-shadow: 0 0.25rem 0.65rem color-mix(
+    in srgb,
+    var(--color-danger) 10%,
+    transparent
+  );
+
+  transform: translateY(-1px);
+}
+
+
+/* ======================================================
+   CONFIGURAR COLUMNAS - TOOLBAR
+   ====================================================== */
+
+.data-table-modal--columns .data-table-modal__toolbar {
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+
+  padding: 0.6rem 1.25rem;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(37, 99, 235, 0.028),
+      transparent
+    ),
+    var(--color-surface);
+
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.data-table-modal--columns .data-table-modal__toolbar-info {
+  display: none;
+}
+
+.data-table-modal--columns .data-table-modal__toolbar-actions {
+  width: auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.34rem;
+}
+
+.data-table-modal--columns .data-table-button--soft {
+  min-height: 1.65rem;
+
+  padding: 0.28rem 0.56rem;
+
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 12%, var(--color-border));
+  border-radius: 0.48rem;
+
+  font-size: 0.6rem;
+  font-weight: 800;
+  line-height: 1;
+
+  box-shadow: 0 0.12rem 0.32rem color-mix(
+    in srgb,
+    var(--color-primary) 4%,
+    transparent
+  );
+
+  cursor: pointer;
+
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+
+.data-table-modal--columns .data-table-button--soft:hover:not(:disabled) {
+  color: var(--color-text-blue);
+  background: var(--color-surface-blue);
+  border-color: var(--color-border-blue);
+
+  box-shadow: 0 0.18rem 0.45rem color-mix(
+    in srgb,
+    var(--color-primary) 8%,
+    transparent
+  );
+
+  transform: translateY(-1px);
+}
+
+.data-table-modal--columns .data-table-button--soft:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+
+  box-shadow: none;
+
+  transform: none;
+}
+
+
+/* ======================================================
+   CONFIGURAR COLUMNAS - CUERPO Y SCROLL
+   ====================================================== */
+
+.data-table-modal--columns .data-table-modal__body {
+  padding: 0;
+}
+
+.data-table-modal--columns .data-table-modal__scroll {
+  max-height: min(50vh, 28rem);
+
+  padding: 0.75rem 1.1rem 0.9rem;
+}
+
+
+/* ======================================================
+   CONFIGURAR COLUMNAS - FILAS
+   ====================================================== */
+
+.data-table-modal--columns .data-table-modal-row {
+  position: relative;
+
+  min-height: 3rem;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.55rem;
+
+  padding: 0.58rem 0.72rem;
+
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 0.68rem;
+
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    opacity 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+
+.data-table-modal--columns .data-table-modal-row + .data-table-modal-row {
+  margin-top: 0.5rem;
+}
+
+.data-table-modal--columns .data-table-modal-row:hover {
+  background: var(--color-surface);
+  border-color: color-mix(in srgb, var(--color-primary) 20%, var(--color-border));
+
+  box-shadow: 0 0.22rem 0.6rem color-mix(
+    in srgb,
+    var(--color-primary) 7%,
+    transparent
+  );
+}
+
+.data-table-modal--columns .data-table-modal-row--hidden {
+  opacity: 0.64;
+
+  background: var(--color-surface-soft);
+}
+
+.data-table-modal--columns .data-table-modal-row--hidden:hover {
+  opacity: 0.9;
+}
+
+.data-table-modal--columns .data-table-modal-row--dragging {
+  z-index: 2;
+
+  opacity: 0.72;
+  background: var(--data-table-selected-bg);
+
+  box-shadow: 0 0.6rem 1.4rem color-mix(
+    in srgb,
+    var(--color-text-primary) 11%,
+    transparent
+  );
+
+  transform: scale(1.004);
+}
+
+.data-table-modal--columns .data-table-modal-row--hover {
+  background: var(--data-table-selected-bg);
+  border-color: var(--color-primary);
+
+  box-shadow: 0 0 0 3px color-mix(
+    in srgb,
+    var(--color-primary) 11%,
+    transparent
+  );
+}
+
+.data-table-modal--columns .data-table-modal-row__main {
+  display: grid;
+  grid-template-columns: 1.1rem 1.3rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.48rem;
+
+  min-width: 0;
+}
+
+.data-table-modal--columns .data-table-modal-row__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.38rem;
+
+  min-width: max-content;
+}
+
+
+/* ======================================================
+   CONFIGURAR COLUMNAS - CONTROLES DE FILA
+   ====================================================== */
+
+.data-table-modal--columns .data-table-drag-handle {
+  width: 1.1rem;
+  height: 1.3rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--color-text-muted);
+  background: transparent;
+  border: 0;
+
+  font-size: 0.7rem;
+  font-weight: 850;
+  line-height: 1;
+
+  cursor: grab;
+  user-select: none;
+}
+
+.data-table-modal--columns .data-table-drag-handle:hover {
+  color: var(--color-text-primary);
+}
+
+.data-table-modal--columns .data-table-drag-handle:active {
+  cursor: grabbing;
+}
+
+.data-table-modal--columns .data-table-modal-pill {
+  min-width: 1.3rem;
+  height: 1.3rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--color-text-blue);
+  background: var(--color-surface-blue);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 12%, transparent);
+  border-radius: 0.48rem;
+
+  font-size: 0.6rem;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.data-table-modal--columns .data-table-modal-check {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 0.48rem;
+
+  cursor: pointer;
+}
+
+.data-table-modal--columns .data-table-modal-checkbox {
+  width: 0.88rem;
+  height: 0.88rem;
+
+  flex: 0 0 auto;
+
+  margin: 0;
+
+  accent-color: var(--color-primary);
+
+  cursor: pointer;
+}
+
+.data-table-modal--columns .data-table-modal-checkmark {
+  display: none;
+}
+
+.data-table-modal--columns .data-table-modal-label {
+  min-width: 0;
+
+  overflow: hidden;
+
+  color: var(--color-text-primary);
+
+  font-size: 0.75rem;
+  font-weight: 760;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.data-table-modal--columns .data-table-modal-row--hidden .data-table-modal-label {
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+}
+
+
+/* ======================================================
+   CONFIGURAR COLUMNAS - BOTONES SIN ORDEN / REPETIDOS
+   ====================================================== */
+
+.data-table-modal--columns .data-table-chip-action {
+  position: relative;
+
+  min-height: 1.55rem;
+
+  padding: 0.28rem 0.62rem;
+
+  color: var(--color-text-secondary);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(37, 99, 235, 0.04),
+      transparent
+    ),
+    var(--color-surface);
+
+  border: 1px solid color-mix(in srgb, var(--color-primary) 16%, var(--color-border));
+  border-radius: 0.56rem;
+
+  font-size: 0.62rem;
+  font-weight: 800;
+  line-height: 1;
+
+  box-shadow: 0 0.14rem 0.4rem color-mix(
+    in srgb,
+    var(--color-primary) 5%,
+    transparent
+  );
+
+  cursor: pointer;
+
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+
+.data-table-modal--columns .data-table-chip-action:hover:not(:disabled) {
+  color: var(--color-text-blue);
+  background: var(--color-surface-blue);
+  border-color: var(--color-border-blue);
+
+  box-shadow: 0 0.22rem 0.58rem color-mix(
+    in srgb,
+    var(--color-primary) 10%,
+    transparent
+  );
+
+  transform: translateY(-1px);
+}
+
+.data-table-modal--columns .data-table-chip-action--active {
+  color: var(--color-text-blue);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(37, 99, 235, 0.12),
+      rgba(37, 99, 235, 0.05)
+    ),
+    var(--color-surface-blue);
+
+  border-color: color-mix(in srgb, var(--color-primary) 32%, var(--color-border));
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--color-white) 65%, transparent),
+    0 0.2rem 0.58rem color-mix(in srgb, var(--color-primary) 11%, transparent);
+}
+
+.data-table-modal--columns .data-table-chip-action--active:hover:not(:disabled) {
+  color: var(--color-text-inverse);
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+
+/* ======================================================
+   CONFIGURAR COLUMNAS - FOOTER
+   ====================================================== */
+
+.data-table-modal--columns .data-table-modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.55rem;
+
+  padding: 0.82rem 1.25rem;
+
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.data-table-modal--columns .data-table-modal__footer .data-table-button {
+  width: auto;
+  min-width: 7.8rem;
+  min-height: 2.2rem;
+
+  border-radius: 0.62rem;
+
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.data-table-modal--columns .data-table-modal__footer .data-table-button--danger {
+  color: var(--color-danger);
+  background: var(--color-surface);
+  border-color: color-mix(in srgb, var(--color-danger) 26%, transparent);
+}
+
+.data-table-modal--columns .data-table-modal__footer .data-table-button--danger:hover:not(:disabled) {
+  color: var(--color-text-inverse);
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+
+/* ======================================================
+   CONFIGURAR COLUMNAS - RESPONSIVE
+   ====================================================== */
+
+@media (max-width: 720px) {
+  .data-table-modal--columns {
+    width: min(100%, 38rem);
+  }
+
+  .data-table-modal--columns .data-table-modal__toolbar {
+    align-items: stretch;
+    justify-content: flex-start;
+  }
+
+  .data-table-modal--columns .data-table-modal__toolbar-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .data-table-modal--columns .data-table-button--soft {
+    flex: 1 1 auto;
+  }
+
+  .data-table-modal--columns .data-table-modal-row {
+    grid-template-columns: 1fr;
+  }
+
+  .data-table-modal--columns .data-table-modal-row__actions {
+    justify-content: flex-start;
+
+    min-width: 0;
+    padding-left: 2.9rem;
+  }
+}
+
+@media (max-width: 460px) {
+  .data-table-modal--columns .data-table-modal-row__main {
+    grid-template-columns: 1.1rem 1.25rem minmax(0, 1fr);
+    gap: 0.42rem;
+  }
+
+  .data-table-modal--columns .data-table-modal-row__actions {
+    padding-left: 0;
+  }
+
+  .data-table-modal--columns .data-table-chip-action {
+    flex: 1 1 auto;
+  }
+
+  .data-table-modal--columns .data-table-modal__footer {
+    flex-direction: column-reverse;
+  }
+
+  .data-table-modal--columns .data-table-modal__footer .data-table-button {
+    width: 100%;
+  }
+}
