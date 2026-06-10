@@ -6,10 +6,13 @@
 /**
  * Responsabilidades:
  * - Centralizar búsqueda, paginación, ordenamiento y filtros.
- * - Administrar configuración visible de columnas.
+ * - Administrar configuración visible de columnas desde un modal.
+ * - Permitir reorganizar columnas mediante arrastre.
+ * - Permitir marcar columnas como valor único.
  * - Renderizar tabla con scroll horizontal.
  * - Permitir columna principal y acciones fijas.
  * - Abrir filtros por columna desde el encabezado.
+ * - Aplicar filtros jerárquicos entre columnas.
  *
  * No debe:
  * - Consultar APIs.
@@ -25,7 +28,10 @@ import {
   useState
 } from "react";
 
-import type { ReactNode } from "react";
+import type {
+  DragEvent,
+  ReactNode
+} from "react";
 
 import DataTableHeader from "./components/DataTableHeader";
 import DataTableTable from "./components/DataTableTable";
@@ -117,7 +123,7 @@ function toCssSize(value?: number | string): string | undefined {
 }
 
 /**
- * Normaliza las opciones permitidas de registros por página.
+ * Normaliza las opciones oficiales de registros por página.
  */
 function normalizePageSizeOptions(options?: number[]): number[] {
   if (!Array.isArray(options) || options.length === 0) {
@@ -133,6 +139,112 @@ function normalizePageSizeOptions(options?: number[]): number[] {
   return normalizedOptions.length > 0
     ? normalizedOptions
     : DEFAULT_PAGE_SIZE_OPTIONS;
+}
+
+/**
+ * Reordena un arreglo moviendo una llave de origen a destino.
+ */
+function reorderKeys(
+  keys: string[],
+  sourceKey: string,
+  targetKey: string
+): string[] {
+  const sourceIndex = keys.indexOf(sourceKey);
+  const targetIndex = keys.indexOf(targetKey);
+
+  if (
+    sourceIndex < 0 ||
+    targetIndex < 0 ||
+    sourceIndex === targetIndex
+  ) {
+    return keys;
+  }
+
+  const next = [...keys];
+  const [moved] = next.splice(sourceIndex, 1);
+  next.splice(targetIndex, 0, moved);
+
+  return next;
+}
+
+/**
+ * Aplica búsqueda global y filtros activos.
+ */
+function applySearchAndFilters<T extends Record<string, unknown>>({
+  rows,
+  search,
+  columns,
+  filters,
+  excludeFilterKey
+}: {
+  rows: T[];
+  search: string;
+  columns: Array<ColumnDef<T> & { key: string; visible: boolean }>;
+  filters: Record<string, string[]>;
+  excludeFilterKey?: string;
+}): T[] {
+  let nextRows = [...rows];
+
+  if (search.trim()) {
+    const query = normalizeValue(search);
+
+    nextRows = nextRows.filter((row) => {
+      return columns.some((column) => {
+        if (!column.visible) {
+          return false;
+        }
+
+        const value = readColumnValue(row, column.key);
+        return normalizeValue(value).includes(query);
+      });
+    });
+  }
+
+  Object.entries(filters).forEach(([key, values]) => {
+    if (key === excludeFilterKey || values.length === 0) {
+      return;
+    }
+
+    const normalizedValues = values.map(normalizeValue);
+
+    nextRows = nextRows.filter((row) => {
+      const value = normalizeValue(readColumnValue(row, key));
+      return normalizedValues.includes(value);
+    });
+  });
+
+  return nextRows;
+}
+
+/**
+ * Aplica columnas marcadas como valor único.
+ */
+function applyUniqueColumns<T extends Record<string, unknown>>(
+  rows: T[],
+  uniqueKeys: Record<string, boolean>
+): T[] {
+  const activeKeys = Object.entries(uniqueKeys)
+    .filter(([, active]) => active)
+    .map(([key]) => key);
+
+  if (activeKeys.length === 0) {
+    return rows;
+  }
+
+  const seen = new Set<string>();
+
+  return rows.filter((row) => {
+    const signature = activeKeys
+      .map((key) => normalizeValue(readColumnValue(row, key)))
+      .join("::");
+
+    if (seen.has(signature)) {
+      return false;
+    }
+
+    seen.add(signature);
+    return true;
+  });
 }
 
 /**
@@ -167,6 +279,11 @@ export default function DataTable<T extends Record<string, unknown>>({
   const [filters, setFilters] = useState<Record<string, string[]>>({});
   const [filterCard, setFilterCard] = useState<FilterCardState>(null);
   const [showColumnsConfig, setShowColumnsConfig] = useState(false);
+  const [draggedColumnKey, setDraggedColumnKey] = useState<string | null>(null);
+
+  const [columnOrder, setColumnOrder] = useState<string[]>(() =>
+    columns.map((column) => String(column.key))
+  );
 
   const [visibleKeys, setVisibleKeys] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
@@ -179,9 +296,11 @@ export default function DataTable<T extends Record<string, unknown>>({
     return initial;
   });
 
+  const [uniqueKeys, setUniqueKeys] = useState<Record<string, boolean>>({});
+
   useEffect(() => {
     setPage(1);
-  }, [search, filters, sort, pageSize]);
+  }, [search, filters, sort, pageSize, uniqueKeys]);
 
   useEffect(() => {
     setPageSize((current) =>
@@ -200,72 +319,66 @@ export default function DataTable<T extends Record<string, unknown>>({
 
       return next;
     });
+
+    setColumnOrder((current) => {
+      const incomingKeys = columns.map((column) => String(column.key));
+      const currentKeys = current.filter((key) => incomingKeys.includes(key));
+      const newKeys = incomingKeys.filter((key) => !currentKeys.includes(key));
+
+      return [...currentKeys, ...newKeys];
+    });
   }, [columns]);
 
   const normalizedColumns = useMemo(() => {
-    return columns.map((column) => ({
+    const baseColumns = columns.map((column) => ({
       ...column,
       key: String(column.key),
       sortable: column.sortable !== false,
       filterable: column.filterable !== false,
       visible: visibleKeys[String(column.key)] !== false
     }));
-  }, [columns, visibleKeys]);
+
+    return [...baseColumns].sort((a, b) => {
+      const firstIndex = columnOrder.indexOf(a.key);
+      const secondIndex = columnOrder.indexOf(b.key);
+
+      return firstIndex - secondIndex;
+    });
+  }, [columns, visibleKeys, columnOrder]);
 
   const visibleColumns = useMemo(() => {
     return normalizedColumns.filter((column) => column.visible);
   }, [normalizedColumns]);
 
-  const searchableColumns = useMemo(() => {
-    return normalizedColumns.filter((column) => column.visible);
-  }, [normalizedColumns]);
-
   const filteredRows = useMemo(() => {
-    let rows = [...sourceRows];
-
-    if (search.trim()) {
-      const query = normalizeValue(search);
-
-      rows = rows.filter((row) => {
-        return searchableColumns.some((column) => {
-          const value = readColumnValue(row, column.key);
-          return normalizeValue(value).includes(query);
-        });
-      });
-    }
-
-    Object.entries(filters).forEach(([key, values]) => {
-      if (!values.length) {
-        return;
-      }
-
-      const normalizedValues = values.map(normalizeValue);
-
-      rows = rows.filter((row) => {
-        const value = normalizeValue(readColumnValue(row, key));
-        return normalizedValues.includes(value);
-      });
+    const searchedRows = applySearchAndFilters({
+      rows: sourceRows,
+      search,
+      columns: normalizedColumns,
+      filters
     });
 
-    if (sort) {
-      rows.sort((a, b) => {
-        const first = normalizeValue(readColumnValue(a, sort.key));
-        const second = normalizeValue(readColumnValue(b, sort.key));
+    const uniqueRows = applyUniqueColumns(searchedRows, uniqueKeys);
 
-        if (first < second) {
-          return sort.direction === "asc" ? -1 : 1;
-        }
-
-        if (first > second) {
-          return sort.direction === "asc" ? 1 : -1;
-        }
-
-        return 0;
-      });
+    if (!sort) {
+      return uniqueRows;
     }
 
-    return rows;
-  }, [sourceRows, search, searchableColumns, filters, sort]);
+    return [...uniqueRows].sort((a, b) => {
+      const first = normalizeValue(readColumnValue(a, sort.key));
+      const second = normalizeValue(readColumnValue(b, sort.key));
+
+      if (first < second) {
+        return sort.direction === "asc" ? -1 : 1;
+      }
+
+      if (first > second) {
+        return sort.direction === "asc" ? 1 : -1;
+      }
+
+      return 0;
+    });
+  }, [sourceRows, search, normalizedColumns, filters, uniqueKeys, sort]);
 
   useEffect(() => {
     onDataChange?.(filteredRows);
@@ -301,9 +414,17 @@ export default function DataTable<T extends Record<string, unknown>>({
       return [];
     }
 
+    const rowsForFilter = applySearchAndFilters({
+      rows: sourceRows,
+      search,
+      columns: normalizedColumns,
+      filters,
+      excludeFilterKey: filterCard.key
+    });
+
     const values = new Set<string>();
 
-    sourceRows.forEach((row) => {
+    rowsForFilter.forEach((row) => {
       const value = readColumnValue(row, filterCard.key);
 
       if (value !== null && value !== undefined && String(value).trim()) {
@@ -312,7 +433,7 @@ export default function DataTable<T extends Record<string, unknown>>({
     });
 
     return Array.from(values).sort((a, b) => a.localeCompare(b));
-  }, [sourceRows, filterCard]);
+  }, [sourceRows, search, normalizedColumns, filters, filterCard]);
 
   const selectedFilterValues = filterCard
     ? filters[filterCard.key] ?? []
@@ -327,10 +448,14 @@ export default function DataTable<T extends Record<string, unknown>>({
         };
       }
 
-      return {
-        key,
-        direction: current.direction === "asc" ? "desc" : "asc"
-      };
+      if (current.direction === "asc") {
+        return {
+          key,
+          direction: "desc"
+        };
+      }
+
+      return null;
     });
   }, []);
 
@@ -353,6 +478,13 @@ export default function DataTable<T extends Record<string, unknown>>({
     }));
   }, []);
 
+  const setColumnUnique = useCallback((key: string, unique: boolean) => {
+    setUniqueKeys((current) => ({
+      ...current,
+      [key]: unique
+    }));
+  }, []);
+
   const showAllColumns = useCallback(() => {
     setVisibleKeys((current) => {
       const next = { ...current };
@@ -365,29 +497,54 @@ export default function DataTable<T extends Record<string, unknown>>({
     });
   }, [normalizedColumns]);
 
-  const hideOptionalColumns = useCallback(() => {
-    setVisibleKeys((current) => {
-      const next = { ...current };
-
-      normalizedColumns.forEach((column, index) => {
-        next[column.key] =
-          index < 2 ||
-          column.fixed === "left" ||
-          column.fixed === "right";
-      });
-
-      return next;
-    });
-  }, [normalizedColumns]);
-
   const clearFilters = useCallback(() => {
     setFilters({});
     setFilterCard(null);
   }, []);
 
-  const clearSort = useCallback(() => {
+  const resetColumnsConfig = useCallback(() => {
+    setColumnOrder(columns.map((column) => String(column.key)));
     setSort(null);
-  }, []);
+    setUniqueKeys({});
+    setFilters({});
+    setFilterCard(null);
+
+    setVisibleKeys(() => {
+      const next: Record<string, boolean> = {};
+
+      columns.forEach((column) => {
+        const key = String(column.key);
+        next[key] = column.visible !== false;
+      });
+
+      return next;
+    });
+  }, [columns]);
+
+  function handleColumnDragStart(
+    event: DragEvent<HTMLDivElement>,
+    key: string
+  ): void {
+    setDraggedColumnKey(key);
+    event.dataTransfer.effectAllowed = "move";
+  }
+
+  function handleColumnDrop(
+    event: DragEvent<HTMLDivElement>,
+    targetKey: string
+  ): void {
+    event.preventDefault();
+
+    if (!draggedColumnKey) {
+      return;
+    }
+
+    setColumnOrder((current) =>
+      reorderKeys(current, draggedColumnKey, targetKey)
+    );
+
+    setDraggedColumnKey(null);
+  }
 
   const startRow =
     filteredRows.length === 0 ? 0 : (safePage - 1) * pageSize + 1;
@@ -400,70 +557,12 @@ export default function DataTable<T extends Record<string, unknown>>({
         search={search}
         setSearch={setSearch}
         loading={loading}
-        onOpenColumns={() => setShowColumnsConfig((current) => !current)}
+        onOpenColumns={() => setShowColumnsConfig(true)}
         showColumnsButton={columns.length > 0}
         pageSize={pageSize}
         setPageSize={setPageSize}
         pageSizeOptions={safePageSizeOptions}
       />
-
-      {showColumnsConfig ? (
-        <div className="data-table-columns-panel">
-          <div className="data-table-columns-panel__header">
-            <div>
-              <p className="data-table-columns-panel__eyebrow">
-                Configuración
-              </p>
-              <h3>Columnas visibles</h3>
-            </div>
-
-            <button
-              type="button"
-              className="data-table-columns-panel__close"
-              onClick={() => setShowColumnsConfig(false)}
-            >
-              Cerrar
-            </button>
-          </div>
-
-          <div className="data-table-columns-panel__actions">
-            <button type="button" onClick={showAllColumns}>
-              Mostrar todas
-            </button>
-
-            <button type="button" onClick={hideOptionalColumns}>
-              Ocultar opcionales
-            </button>
-
-            <button type="button" onClick={clearSort}>
-              Quitar orden
-            </button>
-
-            <button type="button" onClick={clearFilters}>
-              Limpiar filtros
-            </button>
-          </div>
-
-          <div className="data-table-columns-panel__grid">
-            {normalizedColumns.map((column) => (
-              <label
-                key={column.key}
-                className="data-table-columns-panel__item"
-              >
-                <input
-                  type="checkbox"
-                  checked={visibleKeys[column.key] !== false}
-                  onChange={(event) =>
-                    setColumnVisibility(column.key, event.target.checked)
-                  }
-                />
-
-                <span>{column.label}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-      ) : null}
 
       {hasFilters ? (
         <div className="data-table-active-filters">
@@ -565,6 +664,114 @@ export default function DataTable<T extends Record<string, unknown>>({
           </button>
         </div>
       </footer>
+
+      {showColumnsConfig ? (
+        <div
+          className="data-table-columns-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Configuración de columnas"
+        >
+          <button
+            type="button"
+            className="data-table-columns-modal__backdrop"
+            aria-label="Cerrar configuración de columnas"
+            onClick={() => setShowColumnsConfig(false)}
+          />
+
+          <div className="data-table-columns-panel">
+            <div className="data-table-columns-panel__header">
+              <div>
+                <p className="data-table-columns-panel__eyebrow">
+                  Configuración
+                </p>
+                <h3>Columnas visibles</h3>
+              </div>
+
+              <button
+                type="button"
+                className="data-table-columns-panel__button"
+                onClick={() => setShowColumnsConfig(false)}
+              >
+                Cerrar
+              </button>
+            </div>
+
+            <div className="data-table-columns-panel__actions">
+              <button type="button" onClick={showAllColumns}>
+                Mostrar todas
+              </button>
+
+              <button type="button" onClick={resetColumnsConfig}>
+                Restablecer
+              </button>
+
+            </div>
+
+            <div className="data-table-columns-panel__grid">
+              {normalizedColumns.map((column, index) => (
+                <div
+                  key={column.key}
+                  className={
+                    draggedColumnKey === column.key
+                      ? "data-table-columns-panel__item data-table-columns-panel__item--dragging"
+                      : "data-table-columns-panel__item"
+                  }
+                  draggable
+                  onDragStart={(event) =>
+                    handleColumnDragStart(event, column.key)
+                  }
+                  onDragOver={(event) => event.preventDefault()}
+                  onDrop={(event) => handleColumnDrop(event, column.key)}
+                  title={column.label}
+                >
+                  <span
+                    className="data-table-columns-panel__order"
+                    aria-label={`Orden ${index + 1}`}
+                  >
+                    {index + 1}
+                  </span>
+
+                  <span
+                    className="data-table-columns-panel__drag"
+                    aria-hidden="true"
+                  >
+                    ⋮⋮
+                  </span>
+
+                  <label className="data-table-columns-panel__unique">
+                    <span>Único</span>
+
+                    <input
+                      type="checkbox"
+                      checked={uniqueKeys[column.key] === true}
+                      onChange={(event) =>
+                        setColumnUnique(column.key, event.target.checked)
+                      }
+                    />
+                  </label>
+
+                  <label className="data-table-columns-panel__check">
+                    <span>Mostrar</span>
+
+                    <input
+                      type="checkbox"
+                      checked={visibleKeys[column.key] !== false}
+                      onChange={(event) =>
+                        setColumnVisibility(column.key, event.target.checked)
+                      }
+                    />
+                  </label>
+
+                  <span className="data-table-columns-panel__name">
+                    {column.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {filterCard ? (
         <FilterCard

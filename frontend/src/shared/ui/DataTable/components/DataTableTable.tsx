@@ -107,17 +107,17 @@ function getFixedClass(fixed?: "left" | "right"): string {
 }
 
 /**
- * Obtiene el indicador visual de ordenamiento.
+ * Devuelve el texto visible del ordenamiento.
  */
-function getSortSymbol(
+function getSortLabel(
   isSorted: boolean,
   direction?: "asc" | "desc"
-): string {
+): string | null {
   if (!isSorted) {
-    return "↕";
+    return null;
   }
 
-  return direction === "asc" ? "↑" : "↓";
+  return direction === "asc" ? "ASC" : "DSC";
 }
 
 /**
@@ -142,7 +142,7 @@ export default function DataTableTable<T extends Record<string, unknown>>({
   const columnCount = Math.max(safeColumns.length, 1);
 
   /**
-   * Abre el filtro con un click simple.
+   * Abre el filtro con click simple.
    */
   function handleHeaderClick(
     column: NormalizedColumn<T>,
@@ -165,11 +165,11 @@ export default function DataTableTable<T extends Record<string, unknown>>({
       );
 
       clickTimerRef.current = null;
-    }, 180);
+    }, 240);
   }
 
   /**
-   * Ordena con doble click y evita abrir el filtro.
+   * Ordena con doble click y evita que se abra el filtro.
    */
   function handleHeaderDoubleClick(column: NormalizedColumn<T>): void {
     if (clickTimerRef.current !== null) {
@@ -190,6 +190,10 @@ export default function DataTableTable<T extends Record<string, unknown>>({
             <tr>
               {safeColumns.map((column) => {
                 const isSorted = sort?.key === column.key;
+                const sortLabel = getSortLabel(
+                  isSorted,
+                  sort?.direction
+                );
 
                 return (
                   <th
@@ -217,32 +221,12 @@ export default function DataTableTable<T extends Record<string, unknown>>({
                       <span className="data-table-th-label">
                         <span>{column.label}</span>
 
-                        {column.sortable ? (
-                          <span
-                            className={
-                              isSorted
-                                ? "data-table-sort-indicator data-table-sort-indicator--active"
-                                : "data-table-sort-indicator"
-                            }
-                          >
-                            {getSortSymbol(isSorted, sort?.direction)}
+                        {sortLabel ? (
+                          <span className="data-table-sort-indicator data-table-sort-indicator--active">
+                            {sortLabel}
                           </span>
                         ) : null}
                       </span>
-
-                      {column.filterable ? (
-                        <span className="data-table-filter-button">
-                          <svg
-                            viewBox="0 0 24 24"
-                            aria-hidden="true"
-                            focusable="false"
-                          >
-                            <path d="M4 6h16" />
-                            <path d="M7 12h10" />
-                            <path d="M10 18h4" />
-                          </svg>
-                        </span>
-                      ) : null}
                     </div>
                   </th>
                 );
