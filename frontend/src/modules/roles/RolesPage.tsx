@@ -633,7 +633,7 @@ export default function RolesPage() {
         title="Roles del sistema"
         description="Consulta, crea y administra los roles que agrupan permisos para controlar el acceso de usuarios dentro de NominaCes."
         action={{
-          label: "Nuevo rol",
+          label: "Nuevo rolvfdvf",
           icon: "+",
           onClick: openCreateModal,
           disabled: isLoading || isSaving
