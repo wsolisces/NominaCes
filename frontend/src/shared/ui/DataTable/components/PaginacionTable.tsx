@@ -7,7 +7,7 @@
  * Responsabilidades:
  * - Exponer una paginación aislada para DataTable.
  * - Mostrar el rango visible de registros.
- * - Mostrar páginas numeradas cuando aplique.
+ * - Mostrar máximo 3 casillas numeradas.
  * - Permitir navegar entre página anterior y siguiente.
  * - Mantener una estructura visual consistente con DataTable.
  *
@@ -81,16 +81,17 @@ function getPaginationSummary(
  * Construye la lista de páginas visibles.
  *
  * Regla visual:
- * - Mostrar máximo 3 páginas.
- * - Iniciar con 1, 2, 3.
- * - Conforme avanza, mover la ventana: 2, 3, 4 / 3, 4, 5.
+ * - Mostrar máximo 3 casillas.
+ * - Al inicio: 1, 2, 3.
+ * - Al avanzar: 2, 3, 4 / 3, 4, 5.
+ * - Al final: últimas 3 páginas.
  */
+
 function getVisiblePages(
   currentPage: number,
   totalPages: number
 ): number[] {
   const safeTotalPages = Math.max(totalPages, 1);
-  const visibleCount = Math.min(3, safeTotalPages);
 
   if (safeTotalPages <= 3) {
     return Array.from(
@@ -99,22 +100,21 @@ function getVisiblePages(
     );
   }
 
-  const middlePage = Math.max(currentPage, 2);
+  let startPage = currentPage - 1;
 
-  let startPage = middlePage - 1;
-  let endPage = startPage + visibleCount - 1;
+  if (currentPage <= 2) {
+    startPage = 1;
+  }
 
-  if (endPage > safeTotalPages) {
-    endPage = safeTotalPages;
-    startPage = endPage - visibleCount + 1;
+  if (currentPage >= safeTotalPages - 1) {
+    startPage = safeTotalPages - 2;
   }
 
   return Array.from(
-    { length: visibleCount },
+    { length: 3 },
     (_, index) => startPage + index
   );
-}
-
+} 
 /**
  * Paginación visual independiente.
  */
@@ -174,27 +174,31 @@ export default function PaginacionTable({
           <span aria-hidden="true">‹</span>
         </button>
 
-        {visiblePages.map((page) => (
-          <button
-            key={page}
-            type="button"
-            disabled={page === safeCurrentPage}
-            onClick={() => onPageChange?.(page)}
-            className={[
-              "data-table-pagination__number",
-              page === safeCurrentPage
-                ? "data-table-pagination__number--active"
-                : ""
-            ]
-              .filter(Boolean)
-              .join(" ")}
-            aria-current={page === safeCurrentPage ? "page" : undefined}
-            aria-label={`Página ${page}`}
-            title={`Página ${page}`}
-          >
-            {page}
-          </button>
-        ))}
+        {visiblePages.slice(0, 3).map((page) => {
+          const isActive = page === safeCurrentPage;
+
+          return (
+            <button
+              key={page}
+              type="button"
+              disabled={isActive}
+              onClick={() => onPageChange?.(page)}
+              className={[
+                "data-table-pagination__number",
+                isActive
+                  ? "data-table-pagination__number--active"
+                  : ""
+              ]
+                .filter(Boolean)
+                .join(" ")}
+              aria-current={isActive ? "page" : undefined}
+              aria-label={`Página ${page}`}
+              title={`Página ${page}`}
+            >
+              {page}
+            </button>
+          );
+        })}
 
         <button
           type="button"

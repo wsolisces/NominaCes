@@ -2317,3 +2317,190 @@
     width: 100%;
   }
 }
+
+
+
+/* ======================================================
+   HEADER: CONTROLES DEL DATATABLE
+   ====================================================== */
+
+.datatable-header__search,
+.datatable-header__page-size,
+.datatable-header__columns-button {
+  min-height: var(--control-height-lg);
+  height: var(--control-height-lg);
+
+  border: 1px solid var(--color-ui-border-soft);
+  border-radius: var(--radius-sm);
+
+  color: var(--color-ui-title);
+  background: var(--color-ui-surface);
+
+  box-shadow: var(
+    --shadow-ui-subtle,
+    0 0.18rem 0.55rem rgba(15, 23, 42, 0.035)
+  );
+
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease,
+    opacity 150ms ease;
+}
+
+/* ======================================================
+   HEADER: BUSCADOR
+   ====================================================== */
+
+.datatable-header__search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+
+  width: min(100%, 42rem);
+
+  padding: 0 1rem;
+}
+
+.datatable-header__search:focus-within {
+  border-color: var(--color-primary-border);
+  background: var(--color-ui-surface);
+  box-shadow: var(--focus-ring);
+}
+
+.datatable-header__search svg {
+  width: 1rem;
+  height: 1rem;
+
+  flex: 0 0 auto;
+
+  color: var(--color-ui-muted);
+
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.datatable-header__search input {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+
+  border: 0;
+  outline: none;
+
+  color: var(--color-ui-title);
+  background: transparent;
+
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-ui-md);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+}
+
+.datatable-header__search input::placeholder {
+  color: var(--color-ui-muted);
+}
+
+/* ======================================================
+   HEADER: REGISTROS POR PÁGINA
+   ====================================================== */
+
+.datatable-header__page-size-group {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.datatable-header__page-size-label {
+  color: var(--color-ui-title);
+
+  font-family: var(--font-family-ui);
+  font-size: var(--font-size-ui-sm);
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+}
+
+.datatable-header__page-size {
+  min-width: 5.2rem;
+
+  padding: 0 0.9rem;
+
+  font-family: var(--font-family-ui);
+  font-size: var(--font-size-ui-md);
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+
+  outline: none;
+  cursor: pointer;
+}
+
+.datatable-header__page-size:focus {
+  border-color: var(--color-primary-border);
+  box-shadow: var(--focus-ring);
+}
+
+/* ======================================================
+   HEADER: BOTÓN CONFIGURACIÓN DE COLUMNAS
+   ====================================================== */
+
+.datatable-header__columns-button {
+  min-width: var(--control-height-lg);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+
+  padding: 0 1rem;
+
+  font-family: var(--font-family-ui);
+  font-size: var(--font-size-ui-sm);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+  white-space: nowrap;
+
+  cursor: pointer;
+}
+
+.datatable-header__columns-button:hover:not(:disabled) {
+  color: var(--color-primary);
+  background: var(--color-ui-surface-soft);
+  border-color: var(--color-primary-border);
+  box-shadow: var(--shadow-ui-soft);
+  transform: translateY(-1px);
+}
+
+.datatable-header__columns-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.datatable-header__columns-button:focus-visible {
+  outline: none;
+  border-color: var(--color-primary-border);
+  box-shadow: var(--focus-ring);
+}
+
+.datatable-header__columns-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.datatable-header__columns-button svg {
+  width: 1rem;
+  height: 1rem;
+
+  color: currentColor;
+
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

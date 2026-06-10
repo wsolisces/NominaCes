@@ -35,6 +35,7 @@ import type {
 
 import DataTableHeader from "./components/DataTableHeader";
 import DataTableTable from "./components/DataTableTable";
+import PaginacionTable from "./components/PaginacionTable";
 import FilterCard from "./filters/FilterCard";
 
 import "./dataTable.css";
@@ -546,9 +547,7 @@ export default function DataTable<T extends Record<string, unknown>>({
     setDraggedColumnKey(null);
   }
 
-  const startRow =
-    filteredRows.length === 0 ? 0 : (safePage - 1) * pageSize + 1;
-
+  const startIndex = (safePage - 1) * pageSize;
   const endRow = Math.min(safePage * pageSize, filteredRows.length);
 
   return (
@@ -618,52 +617,18 @@ export default function DataTable<T extends Record<string, unknown>>({
         toCssSize={toCssSize}
       />
 
-      <footer className="data-table-footer">
-        <p>
-          Mostrando <strong>{startRow}</strong> a <strong>{endRow}</strong> de{" "}
-          <strong>{filteredRows.length}</strong> registros
-        </p>
-
-        <div className="data-table-pagination">
-          <button
-            type="button"
-            disabled={safePage <= 1}
-            onClick={() => setPage((current) => Math.max(1, current - 1))}
-            aria-label="Página anterior"
-          >
-            ←
-          </button>
-
-          {Array.from({ length: totalPages }, (_, index) => index + 1).map(
-            (pageNumber) => (
-              <button
-                key={pageNumber}
-                type="button"
-                className={
-                  pageNumber === safePage
-                    ? "data-table-pagination__page data-table-pagination__page--active"
-                    : "data-table-pagination__page"
-                }
-                onClick={() => setPage(pageNumber)}
-                aria-current={pageNumber === safePage ? "page" : undefined}
-              >
-                {pageNumber}
-              </button>
-            )
-          )}
-
-          <button
-            type="button"
-            disabled={safePage >= totalPages}
-            onClick={() =>
-              setPage((current) => Math.min(totalPages, current + 1))
-            }
-            aria-label="Página siguiente"
-          >
-            →
-          </button>
-        </div>
-      </footer>
+      <PaginacionTable
+        currentPage={safePage}
+        totalPages={totalPages}
+        totalRows={filteredRows.length}
+        startIndex={startIndex}
+        endIndex={endRow}
+        onPrevious={() => setPage((current) => Math.max(1, current - 1))}
+        onNext={() =>
+          setPage((current) => Math.min(totalPages, current + 1))
+        }
+        onPageChange={setPage}
+      />
 
       {showColumnsConfig ? (
         <div
@@ -705,7 +670,6 @@ export default function DataTable<T extends Record<string, unknown>>({
               <button type="button" onClick={resetColumnsConfig}>
                 Restablecer
               </button>
-
             </div>
 
             <div className="data-table-columns-panel__grid">

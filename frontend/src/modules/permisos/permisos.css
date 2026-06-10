@@ -7,34 +7,35 @@
  * Responsabilidades:
  * - Definir únicamente estilos específicos fuera del DataTable.
  * - Estilizar botones, formulario, switch y modal propios de permisos.
- * - Mantener los estilos de modales separados al final del archivo.
+ * - Mantener los estilos de modales separados dentro de este archivo.
  * - Usar variables globales del sistema visual.
+ * - Evitar colores hardcodeados fuera de casos visuales muy específicos.
  *
  * No debe:
  * - Modificar estilos globales.
  * - Definir layout principal de página.
  * - Sobrescribir el diseño base del DataTable.
- * - Estilizar celdas internas del DataTable.
- * - Estilizar acciones internas del DataTable.
+ * - Estilizar celdas internas genéricas del DataTable.
+ * - Estilizar acciones internas genéricas del DataTable.
  * - Estilizar estados internos del DataTable.
  * - Estilizar PageHeader.
  * - Estilizar clases globales de página.
- * - Escribir colores directos fuera de la paleta global.
  */
 
 /* ======================================================
    BOTONES DEL MÓDULO
    ====================================================== */
 
+
 .permission-button {
-  min-height: var(--control-height-md);
+  min-height: 2.15rem;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-sm);
+  gap: 0.42rem;
 
-  padding: 0.62rem 1rem;
+  padding: 0.46rem 0.78rem;
 
   border: 1px solid var(--color-ui-border);
   border-radius: var(--radius-md);
@@ -43,10 +44,10 @@
   background: var(--color-ui-surface);
 
   font-family: var(--font-family-ui);
-  font-size: var(--font-size-ui-sm);
+  font-size: 0.78rem;
   font-weight: var(--font-weight-semibold);
   line-height: 1;
-  letter-spacing: 0.018em;
+  letter-spacing: 0.014em;
   white-space: nowrap;
 
   cursor: pointer;
@@ -58,6 +59,11 @@
     border-color 150ms ease,
     color 150ms ease,
     opacity 150ms ease;
+}
+
+.permission-button svg {
+  width: 0.9rem;
+  height: 0.9rem;
 }
 
 .permission-button:disabled {
@@ -108,6 +114,8 @@
 
   overflow-y: auto;
   overflow-x: hidden;
+
+  background: var(--color-ui-surface);
 }
 
 .permission-form__grid {
@@ -174,6 +182,11 @@
   resize: vertical;
 }
 
+.permission-form__field input::placeholder,
+.permission-form__field textarea::placeholder {
+  color: var(--color-ui-muted);
+}
+
 .permission-form__field input:focus,
 .permission-form__field select:focus,
 .permission-form__field textarea:focus {
@@ -230,12 +243,20 @@
   transition:
     background-color 150ms ease,
     border-color 150ms ease,
-    box-shadow 150ms ease;
+    box-shadow 150ms ease,
+    opacity 150ms ease;
 }
 
-.permission-switch:hover {
+.permission-switch:hover:not(:disabled) {
   background: var(--color-ui-surface);
   border-color: var(--color-ui-border);
+  box-shadow: var(--shadow-ui-soft);
+}
+
+.permission-switch:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .permission-switch__track {
@@ -295,37 +316,30 @@
 }
 
 /* ======================================================
-   RESPONSIVE GENERAL DEL MÓDULO
-   ====================================================== */
-
-@media (max-width: 900px) {
-  .permission-form__grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ======================================================
-   ======================================================
-   MODALES DEL MÓDULO DE PERMISOS
-   ======================================================
-   ====================================================== */
-
-/* ======================================================
    MODAL: BACKDROP
    ====================================================== */
 
 .permission-modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 80;
 
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   padding: var(--space-xl);
 
-  background: var(--color-overlay);
-  backdrop-filter: blur(4px);
+  background:
+    radial-gradient(
+      circle at center,
+      var(--color-backdrop-soft, rgba(15, 23, 42, 0.08)),
+      var(--color-backdrop-strong, rgba(15, 23, 42, 0.34))
+    ),
+    var(--color-backdrop, rgba(15, 23, 42, 0.32));
+
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
 }
 
 /* ======================================================
@@ -333,7 +347,7 @@
    ====================================================== */
 
 .permission-modal {
-  width: min(100%, 42rem);
+  width: min(30rem, 780px);
   max-height: calc(100vh - 3rem);
 
   display: flex;
@@ -342,10 +356,18 @@
   overflow: hidden;
 
   border: 1px solid var(--color-ui-border);
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-xl);
 
-  background: var(--color-ui-surface);
-  box-shadow: var(--shadow-ui-strong);
+  background:
+    linear-gradient(
+      180deg,
+      var(--color-ui-surface),
+      var(--color-ui-surface-soft)
+    );
+
+  box-shadow:
+    var(--shadow-modal, 0 24px 70px rgba(15, 23, 42, 0.28)),
+    var(--shadow-ui-soft);
 }
 
 /* ======================================================
@@ -360,7 +382,7 @@
   justify-content: space-between;
   gap: var(--space-lg);
 
-  padding: var(--space-xl);
+  padding: 1.05rem 1.35rem 1rem;
 
   border-bottom: 1px solid var(--color-ui-border-soft);
 
@@ -368,7 +390,7 @@
     linear-gradient(
       135deg,
       var(--color-ui-surface-soft),
-      var(--color-ui-surface)
+      var(--color-primary-soft)
     );
 }
 
@@ -417,7 +439,9 @@
   color: var(--color-ui-subtitle);
   background: var(--color-ui-surface);
 
-  font-size: 1.35rem;
+  font-family: var(--font-family-ui);
+  font-size: 1.25rem;
+  font-weight: var(--font-weight-medium);
   line-height: 1;
 
   cursor: pointer;
@@ -426,15 +450,25 @@
     transform 150ms ease,
     background-color 150ms ease,
     color 150ms ease,
-    border-color 150ms ease;
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    opacity 150ms ease;
 }
 
-.permission-modal__close:hover {
+.permission-modal__close:hover:not(:disabled) {
   transform: translateY(-1px);
 
-  color: var(--color-primary-contrast);
-  background: var(--color-primary);
-  border-color: var(--color-primary);
+  color: var(--color-ui-title);
+  background: var(--color-ui-surface);
+  border-color: var(--color-ui-border);
+  box-shadow: var(--shadow-ui-soft);
+}
+
+.permission-modal__close:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 /* ======================================================
@@ -453,19 +487,6 @@
 }
 
 /* ======================================================
-   MODAL: RESPONSIVE
-   ====================================================== */
-
-@media (max-width: 900px) {
-  .permission-modal__footer {
-    flex-direction: column-reverse;
-  }
-
-  .permission-modal__footer .permission-button {
-    width: 100%;
-  }
-}
-/* ======================================================
    TABLA DE PERMISOS
    ====================================================== */
 
@@ -479,7 +500,7 @@
 
 .permissions-table__main-cell strong,
 .permissions-table__module-cell strong {
-  color: var(--color-slate-950);
+  color: var(--color-ui-title);
 
   font-family: var(--font-family-ui);
   font-size: 0.93rem;
@@ -492,7 +513,7 @@
   display: block;
   max-width: 30rem;
 
-  color: var(--color-slate-600);
+  color: var(--color-ui-text);
 
   font-family: var(--font-family-base);
   font-size: 0.92rem;
@@ -545,14 +566,14 @@
   padding: 0;
 
   border: 1px solid var(--color-ui-border);
-  border-radius: 0.55rem;
+  border-radius: var(--radius-md);
 
-  color: var(--color-slate-700);
-  background: var(--color-white);
+  color: var(--color-ui-text);
+  background: var(--color-ui-surface);
 
   cursor: pointer;
 
-  box-shadow: 0 0.18rem 0.55rem rgba(15, 23, 42, 0.035);
+  box-shadow: var(--shadow-ui-subtle, 0 0.18rem 0.55rem rgba(15, 23, 42, 0.035));
 
   transition:
     color 150ms ease,
@@ -595,4 +616,28 @@
 .permissions-icon-button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ======================================================
+   RESPONSIVE
+   ====================================================== */
+
+@media (max-width: 900px) {
+  .permission-form__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .permission-modal {
+    width: min(100%, 640px);
+  }
+
+  .permission-modal__footer {
+    flex-direction: column-reverse;
+  }
+
+  .permission-modal__footer .permission-button {
+    width: 100%;
+  }
 }

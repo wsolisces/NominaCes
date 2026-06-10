@@ -108,9 +108,9 @@ export default function DataTableHeader({
         {showColumnsButton ? (
           <button
             type="button"
-            className="data-table-header__columns"
-            disabled={loading}
+            className="datatable-header__columns-button"
             onClick={onOpenColumns}
+            disabled={loading}
             aria-label="Configurar columnas"
             title="Configurar columnas"
           >

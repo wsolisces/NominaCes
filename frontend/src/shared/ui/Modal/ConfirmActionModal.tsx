@@ -87,7 +87,7 @@ function getVariantIcon(variant: ConfirmActionVariant): string {
   if (variant === "warning") return "!";
   if (variant === "success") return "✓";
 
-  return "?";
+  return " ?";
 }
 
 /**

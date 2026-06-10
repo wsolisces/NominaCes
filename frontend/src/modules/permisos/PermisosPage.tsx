@@ -285,7 +285,6 @@ export default function PermisosPage() {
 
         showSuccessFeedback(
           "Permiso creado",
-          "El permiso se registró correctamente."
         );
 
         return;
@@ -301,7 +300,6 @@ export default function PermisosPage() {
 
       showSuccessFeedback(
         "Permiso actualizado",
-        "Los cambios se guardaron correctamente."
       );
     } catch (error) {
       const message = getErrorMessage(
@@ -332,8 +330,8 @@ export default function PermisosPage() {
         ? "Desactivar permiso"
         : "Activar permiso",
       message: permission.is_active
-        ? `¿Seguro que deseas desactivar el permiso "${permission.permission_name}"?`
-        : `¿Seguro que deseas activar el permiso "${permission.permission_name}"?`,
+        ? `¿Seguro que deseas desactivar el permiso "${permission.permission_name}" ?`
+        : `¿Seguro que deseas activar el permiso "${permission.permission_name}" ?`,
       confirmLabel: permission.is_active ? "Desactivar" : "Activar",
       cancelLabel: "Cancelar"
     });
@@ -353,9 +351,6 @@ export default function PermisosPage() {
         permission.is_active
           ? "Permiso desactivado"
           : "Permiso activado",
-        permission.is_active
-          ? "El permiso se desactivó correctamente."
-          : "El permiso se activó correctamente."
       );
     } catch (error) {
       const message = getErrorMessage(
@@ -379,7 +374,7 @@ export default function PermisosPage() {
     const confirmed = await confirmAction({
       variant: "danger",
       title: "Eliminar permiso",
-      message: `¿Seguro que deseas eliminar el permiso "${permission.permission_name}"? Esta acción no se puede deshacer.`,
+      message: `¿Seguro que deseas eliminar el permiso "${permission.permission_name}" ? Esta acción no se puede deshacer.`,
       confirmLabel: "Eliminar",
       cancelLabel: "Cancelar"
     });
@@ -400,7 +395,6 @@ export default function PermisosPage() {
 
       showSuccessFeedback(
         "Permiso eliminado",
-        "El permiso se eliminó correctamente."
       );
     } catch (error) {
       const message = getErrorMessage(
