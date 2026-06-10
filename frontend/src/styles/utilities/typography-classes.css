@@ -1,0 +1,56 @@
+/* ======================================================
+   PATH: src/styles/utilities/typography-classes.css
+   Clases tipográficas reutilizables
+   ====================================================== */
+
+/**
+ * Responsabilidades:
+ * - Exponer clases tipográficas reutilizables.
+ * - Estandarizar títulos, subtítulos, etiquetas y texto UI.
+ * - Mantener consistencia visual en componentes compartidos.
+ *
+ * No debe:
+ * - Definir tokens.
+ * - Definir estilos específicos de módulos.
+ * - Sobrescribir componentes concretos.
+ */
+
+.app-title {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-page-title);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-title);
+}
+
+.app-subtitle {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-page-subtitle);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-text);
+  letter-spacing: var(--letter-spacing-subtitle);
+}
+
+.app-eyebrow {
+  font-family: var(--font-family-ui);
+  font-size: var(--font-size-eyebrow);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+  letter-spacing: var(--letter-spacing-eyebrow);
+  text-transform: uppercase;
+}
+
+.app-ui-label {
+  font-family: var(--font-family-ui);
+  font-size: var(--font-size-ui-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  letter-spacing: var(--letter-spacing-label);
+}
+
+.app-ui-text {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-ui-md);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-ui);
+}

@@ -1,0 +1,21 @@
+/* ======================================================
+   PATH: src/styles/theme/shadows.css
+   Tokens globales de sombras
+   ====================================================== */
+
+/**
+ * Responsabilidades:
+ * - Definir sombras reutilizables del sistema.
+ * - Mantener una profundidad visual discreta y corporativa.
+ *
+ * No debe:
+ * - Definir bordes, colores o estilos de componentes.
+ * - Usarse para reglas específicas de módulos.
+ */
+
+:root {
+  --shadow-soft: 0 0.65rem 1.8rem rgba(15, 23, 42, 0.07);
+  --shadow-card: 0 0.45rem 1.35rem rgba(15, 23, 42, 0.065);
+  --shadow-modal: 0 1.25rem 3rem rgba(15, 23, 42, 0.16);
+  --shadow-control: 0 0.25rem 0.85rem rgba(15, 23, 42, 0.055);
+}

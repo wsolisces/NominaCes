@@ -1,0 +1,57 @@
+/* ======================================================
+   PATH: src/styles/layout/app-layout.css
+   Layout autenticado global
+   ====================================================== */
+
+/**
+ * Responsabilidades:
+ * - Mantener el sidebar fijo.
+ * - Permitir scroll vertical únicamente en el área de contenido.
+ * - Evitar scroll duplicado en body.
+ *
+ * No debe:
+ * - Definir estilos visuales del sidebar.
+ * - Definir estilos específicos de páginas.
+ * - Definir reglas de componentes internos.
+ */
+
+.app-layout,
+.layout,
+.layout-shell,
+.auth-layout {
+  width: 100%;
+  height: 100vh;
+  min-height: 0;
+
+  display: flex;
+
+  overflow: hidden;
+}
+
+.app-sidebar,
+.sidebar,
+.layout-sidebar {
+  flex: 0 0 auto;
+
+  height: 100vh;
+  min-height: 0;
+
+  overflow: hidden;
+}
+
+.app-main,
+.layout-main,
+.app-content,
+.layout-content,
+.auth-content,
+.main-content {
+  flex: 1 1 auto;
+
+  min-width: 0;
+  min-height: 0;
+  height: 100vh;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}

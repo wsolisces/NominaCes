@@ -1,21 +1,25 @@
 // ======================================================
 // PATH: src/shared/ui/Page/PageHeader.tsx
-// Encabezado estándar para páginas administrativas
+// Encabezado reutilizable para páginas administrativas
 // ======================================================
 
 /**
  * Responsabilidades:
- * - Renderizar el encabezado principal de páginas del sistema.
- * - Mostrar breadcrumb, título, descripción, acciones y métricas.
- * - Mantener una estructura visual reutilizable entre módulos.
+ * - Renderizar el encabezado principal de páginas internas.
+ * - Mostrar breadcrumb, título, descripción y acciones.
+ * - Permitir métricas como contenido opcional sin definir su estilo principal aquí.
+ * - Usar clases globales definidas en src/styles/pages/pages.css.
+ * - Mantener una estructura reutilizable entre módulos administrativos.
  *
  * No debe:
  * - Consultar APIs.
- * - Calcular datos de negocio.
- * - Definir lógica específica de módulos.
+ * - Calcular reglas de negocio.
+ * - Definir estilos inline.
+ * - Importar CSS específico de módulos.
+ * - Conocer permisos, usuarios, roles o catálogos.
  */
 
-import "./page-header.css";
+import type { ReactNode } from "react";
 
 export type PageHeaderMetricVariant =
   | "neutral"
@@ -33,7 +37,7 @@ export type PageHeaderMetric = {
 export type PageHeaderAction = {
   label: string;
   onClick: () => void;
-  icon?: string;
+  icon?: ReactNode;
   disabled?: boolean;
 };
 
@@ -48,35 +52,67 @@ export type PageHeaderProps = {
 };
 
 /**
- * Construye las clases CSS de una métrica según su variante visual.
+ * Construye la clase visual de una métrica según su variante.
+ * El estilo fino de KPIs puede vivir después en su propio CSS.
  */
-function getMetricClassName(variant?: PageHeaderMetricVariant): string {
-  return [
-    "page-header-metric",
-    `page-header-metric-${variant ?? "neutral"}`
-  ].join(" ");
+function getMetricClassName(
+  variant: PageHeaderMetricVariant = "neutral"
+): string {
+  return `page-header-metric page-header-metric--${variant}`;
+}
+
+/**
+ * Renderiza el breadcrumb superior del encabezado.
+ */
+function renderBreadcrumb(
+  eyebrow?: string,
+  section?: string
+): ReactNode {
+  if (!eyebrow && !section) return null;
+
+  return (
+    <div className="page-header-breadcrumb" aria-label="Ruta de página">
+      {eyebrow ? (
+        <span className="page-header-breadcrumb__item">
+          {eyebrow}
+        </span>
+      ) : null}
+
+      {eyebrow && section ? (
+        <span
+          className="page-header-breadcrumb__separator"
+          aria-hidden="true"
+        >
+          /
+        </span>
+      ) : null}
+
+      {section ? (
+        <span className="page-header-breadcrumb__item page-header-breadcrumb__item--active">
+          {section}
+        </span>
+      ) : null}
+    </div>
+  );
 }
 
 /**
  * Renderiza una acción del encabezado.
  */
-function renderHeaderAction(
+function renderAction(
   action: PageHeaderAction,
   variant: "primary" | "secondary"
-) {
+): ReactNode {
   return (
     <button
       type="button"
-      className={[
-        "page-header-action",
-        `page-header-action-${variant}`
-      ].join(" ")}
+      className={`page-header-action page-header-action--${variant}`}
       onClick={action.onClick}
       disabled={action.disabled}
     >
       {action.icon ? (
         <span
-          className="page-header-action-icon"
+          className="page-header-action__icon"
           aria-hidden="true"
         >
           {action.icon}
@@ -89,7 +125,7 @@ function renderHeaderAction(
 }
 
 /**
- * Renderiza el encabezado visual estándar para páginas internas.
+ * Encabezado estándar para páginas administrativas.
  */
 export function PageHeader({
   eyebrow,
@@ -100,39 +136,16 @@ export function PageHeader({
   secondaryAction,
   metrics = []
 }: PageHeaderProps) {
-  const hasBreadcrumb = Boolean(eyebrow || section);
   const hasActions = Boolean(action || secondaryAction);
   const hasMetrics = metrics.length > 0;
 
   return (
-    <section className="page-header-shell">
+    <header className="page-header-shell">
       <div className="page-header-main">
         <div className="page-header-copy">
-          <h1 className="page-header-title">
-            {title}
-          </h1>
+          {renderBreadcrumb(eyebrow, section)}
 
-          {hasBreadcrumb ? (
-            <div className="page-header-breadcrumb">
-              {eyebrow ? (
-                <span className="page-header-breadcrumb-strong">
-                  {eyebrow}
-                </span>
-              ) : null}
-
-              {eyebrow && section ? (
-                <span className="page-header-breadcrumb-separator">
-                  /
-                </span>
-              ) : null}
-
-              {section ? (
-                <span className="page-header-breadcrumb-current">
-                  {section}
-                </span>
-              ) : null}
-            </div>
-          ) : null}
+          <h1 className="page-header-title">{title}</h1>
 
           {description ? (
             <p className="page-header-description">
@@ -144,12 +157,10 @@ export function PageHeader({
         {hasActions ? (
           <div className="page-header-actions">
             {secondaryAction
-              ? renderHeaderAction(secondaryAction, "secondary")
+              ? renderAction(secondaryAction, "secondary")
               : null}
 
-            {action
-              ? renderHeaderAction(action, "primary")
-              : null}
+            {action ? renderAction(action, "primary") : null}
           </div>
         ) : null}
       </div>
@@ -161,17 +172,24 @@ export function PageHeader({
               key={metric.label}
               className={getMetricClassName(metric.variant)}
             >
-              <span className="page-header-metric-label">
-                {metric.label}
-              </span>
+              <div className="page-header-metric__content">
+                <span className="page-header-metric__label">
+                  {metric.label}
+                </span>
 
-              <strong className="page-header-metric-value">
-                {metric.value}
-              </strong>
+                <strong className="page-header-metric__value">
+                  {metric.value}
+                </strong>
+              </div>
+
+              <span
+                className="page-header-metric__indicator"
+                aria-hidden="true"
+              />
             </article>
           ))}
         </div>
       ) : null}
-    </section>
+    </header>
   );
 }

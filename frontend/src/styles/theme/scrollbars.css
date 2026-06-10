@@ -1,0 +1,21 @@
+/* ======================================================
+   PATH: src/styles/theme/scrollbars.css
+   Tokens globales de scrollbar
+   ====================================================== */
+
+/**
+ * Responsabilidades:
+ * - Definir variables visuales para scrollbars.
+ * - Mantener scrollbars discretos y consistentes.
+ *
+ * No debe:
+ * - Definir reglas estructurales de layout.
+ * - Definir scroll interno de páginas.
+ */
+
+:root {
+  --scrollbar-size: 0.42rem;
+  --scrollbar-thumb: rgba(71, 85, 105, 0.2);
+  --scrollbar-thumb-hover: rgba(71, 85, 105, 0.38);
+  --scrollbar-track: transparent;
+}

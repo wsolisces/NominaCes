@@ -13,9 +13,9 @@
  * Ejemplo:
  * import {
  *   Page,
+ *   PageHeader,
  *   Button,
  *   Modal,
- *   Table,
  *   DataTable
  * } from "../../shared/ui";
  *
@@ -30,13 +30,27 @@
    PAGE
    ====================================================== */
 
-export { PageHeader } from "./Page/PageHeader";
+export {
+  Page,
+  PageHeader
+} from "./Page";
+
+export type {
+  PageContentVariant,
+  PageHeaderAction,
+  PageHeaderMetric,
+  PageHeaderMetricVariant,
+  PageHeaderProps,
+  PageProps,
+  PageVariant
+} from "./Page";
 
 /* ======================================================
    BUTTON
    ====================================================== */
 
 export { Button } from "./Button/Button";
+
 export type {
   ButtonProps,
   ButtonSize,
@@ -48,6 +62,7 @@ export type {
    ====================================================== */
 
 export { Badge } from "./Badge/Badge";
+
 export type {
   BadgeProps,
   BadgeVariant
@@ -58,6 +73,7 @@ export type {
    ====================================================== */
 
 export { Toolbar } from "./Toolbar/Toolbar";
+
 export type { ToolbarProps } from "./Toolbar/Toolbar";
 
 /* ======================================================
@@ -85,8 +101,8 @@ export {
 } from "./Modal/Modal";
 
 export type {
-  ModalProps,
-  ModalActionsProps
+  ModalActionsProps,
+  ModalProps
 } from "./Modal/Modal";
 
 /* ======================================================
@@ -109,6 +125,22 @@ export type {
 } from "./Modal/ConfirmActionModal";
 
 /* ======================================================
+   ACTION FEEDBACK MODAL
+   ====================================================== */
+
+/**
+ * ActionFeedbackModal:
+ * Modal global para mostrar retroalimentación visual
+ * después de acciones exitosas o con error.
+ */
+export { ActionFeedbackModal } from "./Modal/ActionFeedbackModal/ActionFeedbackModal";
+
+export type {
+  ActionFeedbackModalProps,
+  ActionFeedbackVariant
+} from "./Modal/ActionFeedbackModal/ActionFeedbackModal";
+
+/* ======================================================
    DATA TABLE
    ====================================================== */
 
@@ -120,11 +152,8 @@ export type {
 export { default as DataTable } from "./DataTable/DataTable";
 
 export type {
-  Align as DataTableAlign,
   ColumnDef as DataTableColumn,
-  DataTableProps,
-  SortState as DataTableSortState,
-  TableMode as DataTableMode
+  DataTableProps
 } from "./DataTable/DataTable";
 
 /* ======================================================
@@ -137,10 +166,3 @@ export type {
   UiScale,
   UiScaleSelectProps
 } from "./UiScaleSelect/UiScaleSelect";
-
-
-export { ActionFeedbackModal } from "./Modal/ActionFeedbackModal/ActionFeedbackModal";
-export type {
-  ActionFeedbackModalProps,
-  ActionFeedbackVariant
-} from "./Modal/ActionFeedbackModal/ActionFeedbackModal";

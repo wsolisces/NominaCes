@@ -1,158 +1,60 @@
 /* ======================================================
    PATH: src/modules/permisos/permisos.css
-   Estilos del módulo de permisos
+   Estilos específicos del módulo de permisos
    ====================================================== */
 
 /**
  * Responsabilidades:
- * - Definir presentación específica de la pantalla de permisos.
- * - Estilizar celdas, estados, acciones y modal propios del módulo.
- * - Mantener la página alineada con el layout administrativo.
- * - Renderizar la tabla directamente usando el DataTable global.
+ * - Definir únicamente estilos específicos fuera del DataTable.
+ * - Estilizar botones, formulario, switch y modal propios de permisos.
+ * - Mantener los estilos de modales separados al final del archivo.
+ * - Usar variables globales del sistema visual.
  *
  * No debe:
  * - Modificar estilos globales.
- * - Definir layout principal.
+ * - Definir layout principal de página.
  * - Sobrescribir el diseño base del DataTable.
+ * - Estilizar celdas internas del DataTable.
+ * - Estilizar acciones internas del DataTable.
+ * - Estilizar estados internos del DataTable.
+ * - Estilizar PageHeader.
+ * - Estilizar clases globales de página.
  * - Escribir colores directos fuera de la paleta global.
- * - Encerrar el DataTable en un card extra.
  */
 
 /* ======================================================
-   PAGE
-   ====================================================== */
-
-.permissions-page {
-  width: 100%;
-  min-width: 0;
-  min-height: 100%;
-
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-
-  padding: 1.9rem 2.25rem 3rem;
-
-  color: var(--color-ui-title);
-
-  background:
-    radial-gradient(
-      circle at top left,
-      color-mix(
-        in srgb,
-        var(--color-ui-blue) 8%,
-        var(--color-transparent)
-      ),
-      var(--color-transparent) 24rem
-    ),
-    linear-gradient(
-      180deg,
-      var(--color-ui-surface),
-      var(--color-ui-surface-soft)
-    );
-
-  overflow: visible;
-}
-
-/* ======================================================
-   HEADER LEGACY DEL MÓDULO
-   ====================================================== */
-
-.permissions-page__header {
-  flex: 0 0 auto;
-
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.permissions-page__eyebrow {
-  margin: 0 0 0.2rem;
-
-  color: var(--color-ui-muted);
-
-  font-family:
-    "Inter",
-    "Segoe UI",
-    system-ui,
-    sans-serif;
-  font-size: 0.75rem;
-  font-weight: 760;
-  line-height: 1;
-  letter-spacing: 0.035em;
-  text-transform: uppercase;
-}
-
-.permissions-page__title {
-  margin: 0;
-
-  color: var(--color-ui-title);
-
-  font-family:
-    "Aptos Display",
-    "Segoe UI",
-    system-ui,
-    sans-serif;
-  font-size: clamp(1.5rem, 1.1vw + 1.05rem, 2.05rem);
-  font-weight: 780;
-  line-height: 1.12;
-  letter-spacing: -0.025em;
-}
-
-.permissions-page__subtitle {
-  max-width: 760px;
-  margin: 0.72rem 0 0;
-
-  color: var(--color-ui-text);
-
-  font-family:
-    "Aptos",
-    "Segoe UI",
-    system-ui,
-    sans-serif;
-  font-size: 0.92rem;
-  font-weight: 450;
-  line-height: 1.68;
-}
-
-/* ======================================================
-   BUTTONS
+   BOTONES DEL MÓDULO
    ====================================================== */
 
 .permission-button {
-  min-height: 2.4rem;
+  min-height: var(--control-height-md);
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.48rem;
+  gap: var(--space-sm);
 
-  padding: 0.65rem 1rem;
+  padding: 0.62rem 1rem;
 
   border: 1px solid var(--color-ui-border);
-  border-radius: 0.55rem;
+  border-radius: var(--radius-md);
 
   color: var(--color-ui-title);
   background: var(--color-ui-surface);
 
-  font-family:
-    "Inter",
-    "Segoe UI",
-    system-ui,
-    sans-serif;
-  font-size: 0.76rem;
-  font-weight: 760;
+  font-family: var(--font-family-ui);
+  font-size: var(--font-size-ui-sm);
+  font-weight: var(--font-weight-semibold);
   line-height: 1;
-  letter-spacing: 0.025em;
-  text-transform: uppercase;
+  letter-spacing: 0.018em;
+  white-space: nowrap;
 
   cursor: pointer;
 
   transition:
     transform 150ms ease,
     box-shadow 150ms ease,
-    background 150ms ease,
+    background-color 150ms ease,
     border-color 150ms ease,
     color 150ms ease,
     opacity 150ms ease;
@@ -190,477 +92,19 @@
 }
 
 .permission-button--secondary:not(:disabled):hover {
-  color: var(--color-ui-blue-hover);
-  background: var(--color-ui-surface-soft);
-  border-color: var(--color-ui-border);
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary-border);
 }
 
 /* ======================================================
-   SUMMARY LEGACY
+   FORMULARIO DE PERMISOS
    ====================================================== */
-
-.permissions-summary {
-  flex: 0 0 auto;
-
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
-
-  margin: 0 0 0.25rem;
-}
-
-.permissions-summary__card {
-  min-height: 5rem;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 0.25rem;
-
-  padding: 1rem 1.1rem;
-
-  border: 1px solid var(--color-border-cold);
-  border-radius: 1.1rem;
-
-  background: var(--color-ui-surface);
-  box-shadow: var(--shadow-ui-soft);
-}
-
-.permissions-summary__card span {
-  color: var(--color-ui-muted);
-
-  font-family:
-    "Inter",
-    "Segoe UI",
-    system-ui,
-    sans-serif;
-  font-size: 0.72rem;
-  font-weight: 720;
-  line-height: 1.1;
-  letter-spacing: 0.025em;
-  text-transform: uppercase;
-}
-
-.permissions-summary__card strong {
-  color: var(--color-ui-title);
-
-  font-family:
-    "Aptos Display",
-    "Segoe UI",
-    system-ui,
-    sans-serif;
-  font-size: 1.42rem;
-  font-weight: 780;
-  line-height: 1;
-  letter-spacing: -0.032em;
-}
-
-/* ======================================================
-   FILTER LEGACY
-   ====================================================== */
-
-.permissions-filter-card {
-  flex: 0 0 auto;
-
-  border: 1px solid var(--color-border-cold);
-  border-radius: 1.1rem;
-
-  background: var(--color-ui-surface);
-  box-shadow: var(--shadow-ui-soft);
-}
-
-.permissions-filter-card__content {
-  display: flex;
-  align-items: flex-end;
-  gap: 0.85rem;
-
-  padding: 1rem;
-}
-
-.permissions-search {
-  flex: 1;
-  min-width: 0;
-
-  display: grid;
-  gap: 0.4rem;
-}
-
-.permissions-search span {
-  color: var(--color-ui-subtitle);
-
-  font-family:
-    "Inter",
-    "Segoe UI",
-    system-ui,
-    sans-serif;
-  font-size: 0.76rem;
-  font-weight: 760;
-  line-height: 1;
-  letter-spacing: 0.015em;
-}
-
-.permissions-search input {
-  width: 100%;
-  min-height: 2.45rem;
-  padding: 0 0.9rem;
-
-  border: 1px solid var(--color-ui-border-soft);
-  border-radius: 0.85rem;
-
-  color: var(--color-ui-title);
-  background: var(--color-ui-surface-soft);
-
-  font-family:
-    "Aptos",
-    "Segoe UI",
-    system-ui,
-    sans-serif;
-  font-size: 0.92rem;
-  font-weight: 450;
-
-  outline: none;
-
-  transition:
-    border-color 150ms ease,
-    box-shadow 150ms ease,
-    background 150ms ease;
-}
-
-.permissions-search input:focus {
-  border-color: var(--color-ui-blue-border);
-  background: var(--color-ui-surface);
-  box-shadow: var(--focus-ring);
-}
-
-/* ======================================================
-   ALERT
-   ====================================================== */
-
-.permissions-alert {
-  flex: 0 0 auto;
-
-  margin-top: 1rem;
-  padding: 0.85rem 1rem;
-
-  border: 1px solid var(--color-danger-border);
-  border-radius: 0.95rem;
-
-  color: var(--color-danger-hover);
-  background: var(--color-danger-soft);
-
-  font-family:
-    "Aptos",
-    "Segoe UI",
-    system-ui,
-    sans-serif;
-  font-size: 0.9rem;
-  font-weight: 650;
-  line-height: 1.45;
-}
-
-/* ======================================================
-   CELDAS DE PERMISOS
-   ====================================================== */
-
-.permissions-table__main-cell,
-.permissions-table__module-cell {
-  display: grid;
-  gap: 0.18rem;
-  min-width: 0;
-}
-
-.permissions-table__main-cell strong,
-.permissions-table__module-cell strong {
-  min-width: 0;
-
-  color: var(--color-ui-title);
-
-  font-family:
-    "Aptos Display",
-    "Segoe UI",
-    system-ui,
-    sans-serif;
-  font-size: 0.78rem;
-  font-weight: 790;
-  line-height: 1.2;
-
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.permissions-table__main-cell span,
-.permissions-table__module-cell span {
-  width: fit-content;
-  max-width: 100%;
-
-  padding: 0.16rem 0.42rem;
-
-  border-radius: 999px;
-
-  color: var(--color-ui-text);
-  background: var(--color-ui-surface-muted);
-
-  font-family:
-    "Inter",
-    "Segoe UI",
-    system-ui,
-    sans-serif;
-  font-size: 0.66rem;
-  font-weight: 760;
-  line-height: 1.15;
-  letter-spacing: 0.035em;
-
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.permissions-table__description {
-  max-width: 320px;
-
-  display: -webkit-box;
-
-  color: var(--color-ui-text);
-
-  font-family:
-    "Aptos",
-    "Segoe UI",
-    system-ui,
-    sans-serif;
-  font-size: 0.76rem;
-  font-weight: 450;
-  line-height: 1.38;
-
-  overflow: hidden;
-
-  line-clamp: 2;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
-
-/* ======================================================
-   STATUS
-   ====================================================== */
-
-.permission-status {
-  width: fit-content;
-  min-height: 1.42rem;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 0 0.56rem;
-
-  border-radius: 999px;
-
-  font-family:
-    "Inter",
-    "Segoe UI",
-    system-ui,
-    sans-serif;
-  font-size: 0.64rem;
-  font-weight: 780;
-  line-height: 1;
-  letter-spacing: 0.025em;
-}
-
-.permission-status--active {
-  color: var(--color-success-hover);
-  background: var(--color-success-soft);
-}
-
-.permission-status--inactive {
-  color: var(--color-ui-text);
-  background: var(--color-ui-surface-muted);
-}
-
-/* ======================================================
-   ACTIONS
-   ====================================================== */
-
-.permissions-actions {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.4rem;
-}
-
-.permissions-icon-button {
-  width: 1.95rem;
-  height: 1.95rem;
-
-  display: inline-grid;
-  place-items: center;
-  flex: 0 0 auto;
-
-  border: 1px solid var(--color-ui-border-soft);
-  border-radius: 0.58rem;
-
-  color: var(--color-ui-subtitle);
-  background: var(--color-ui-surface);
-
-  cursor: pointer;
-
-  transition:
-    transform 150ms ease,
-    background 150ms ease,
-    color 150ms ease,
-    border-color 150ms ease,
-    box-shadow 150ms ease;
-}
-
-.permissions-icon-button svg {
-  width: 0.92rem;
-  height: 0.92rem;
-
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.9;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.permissions-icon-button:hover {
-  transform: translateY(-1px);
-
-  color: var(--color-ui-title);
-  background: var(--color-ui-surface-soft);
-  border-color: var(--color-ui-border);
-
-  box-shadow: var(--shadow-ui-soft);
-}
-
-.permissions-icon-button--danger {
-  color: var(--color-danger-hover);
-}
-
-.permissions-icon-button--danger:hover {
-  color: var(--color-danger-hover);
-  background: var(--color-danger-soft);
-  border-color: var(--color-danger-border);
-}
-
-/* ======================================================
-   MODAL
-   ====================================================== */
-
-.permission-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-
-  display: grid;
-  place-items: center;
-
-  padding: 1.5rem;
-
-  background: var(--color-overlay);
-  backdrop-filter: blur(4px);
-}
-
-.permission-modal {
-  width: min(100%, 680px);
-  max-height: calc(100vh - 3rem);
-
-  display: flex;
-  flex-direction: column;
-
-  border: 1px solid var(--color-border-cold);
-  border-radius: 1.25rem;
-
-  background: var(--color-ui-surface);
-  box-shadow: var(--shadow-ui-strong);
-
-  overflow: hidden;
-}
-
-.permission-modal__header {
-  flex: 0 0 auto;
-
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-
-  padding: 1.2rem 1.25rem;
-
-  border-bottom: 1px solid var(--color-border-cold-soft);
-
-  background: var(--color-ui-surface-soft);
-}
-
-.permission-modal__eyebrow {
-  margin: 0 0 0.25rem;
-
-  color: var(--color-ui-muted);
-
-  font-family:
-    "Inter",
-    "Segoe UI",
-    system-ui,
-    sans-serif;
-  font-size: 0.75rem;
-  font-weight: 760;
-  line-height: 1;
-  letter-spacing: 0.035em;
-  text-transform: uppercase;
-}
-
-.permission-modal__title {
-  margin: 0;
-
-  color: var(--color-ui-title);
-
-  font-family:
-    "Aptos Display",
-    "Segoe UI",
-    system-ui,
-    sans-serif;
-  font-size: 1.2rem;
-  font-weight: 780;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-}
-
-.permission-modal__close {
-  width: 2.15rem;
-  height: 2.15rem;
-
-  display: grid;
-  place-items: center;
-
-  border: 1px solid var(--color-ui-border-soft);
-  border-radius: 0.75rem;
-
-  color: var(--color-ui-subtitle);
-  background: var(--color-ui-surface);
-
-  font-size: 1.45rem;
-  line-height: 1;
-
-  cursor: pointer;
-
-  transition:
-    transform 150ms ease,
-    background 150ms ease,
-    color 150ms ease,
-    border-color 150ms ease;
-}
-
-.permission-modal__close:hover {
-  transform: translateY(-1px);
-
-  color: var(--color-primary-contrast);
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-}
 
 .permission-form {
   min-height: 0;
 
-  padding: 1.25rem;
+  padding: var(--space-xl);
 
   overflow-y: auto;
   overflow-x: hidden;
@@ -669,12 +113,12 @@
 .permission-form__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
+  gap: var(--space-lg);
 }
 
 .permission-form__field {
   display: grid;
-  gap: 0.45rem;
+  gap: var(--space-sm);
 }
 
 .permission-form__field--full {
@@ -684,13 +128,9 @@
 .permission-form__field span {
   color: var(--color-ui-subtitle);
 
-  font-family:
-    "Inter",
-    "Segoe UI",
-    system-ui,
-    sans-serif;
-  font-size: 0.76rem;
-  font-weight: 760;
+  font-family: var(--font-family-ui);
+  font-size: var(--font-size-ui-sm);
+  font-weight: var(--font-weight-semibold);
   line-height: 1;
   letter-spacing: 0.015em;
 }
@@ -701,31 +141,27 @@
   width: 100%;
 
   border: 1px solid var(--color-ui-border-soft);
-  border-radius: 0.85rem;
+  border-radius: var(--radius-lg);
 
   color: var(--color-ui-title);
   background: var(--color-ui-surface-soft);
 
-  font-family:
-    "Aptos",
-    "Segoe UI",
-    system-ui,
-    sans-serif;
-  font-size: 0.92rem;
-  font-weight: 450;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-ui-md);
+  font-weight: var(--font-weight-regular);
 
   outline: none;
 
   transition:
     border-color 150ms ease,
     box-shadow 150ms ease,
-    background 150ms ease,
+    background-color 150ms ease,
     opacity 150ms ease;
 }
 
 .permission-form__field input,
 .permission-form__field select {
-  min-height: 2.55rem;
+  min-height: var(--control-height-lg);
   padding: 0 0.85rem;
 }
 
@@ -733,7 +169,7 @@
   min-height: 6.5rem;
   padding: 0.8rem 0.85rem;
 
-  line-height: 1.4;
+  line-height: var(--line-height-ui);
 
   resize: vertical;
 }
@@ -741,7 +177,7 @@
 .permission-form__field input:focus,
 .permission-form__field select:focus,
 .permission-form__field textarea:focus {
-  border-color: var(--color-ui-blue-border);
+  border-color: var(--color-primary-border);
   background: var(--color-ui-surface);
   box-shadow: var(--focus-ring);
 }
@@ -754,52 +190,37 @@
 }
 
 .permission-form__error {
-  margin: 1rem 0 0;
+  margin: var(--space-lg) 0 0;
   padding: 0.8rem 0.9rem;
 
   border: 1px solid var(--color-danger-border);
-  border-radius: 0.85rem;
+  border-radius: var(--radius-lg);
 
-  color: var(--color-danger-hover);
+  color: var(--color-danger);
   background: var(--color-danger-soft);
 
-  font-family:
-    "Aptos",
-    "Segoe UI",
-    system-ui,
-    sans-serif;
-  font-size: 0.88rem;
-  font-weight: 650;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-ui-sm);
+  font-weight: var(--font-weight-semibold);
   line-height: 1.45;
 }
 
-.permission-modal__footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-
-  margin-top: 1.25rem;
-  padding-top: 1rem;
-
-  border-top: 1px solid var(--color-border-cold-soft);
-}
-
 /* ======================================================
-   SWITCH
+   SWITCH DE PERMISOS
    ====================================================== */
 
 .permission-switch {
-  min-height: 2.55rem;
+  min-height: var(--control-height-lg);
 
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.7rem;
+  gap: var(--space-md);
 
-  padding: 0 0.75rem;
+  padding: 0 0.8rem;
 
   border: 1px solid var(--color-ui-border-soft);
-  border-radius: 0.85rem;
+  border-radius: var(--radius-lg);
 
   color: var(--color-ui-text);
   background: var(--color-ui-surface-soft);
@@ -807,7 +228,7 @@
   cursor: pointer;
 
   transition:
-    background 150ms ease,
+    background-color 150ms ease,
     border-color 150ms ease,
     box-shadow 150ms ease;
 }
@@ -826,18 +247,18 @@
 
   padding: 0.14rem;
 
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 
   background: var(--color-ui-border);
 
-  transition: background 150ms ease;
+  transition: background-color 150ms ease;
 }
 
 .permission-switch__thumb {
   width: 1.02rem;
   height: 1.02rem;
 
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 
   background: var(--color-ui-surface);
   box-shadow: var(--shadow-ui-soft);
@@ -849,15 +270,11 @@
 .permission-switch__text {
   color: var(--color-ui-text) !important;
 
-  font-family:
-    "Inter",
-    "Segoe UI",
-    system-ui,
-    sans-serif;
-  font-size: 0.76rem !important;
-  font-weight: 760 !important;
+  font-family: var(--font-family-ui);
+  font-size: var(--font-size-ui-sm) !important;
+  font-weight: var(--font-weight-semibold) !important;
   line-height: 1;
-  letter-spacing: 0.025em;
+  letter-spacing: 0.02em;
 }
 
 .permission-switch--active {
@@ -878,28 +295,168 @@
 }
 
 /* ======================================================
-   RESPONSIVE
+   RESPONSIVE GENERAL DEL MÓDULO
    ====================================================== */
 
 @media (max-width: 900px) {
-  .permissions-page {
-    padding: 1.25rem;
-  }
-
-  .permissions-page__header,
-  .permissions-filter-card__content {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .permissions-summary {
-    grid-template-columns: 1fr;
-  }
-
   .permission-form__grid {
     grid-template-columns: 1fr;
   }
+}
 
+/* ======================================================
+   ======================================================
+   MODALES DEL MÓDULO DE PERMISOS
+   ======================================================
+   ====================================================== */
+
+/* ======================================================
+   MODAL: BACKDROP
+   ====================================================== */
+
+.permission-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+
+  display: grid;
+  place-items: center;
+
+  padding: var(--space-xl);
+
+  background: var(--color-overlay);
+  backdrop-filter: blur(4px);
+}
+
+/* ======================================================
+   MODAL: CONTENEDOR
+   ====================================================== */
+
+.permission-modal {
+  width: min(100%, 42rem);
+  max-height: calc(100vh - 3rem);
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  border: 1px solid var(--color-ui-border);
+  border-radius: var(--radius-2xl);
+
+  background: var(--color-ui-surface);
+  box-shadow: var(--shadow-ui-strong);
+}
+
+/* ======================================================
+   MODAL: HEADER
+   ====================================================== */
+
+.permission-modal__header {
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-lg);
+
+  padding: var(--space-xl);
+
+  border-bottom: 1px solid var(--color-ui-border-soft);
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--color-ui-surface-soft),
+      var(--color-ui-surface)
+    );
+}
+
+.permission-modal__eyebrow {
+  margin: 0 0 var(--space-xs);
+
+  color: var(--color-ui-muted);
+
+  font-family: var(--font-family-ui);
+  font-size: var(--font-size-eyebrow);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+  letter-spacing: var(--letter-spacing-eyebrow);
+  text-transform: uppercase;
+}
+
+.permission-modal__title {
+  margin: 0;
+
+  color: var(--color-ui-title);
+
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-section-title);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-title);
+  letter-spacing: var(--letter-spacing-title);
+}
+
+/* ======================================================
+   MODAL: BOTÓN CERRAR
+   ====================================================== */
+
+.permission-modal__close {
+  width: 2.15rem;
+  height: 2.15rem;
+
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+
+  padding: 0;
+
+  border: 1px solid var(--color-ui-border-soft);
+  border-radius: var(--radius-lg);
+
+  color: var(--color-ui-subtitle);
+  background: var(--color-ui-surface);
+
+  font-size: 1.35rem;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    transform 150ms ease,
+    background-color 150ms ease,
+    color 150ms ease,
+    border-color 150ms ease;
+}
+
+.permission-modal__close:hover {
+  transform: translateY(-1px);
+
+  color: var(--color-primary-contrast);
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* ======================================================
+   MODAL: FOOTER
+   ====================================================== */
+
+.permission-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-md);
+
+  margin-top: var(--space-xl);
+  padding-top: var(--space-lg);
+
+  border-top: 1px solid var(--color-ui-border-soft);
+}
+
+/* ======================================================
+   MODAL: RESPONSIVE
+   ====================================================== */
+
+@media (max-width: 900px) {
   .permission-modal__footer {
     flex-direction: column-reverse;
   }
@@ -907,4 +464,135 @@
   .permission-modal__footer .permission-button {
     width: 100%;
   }
+}
+/* ======================================================
+   TABLA DE PERMISOS
+   ====================================================== */
+
+.permissions-table__main-cell,
+.permissions-table__module-cell {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+}
+
+.permissions-table__main-cell strong,
+.permissions-table__module-cell strong {
+  color: var(--color-slate-950);
+
+  font-family: var(--font-family-ui);
+  font-size: 0.93rem;
+  font-weight: var(--font-weight-black);
+  line-height: 1.35;
+  letter-spacing: -0.018em;
+}
+
+.permissions-table__description {
+  display: block;
+  max-width: 30rem;
+
+  color: var(--color-slate-600);
+
+  font-family: var(--font-family-base);
+  font-size: 0.92rem;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.55;
+}
+
+.permission-status {
+  min-width: max-content;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0.34rem 0.75rem;
+
+  border-radius: var(--radius-pill);
+
+  font-family: var(--font-family-ui);
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+}
+
+.permission-status--active {
+  color: var(--color-success);
+  background: var(--color-success-soft);
+}
+
+.permission-status--inactive {
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+}
+
+.permissions-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.52rem;
+}
+
+.permissions-icon-button {
+  width: 2.35rem;
+  height: 2.35rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 1px solid var(--color-ui-border);
+  border-radius: 0.55rem;
+
+  color: var(--color-slate-700);
+  background: var(--color-white);
+
+  cursor: pointer;
+
+  box-shadow: 0 0.18rem 0.55rem rgba(15, 23, 42, 0.035);
+
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease,
+    opacity 150ms ease;
+}
+
+.permissions-icon-button svg {
+  width: 1rem;
+  height: 1rem;
+
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.permissions-icon-button:hover:not(:disabled) {
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary-border);
+  box-shadow: var(--shadow-ui-soft);
+  transform: translateY(-1px);
+}
+
+.permissions-icon-button--danger {
+  color: var(--color-danger);
+}
+
+.permissions-icon-button--danger:hover:not(:disabled) {
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  border-color: var(--color-danger-border);
+}
+
+.permissions-icon-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }

@@ -1,0 +1,109 @@
+/* ======================================================
+   PATH: src/styles/theme/typography.css
+   Tokens globales de tipografía
+   ====================================================== */
+
+/**
+ * Responsabilidades:
+ * - Definir familias tipográficas globales.
+ * - Definir escala de tamaños de texto.
+ * - Definir pesos, alturas de línea y espaciados de letra.
+ * - Mantener compatibilidad con nombres anteriores.
+ *
+ * No debe:
+ * - Definir clases visuales.
+ * - Estilizar elementos HTML directamente.
+ * - Definir colores, sombras o espaciado estructural.
+ */
+
+:root {
+  --app-scale: 1;
+
+  --font-family-base:
+    "Montserrat",
+    "Figtree",
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+
+  --font-family-heading:
+    "Figtree",
+    "Montserrat",
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+
+  --font-family-ui:
+    "Montserrat",
+    "Figtree",
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+
+  --font-size-ui-xs: calc(0.68rem * var(--app-scale));
+  --font-size-ui-sm: calc(0.76rem * var(--app-scale));
+  --font-size-ui-md: calc(0.84rem * var(--app-scale));
+  --font-size-ui-lg: calc(0.94rem * var(--app-scale));
+  --font-size-ui-xl: calc(1.08rem * var(--app-scale));
+
+  --font-size-page-title: calc(1.9rem * var(--app-scale));
+  --font-size-page-subtitle: calc(0.92rem * var(--app-scale));
+  --font-size-section-title: calc(1.2rem * var(--app-scale));
+  --font-size-card-value: calc(1.42rem * var(--app-scale));
+  --font-size-eyebrow: calc(0.72rem * var(--app-scale));
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 650;
+  --font-weight-black: 700;
+
+  --line-height-tight: 1.08;
+  --line-height-title: 1.14;
+  --line-height-ui: 1.35;
+  --line-height-text: 1.58;
+
+  --letter-spacing-title: -0.035em;
+  --letter-spacing-subtitle: -0.01em;
+  --letter-spacing-label: 0.045em;
+  --letter-spacing-eyebrow: 0.055em;
+
+  /* Compatibilidad con nombres anteriores */
+  --font-size-xs: var(--font-size-ui-xs);
+  --font-size-sm: var(--font-size-ui-sm);
+  --font-size-md: var(--font-size-ui-md);
+  --font-size-lg: var(--font-size-ui-lg);
+  --font-size-xl: var(--font-size-ui-xl);
+  --font-size-2xl: var(--font-size-page-title);
+}
+
+/* ======================================================
+   ESCALAS OPCIONALES
+   ====================================================== */
+
+/**
+ * Estas escalas solamente afectan componentes que utilicen
+ * tokens basados en --app-scale.
+ */
+
+html[data-ui-scale="compact"] {
+  --app-scale: 0.92;
+}
+
+html[data-ui-scale="normal"] {
+  --app-scale: 1;
+}
+
+html[data-ui-scale="comfortable"] {
+  --app-scale: 1.08;
+}
+
+html[data-ui-scale="large"] {
+  --app-scale: 1.16;
+}

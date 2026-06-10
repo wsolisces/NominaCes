@@ -1,0 +1,39 @@
+/* ======================================================
+   PATH: src/styles/index.css
+   Sistema global de estilos NominaCes
+   ====================================================== */
+
+/**
+ * Responsabilidades:
+ * - Centralizar la carga de fuentes, tokens, base, layout, páginas y utilidades.
+ * - Mantener el orden correcto de importación CSS.
+ * - Facilitar mantenimiento visual del frontend.
+ *
+ * No debe:
+ * - Definir estilos específicos de módulos.
+ * - Definir reglas duplicadas de componentes.
+ * - Reemplazar CSS especializados cuando sean necesarios.
+ */
+
+
+/* Tokens */
+@import "./theme/colors.css";
+@import "./theme/typography.css";
+@import "./theme/spacing.css";
+@import "./theme/radius.css";
+@import "./theme/shadows.css";
+@import "./theme/scrollbars.css";
+
+/* Base */
+@import "./base/reset.css";
+@import "./base/elements.css";
+@import "./base/accessibility.css";
+
+/* Layout */
+@import "./layout/app-layout.css";
+
+/* Páginas */
+@import "./pages/pages.css";
+
+/* Utilidades */
+@import "./utilities/typography-classes.css";

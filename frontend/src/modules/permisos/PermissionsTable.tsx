@@ -10,7 +10,7 @@
  * - Mantener la tabla independiente de llamadas HTTP.
  * - Usar permission_key como identificador real del permiso.
  * - Mantener columnas limpias, proporcionadas y alineadas al diseño corporativo.
- * - Usar columnas compactas solo donde aporte claridad visual.
+ * - Usar columna principal fija y scroll horizontal cuando la tabla lo requiera.
  *
  * No debe:
  * - Consultar directamente el backend.
@@ -28,6 +28,10 @@ import type { PermissionDto } from "./permisos.types";
 type PermissionTableRow = PermissionDto &
   Record<string, unknown> & {
     row_key: string;
+    permission_label: string;
+    module_label: string;
+    status_label: string;
+    updated_label: string;
   };
 
 export type PermissionsTableProps = {
@@ -39,7 +43,7 @@ export type PermissionsTableProps = {
 };
 
 /**
- * Formatea fechas recibidas desde el backend.
+ * Formatea fechas recibidas desde el backend en formato local.
  */
 function formatDate(value?: string | Date | null): string {
   if (!value) {
@@ -60,7 +64,7 @@ function formatDate(value?: string | Date | null): string {
 }
 
 /**
- * Obtiene el nombre visible del módulo.
+ * Obtiene el nombre visible del módulo usando el nombre como prioridad.
  */
 function getModuleLabel(permission: PermissionDto): string {
   return (
@@ -71,12 +75,23 @@ function getModuleLabel(permission: PermissionDto): string {
 }
 
 /**
+ * Obtiene el nombre visible del permiso.
+ */
+function getPermissionLabel(permission: PermissionDto): string {
+  return (
+    permission.permission_name?.trim() ||
+    permission.permission_key?.trim() ||
+    "Sin nombre"
+  );
+}
+
+/**
  * Renderiza la celda principal del permiso.
  */
-function renderPermissionCell(permission: PermissionDto) {
+function renderPermissionCell(permission: PermissionTableRow) {
   return (
     <div className="permissions-table__main-cell">
-      <strong>{permission.permission_name || "Sin nombre"}</strong>
+      <strong>{permission.permission_label}</strong>
     </div>
   );
 }
@@ -84,18 +99,19 @@ function renderPermissionCell(permission: PermissionDto) {
 /**
  * Renderiza la celda del módulo.
  */
-function renderModuleCell(permission: PermissionDto) {
+function renderModuleCell(permission: PermissionTableRow) {
   return (
-    <div className="permissions-table__module-cell">
-      <strong>{getModuleLabel(permission)}</strong>
-    </div>
+  
+    <span className="permissions-table__description">
+      {permission.module_label}
+    </span>
   );
 }
 
 /**
  * Renderiza la descripción del permiso.
  */
-function renderDescriptionCell(permission: PermissionDto) {
+function renderDescriptionCell(permission: PermissionTableRow) {
   return (
     <span className="permissions-table__description">
       {permission.description?.trim() || "—"}
@@ -106,7 +122,7 @@ function renderDescriptionCell(permission: PermissionDto) {
 /**
  * Renderiza el estado activo/inactivo.
  */
-function renderStatusCell(permission: PermissionDto) {
+function renderStatusCell(permission: PermissionTableRow) {
   const isActive = Boolean(permission.is_active);
 
   return (
@@ -117,7 +133,7 @@ function renderStatusCell(permission: PermissionDto) {
           : "permission-status permission-status--inactive"
       }
     >
-      {isActive ? "Activo" : "Inactivo"}
+      {permission.status_label}
     </span>
   );
 }
@@ -126,7 +142,7 @@ function renderStatusCell(permission: PermissionDto) {
  * Renderiza los botones de acción del permiso.
  */
 function renderActionsCell(
-  permission: PermissionDto,
+  permission: PermissionTableRow,
   handlers: Pick<
     PermissionsTableProps,
     "onEdit" | "onToggleStatus" | "onDelete"
@@ -141,7 +157,7 @@ function renderActionsCell(
           event.stopPropagation();
           handlers.onEdit(permission);
         }}
-        aria-label={`Editar ${permission.permission_name}`}
+        aria-label={`Editar ${permission.permission_label}`}
         title="Editar"
       >
         <svg
@@ -161,7 +177,7 @@ function renderActionsCell(
           event.stopPropagation();
           handlers.onDelete(permission);
         }}
-        aria-label={`Eliminar ${permission.permission_name}`}
+        aria-label={`Eliminar ${permission.permission_label}`}
         title="Eliminar"
       >
         <svg
@@ -184,10 +200,20 @@ function renderActionsCell(
  * Convierte permisos al tipo requerido por el DataTable.
  */
 function toTableRows(permissions: PermissionDto[]): PermissionTableRow[] {
-  return permissions.map((permission) => ({
-    ...permission,
-    row_key: permission.permission_key
-  }));
+  return permissions.map((permission) => {
+    const updatedLabel = formatDate(
+      permission.updated_at ?? permission.created_at
+    );
+
+    return {
+      ...permission,
+      row_key: permission.permission_key,
+      permission_label: getPermissionLabel(permission),
+      module_label: getModuleLabel(permission),
+      status_label: permission.is_active ? "Activo" : "Inactivo",
+      updated_label: updatedLabel
+    };
+  });
 }
 
 /**
@@ -201,67 +227,52 @@ function getPermissionColumns(
 ): ColumnDef<PermissionTableRow>[] {
   return [
     {
-      key: "permission_name",
-      header: "Permiso",
-      width: "15rem",
-      sticky: "left",
-      fitWidth: "18%",
-      cell: (permission) => renderPermissionCell(permission),
-      filterValue: (permission) => permission.permission_name ?? "",
-      wrap: true
+      key: "permission_label",
+      label: "Permiso",
+      width: "16rem",
+      minWidth: "15rem",
+      fixed: "left",
+      render: (permission) => renderPermissionCell(permission)
     },
     {
-      key: "module_name",
-      header: "Módulo",
+      key: "module_label",
+      label: "Módulo",
       width: "12rem",
-      fitWidth: "15%",
-      cell: (permission) => renderModuleCell(permission),
-      filterValue: (permission) =>
-        `${permission.module_name ?? ""} ${permission.module_key ?? ""}`,
-      wrap: true
+      minWidth: "11rem",
+      render: (permission) => renderModuleCell(permission)
     },
     {
       key: "description",
-      header: "Descripción",
-      width: "22rem",
-      fitWidth: "34%",
-      cell: (permission) => renderDescriptionCell(permission),
-      filterValue: (permission) => permission.description ?? "",
-      wrap: true,
-      disableSort: true
+      label: "Descripción",
+      width: "25rem",
+      minWidth: "22rem",
+      sortable: false,
+      render: (permission) => renderDescriptionCell(permission)
     },
     {
-      key: "is_active",
-      header: "Estado",
-      width: "8rem",
-      fitWidth: "10%",
+      key: "status_label",
+      label: "Estado",
+      width: "8.5rem",
+      minWidth: "8rem",
       align: "center",
-      compact: true,
-      cell: (permission) => renderStatusCell(permission),
-      filterValue: (permission) =>
-        permission.is_active ? "Activo" : "Inactivo"
+      render: (permission) => renderStatusCell(permission)
     },
     {
-      key: "updated_at",
-      header: "Actualizado",
-      width: "9rem",
-      fitWidth: "12%",
-      align: "center",
-      compact: true,
-      cell: (permission) =>
-        formatDate(permission.updated_at ?? permission.created_at),
-      filterValue: (permission) =>
-        formatDate(permission.updated_at ?? permission.created_at)
+      key: "updated_label",
+      label: "Actualizado",
+      width: "10rem",
+      minWidth: "9rem",
+      align: "center"
     },
     {
       key: "actions",
-      header: "Acciones",
-      width: "8rem",
-      fitWidth: "11%",
+      label: "Acciones",
+      width: "9rem",
+      minWidth: "8.5rem",
       align: "right",
-      compact: true,
-      disableSort: true,
-      cell: (permission) => renderActionsCell(permission, handlers)
+      sortable: false,
+      filterable: false,
+      render: (permission) => renderActionsCell(permission, handlers)
     }
   ];
 }
@@ -290,9 +301,7 @@ export function PermissionsTable({
       sourceRows={rows}
       columns={columns}
       loading={loading}
-      disableColumnConfig={false}
-      forceColumnOrder
-      tableMode="scroll"
+      rowKey={(permission) => permission.row_key}
     />
   );
 }

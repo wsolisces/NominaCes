@@ -1,188 +1,142 @@
 // ======================================================
 // PATH: src/shared/ui/DataTable/DataTable.tsx
-// DataTable reutilizable enterprise
+// DataTable reutilizable del sistema
 // ======================================================
 
 /**
  * Responsabilidades:
- * - Orquestar búsqueda, filtros, ordenamiento, columnas y paginación.
- * - Mantener persistencia de columnas y registros por página.
- * - Exponer callbacks para integrar datos filtrados con páginas externas.
- * - Mantener header, filtros, tabla y paginación dentro de un mismo card visual.
- * - Servir como única base visual para todas las tablas del sistema.
+ * - Centralizar búsqueda, paginación, ordenamiento y filtros.
+ * - Administrar configuración visible de columnas.
+ * - Renderizar tabla con scroll horizontal.
+ * - Permitir columna principal y acciones fijas.
+ * - Abrir filtros por columna desde el encabezado.
  *
  * No debe:
  * - Consultar APIs.
- * - Conocer reglas de negocio de módulos.
- * - Definir estilos repetidos en línea.
- * - Depender de clases específicas de módulos.
+ * - Conocer reglas de módulos específicos.
+ * - Persistir datos de negocio.
+ * - Definir lógica visual específica de Permisos, Roles o Usuarios.
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState
+} from "react";
+
 import type { ReactNode } from "react";
 
-import { useDataTable } from "./hook/useDataTable";
-
-import DataTableFilters from "./components/DataTableFiltersBar";
 import DataTableHeader from "./components/DataTableHeader";
 import DataTableTable from "./components/DataTableTable";
-
 import FilterCard from "./filters/FilterCard";
-import ModalChips from "./modals/ModalChips";
-import ColumnsModal from "./modals/ConfigurarColumnasModal";
 
 import "./dataTable.css";
 
-/**
- * Alineación permitida por columna.
- */
-export type Align = "left" | "center" | "right";
-
-/**
- * Modo visual de tabla.
- *
- * scroll:
- * - Permite scroll horizontal.
- * - Recomendado para catálogos administrativos con muchas columnas.
- *
- * fit:
- * - Adapta columnas al ancho disponible.
- * - Recomendado para tablas simples o de pocas columnas.
- */
-export type TableMode = "scroll" | "fit";
-
-/**
- * Definición de columna reutilizable.
- */
-export type ColumnDef<T> = {
+export type ColumnDef<T extends Record<string, unknown>> = {
   key: keyof T | string;
-  header: string;
+  label: string;
   width?: number | string;
-  align?: Align;
-  cell?: (row: T, rowIndex: number) => ReactNode;
-  filterValue?: (row: T) => string;
-  disableSort?: boolean;
-  isTotal?: boolean;
-  wrap?: boolean;
-  fitWidth?: number | string;
-  sticky?: "left" | "right";
-  stickyOffset?: number;
-  compact?: boolean;
+  minWidth?: number | string;
+  align?: "left" | "center" | "right";
+  sortable?: boolean;
+  filterable?: boolean;
+  visible?: boolean;
+  fixed?: "left" | "right";
+  render?: (row: T) => ReactNode;
 };
 
-/**
- * Estado de ordenamiento expuesto hacia el exterior.
- */
-export type SortState = {
+type SortDirection = "asc" | "desc";
+
+type SortState = {
   key: string;
-  direction: "asc" | "desc";
-  priority: number;
-};
+  direction: SortDirection;
+} | null;
 
-/**
- * Props públicas del DataTable.
- */
+type FilterCardState = {
+  key: string;
+  label: string;
+  x: number;
+  y: number;
+} | null;
+
 export type DataTableProps<T extends Record<string, unknown>> = {
   tableId: string;
   sourceRows: T[];
   columns: ColumnDef<T>[];
   loading?: boolean;
   error?: string | null;
-  onRowClick?: (row: T, rowIndex: number) => void;
-  onRowDoubleClick?: (row: T, rowIndex: number) => void;
-  onDataChange?: (data: {
-    rows: T[];
-    visibleColumns: string[];
-    columnOrder: string[];
-    filters: Record<string, string[]>;
-    sortState: SortState[];
-  }) => void;
-  disableColumnConfig?: boolean;
-  forceColumnOrder?: boolean;
-  tableMode?: TableMode;
+  emptyMessage?: string;
+  pageSizeOptions?: number[];
+  defaultPageSize?: number;
+  onRowDoubleClick?: (row: T) => void;
+  onDataChange?: (rows: T[]) => void;
+  rowKey?: (row: T, index: number) => string;
 };
 
-/**
- * Opciones oficiales permitidas para registros por página.
- */
-const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
+const DEFAULT_PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
 
 /**
- * Convierte un valor persistido en arreglo de strings seguro.
+ * Convierte cualquier valor visible en texto comparable.
  */
-function safeStringArray(
-  raw: string | null,
-  fallback: string[]
-): string[] {
-  try {
-    if (!raw) {
-      return fallback;
-    }
-
-    const parsed = JSON.parse(raw);
-
-    if (!Array.isArray(parsed)) {
-      return fallback;
-    }
-
-    return parsed.map(String);
-  } catch {
-    return fallback;
+function normalizeValue(value: unknown): string {
+  if (value === null || value === undefined) {
+    return "";
   }
+
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+
+  return String(value).toLowerCase().trim();
 }
 
 /**
- * Compara dos arreglos de strings conservando orden.
+ * Lee el valor base de una columna usando la llave configurada.
  */
-function sameStringArray(a: string[], b: string[]): boolean {
-  if (a.length !== b.length) {
-    return false;
-  }
-
-  return a.every((value, index) => value === b[index]);
+function readColumnValue<T extends Record<string, unknown>>(
+  row: T,
+  key: string
+): unknown {
+  return row[key];
 }
 
 /**
- * Normaliza el tamaño de página permitido.
- *
- * Regla visual:
- * - El DataTable inicia en 10 registros.
- * - Opciones permitidas: 5, 10, 20 y 50.
+ * Normaliza medidas numéricas o string para aplicarlas como CSS.
  */
-function getSafePageSize(raw: string | number | null): number {
-  const parsed = raw === null ? 10 : Number(raw);
-
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    return 10;
+function toCssSize(value?: number | string): string | undefined {
+  if (value === undefined) {
+    return undefined;
   }
 
-  if (!PAGE_SIZE_OPTIONS.includes(parsed)) {
-    return 10;
+  if (typeof value === "number") {
+    return `${value}px`;
   }
 
-  return parsed;
+  return value;
 }
 
 /**
- * Normaliza columnas visibles u ordenadas contra las columnas actuales.
+ * Normaliza las opciones permitidas de registros por página.
  */
-function normalizeColumnKeys(
-  currentKeys: string[],
-  validKeys: string[]
-): string[] {
-  const validCurrentKeys = currentKeys.filter((key) =>
-    validKeys.includes(key)
+function normalizePageSizeOptions(options?: number[]): number[] {
+  if (!Array.isArray(options) || options.length === 0) {
+    return DEFAULT_PAGE_SIZE_OPTIONS;
+  }
+
+  const allowedValues = new Set(DEFAULT_PAGE_SIZE_OPTIONS);
+
+  const normalizedOptions = options.filter((option) =>
+    allowedValues.has(option)
   );
 
-  const missingKeys = validKeys.filter(
-    (key) => !validCurrentKeys.includes(key)
-  );
-
-  return [...validCurrentKeys, ...missingKeys];
+  return normalizedOptions.length > 0
+    ? normalizedOptions
+    : DEFAULT_PAGE_SIZE_OPTIONS;
 }
 
 /**
- * Tabla reutilizable con búsqueda, filtros, ordenamiento, columnas y paginación.
+ * DataTable centralizado.
  */
 export default function DataTable<T extends Record<string, unknown>>({
   tableId,
@@ -190,378 +144,453 @@ export default function DataTable<T extends Record<string, unknown>>({
   columns,
   loading = false,
   error = null,
-  onRowClick,
+  emptyMessage = "Sin registros disponibles.",
+  pageSizeOptions,
+  defaultPageSize = 10,
   onRowDoubleClick,
   onDataChange,
-  disableColumnConfig = false,
-  forceColumnOrder = false,
-  tableMode = "scroll"
+  rowKey
 }: DataTableProps<T>) {
-  const storageKey = `datatable:${tableId}:columns`;
-  const orderKey = `datatable:${tableId}:columns:order`;
-  const pageSizeKey = `datatable:${tableId}:pageSize`;
-
-  const columnKeys = useMemo(
-    () => columns.map((column) => String(column.key)),
-    [columns]
+  const safePageSizeOptions = useMemo(
+    () => normalizePageSizeOptions(pageSizeOptions),
+    [pageSizeOptions]
   );
 
-  const [visibleColumns, setVisibleColumns] = useState<string[]>(() =>
-    forceColumnOrder
-      ? columnKeys
-      : safeStringArray(localStorage.getItem(storageKey), columnKeys)
-  );
+  const initialPageSize = safePageSizeOptions.includes(defaultPageSize)
+    ? defaultPageSize
+    : 10;
 
-  const [columnOrder, setColumnOrder] = useState<string[]>(() =>
-    forceColumnOrder
-      ? columnKeys
-      : safeStringArray(localStorage.getItem(orderKey), columnKeys)
-  );
+  const [search, setSearch] = useState("");
+  const [pageSize, setPageSize] = useState(initialPageSize);
+  const [page, setPage] = useState(1);
+  const [sort, setSort] = useState<SortState>(null);
+  const [filters, setFilters] = useState<Record<string, string[]>>({});
+  const [filterCard, setFilterCard] = useState<FilterCardState>(null);
+  const [showColumnsConfig, setShowColumnsConfig] = useState(false);
 
-  const [pageSize, setPageSize] = useState<number>(() =>
-    getSafePageSize(localStorage.getItem(pageSizeKey))
-  );
+  const [visibleKeys, setVisibleKeys] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
 
-  const [uniqueColumns, setUniqueColumns] = useState<string[]>([]);
-  const [openColumn, setOpenColumn] = useState<ColumnDef<T> | null>(null);
-  const [cardPosition, setCardPosition] = useState({ x: 0, y: 0 });
-  const [openColumnModal, setOpenColumnModal] = useState(false);
-  const [openFiltersModal, setOpenFiltersModal] = useState(false);
-
-  const [activeFilterGroup, setActiveFilterGroup] = useState<{
-    key: string;
-    label: string;
-    values: string[];
-    count: number;
-  } | null>(null);
-
-  const onDataChangeRef = useRef(onDataChange);
-  const lastEmitSignatureRef = useRef("");
-
-  /**
-   * Mantiene columnas visibles y ordenadas sincronizadas con las columnas reales.
-   */
-  useEffect(() => {
-    if (forceColumnOrder) {
-      setVisibleColumns(columnKeys);
-      setColumnOrder(columnKeys);
-      return;
-    }
-
-    setVisibleColumns((previousColumns) => {
-      const nextColumns = normalizeColumnKeys(
-        previousColumns,
-        columnKeys
-      );
-
-      return sameStringArray(previousColumns, nextColumns)
-        ? previousColumns
-        : nextColumns;
+    columns.forEach((column) => {
+      const key = String(column.key);
+      initial[key] = column.visible !== false;
     });
 
-    setColumnOrder((previousOrder) => {
-      const nextOrder = normalizeColumnKeys(previousOrder, columnKeys);
+    return initial;
+  });
 
-      return sameStringArray(previousOrder, nextOrder)
-        ? previousOrder
-        : nextOrder;
-    });
-  }, [columnKeys, forceColumnOrder]);
-
-  /**
-   * Persiste columnas visibles cuando el orden no está forzado.
-   */
   useEffect(() => {
-    if (forceColumnOrder) {
-      return;
-    }
+    setPage(1);
+  }, [search, filters, sort, pageSize]);
 
-    localStorage.setItem(storageKey, JSON.stringify(visibleColumns));
-  }, [storageKey, visibleColumns, forceColumnOrder]);
-
-  /**
-   * Persiste orden de columnas cuando el orden no está forzado.
-   */
   useEffect(() => {
-    if (forceColumnOrder) {
-      return;
-    }
-
-    localStorage.setItem(orderKey, JSON.stringify(columnOrder));
-  }, [orderKey, columnOrder, forceColumnOrder]);
-
-  /**
-   * Persiste registros por página.
-   */
-  useEffect(() => {
-    localStorage.setItem(pageSizeKey, String(pageSize));
-  }, [pageSizeKey, pageSize]);
-
-  /**
-   * Mantiene columnas únicas válidas.
-   */
-  useEffect(() => {
-    setUniqueColumns((previousColumns) =>
-      previousColumns.filter((key) => columnKeys.includes(key))
+    setPageSize((current) =>
+      safePageSizeOptions.includes(current) ? current : 10
     );
-  }, [columnKeys]);
+  }, [safePageSizeOptions]);
 
-  /**
-   * Actualiza referencia del callback externo sin forzar efectos innecesarios.
-   */
   useEffect(() => {
-    onDataChangeRef.current = onDataChange;
-  }, [onDataChange]);
+    setVisibleKeys((current) => {
+      const next: Record<string, boolean> = {};
 
-  /**
-   * Cambia registros por página usando opciones permitidas.
-   */
-  function handlePageSizeChange(next: number): void {
-    const safeNext = getSafePageSize(next);
+      columns.forEach((column) => {
+        const key = String(column.key);
+        next[key] = current[key] ?? column.visible !== false;
+      });
 
-    setPageSize(safeNext);
-  }
+      return next;
+    });
+  }, [columns]);
 
-  const visibleDefs = useMemo(() => {
-    return columnOrder
-      .filter((key) => visibleColumns.includes(key))
-      .map((key) => columns.find((column) => String(column.key) === key))
-      .filter(Boolean) as ColumnDef<T>[];
-  }, [columns, visibleColumns, columnOrder]);
+  const normalizedColumns = useMemo(() => {
+    return columns.map((column) => ({
+      ...column,
+      key: String(column.key),
+      sortable: column.sortable !== false,
+      filterable: column.filterable !== false,
+      visible: visibleKeys[String(column.key)] !== false
+    }));
+  }, [columns, visibleKeys]);
 
-  const {
-    search,
-    setSearch,
-    filters,
-    setFilters,
-    sorts,
-    setSorts,
-    handleSortClick,
-    orderedRows,
-    columnValues
-  } = useDataTable(sourceRows, visibleDefs);
+  const visibleColumns = useMemo(() => {
+    return normalizedColumns.filter((column) => column.visible);
+  }, [normalizedColumns]);
 
-  const finalRows = useMemo(() => {
-    if (!uniqueColumns.length) {
-      return orderedRows;
+  const searchableColumns = useMemo(() => {
+    return normalizedColumns.filter((column) => column.visible);
+  }, [normalizedColumns]);
+
+  const filteredRows = useMemo(() => {
+    let rows = [...sourceRows];
+
+    if (search.trim()) {
+      const query = normalizeValue(search);
+
+      rows = rows.filter((row) => {
+        return searchableColumns.some((column) => {
+          const value = readColumnValue(row, column.key);
+          return normalizeValue(value).includes(query);
+        });
+      });
     }
 
-    const seenRows = new Set<string>();
-
-    return orderedRows.filter((row) => {
-      const uniqueKey = uniqueColumns
-        .map((columnKey) => {
-          const value = row[columnKey];
-
-          if (value === null || value === undefined) {
-            return "";
-          }
-
-          return String(value).trim();
-        })
-        .join("|");
-
-      if (seenRows.has(uniqueKey)) {
-        return false;
-      }
-
-      seenRows.add(uniqueKey);
-
-      return true;
-    });
-  }, [orderedRows, uniqueColumns]);
-
-  const totals = useMemo(() => {
-    const result: Record<string, number> = {};
-
-    visibleDefs.forEach((column) => {
-      if (!column.isTotal) {
+    Object.entries(filters).forEach(([key, values]) => {
+      if (!values.length) {
         return;
       }
 
-      const key = String(column.key);
+      const normalizedValues = values.map(normalizeValue);
 
-      result[key] = finalRows.reduce((accumulator, row) => {
-        const value = Number(row[key]);
-
-        return accumulator + (Number.isNaN(value) ? 0 : value);
-      }, 0);
+      rows = rows.filter((row) => {
+        const value = normalizeValue(readColumnValue(row, key));
+        return normalizedValues.includes(value);
+      });
     });
 
-    return result;
-  }, [finalRows, visibleDefs]);
+    if (sort) {
+      rows.sort((a, b) => {
+        const first = normalizeValue(readColumnValue(a, sort.key));
+        const second = normalizeValue(readColumnValue(b, sort.key));
 
-  const hasFilters = Object.keys(filters).length > 0;
+        if (first < second) {
+          return sort.direction === "asc" ? -1 : 1;
+        }
+
+        if (first > second) {
+          return sort.direction === "asc" ? 1 : -1;
+        }
+
+        return 0;
+      });
+    }
+
+    return rows;
+  }, [sourceRows, search, searchableColumns, filters, sort]);
+
+  useEffect(() => {
+    onDataChange?.(filteredRows);
+  }, [filteredRows, onDataChange]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+
+  const paginatedRows = useMemo(() => {
+    const start = (safePage - 1) * pageSize;
+    return filteredRows.slice(start, start + pageSize);
+  }, [filteredRows, safePage, pageSize]);
 
   const filterGroups = useMemo(() => {
     return Object.entries(filters)
-      .map(([columnKey, values]) => {
-        const column = columns.find(
-          (currentColumn) => String(currentColumn.key) === columnKey
-        );
+      .filter(([, values]) => values.length > 0)
+      .map(([key, values]) => {
+        const column = normalizedColumns.find((item) => item.key === key);
 
         return {
-          key: columnKey,
-          label: column?.header || columnKey,
+          key,
+          label: column?.label ?? key,
           values,
           count: values.length
         };
-      })
-      .sort((a, b) => a.label.localeCompare(b.label));
-  }, [filters, columns]);
+      });
+  }, [filters, normalizedColumns]);
 
-  /**
-   * Emite el estado filtrado y ordenado hacia páginas externas.
-   */
-  useEffect(() => {
-    if (!onDataChangeRef.current) {
-      return;
+  const hasFilters = filterGroups.length > 0;
+
+  const availableFilterValues = useMemo(() => {
+    if (!filterCard) {
+      return [];
     }
 
-    const mappedSorts: SortState[] = sorts.map((sort, index) => ({
-      key: sort.key,
-      direction: sort.dir,
-      priority: index + 1
+    const values = new Set<string>();
+
+    sourceRows.forEach((row) => {
+      const value = readColumnValue(row, filterCard.key);
+
+      if (value !== null && value !== undefined && String(value).trim()) {
+        values.add(String(value));
+      }
+    });
+
+    return Array.from(values).sort((a, b) => a.localeCompare(b));
+  }, [sourceRows, filterCard]);
+
+  const selectedFilterValues = filterCard
+    ? filters[filterCard.key] ?? []
+    : [];
+
+  const toggleSort = useCallback((key: string) => {
+    setSort((current) => {
+      if (!current || current.key !== key) {
+        return {
+          key,
+          direction: "asc"
+        };
+      }
+
+      return {
+        key,
+        direction: current.direction === "asc" ? "desc" : "asc"
+      };
+    });
+  }, []);
+
+  const openFilterCard = useCallback(
+    (key: string, label: string, x: number, y: number) => {
+      setFilterCard({
+        key,
+        label,
+        x,
+        y
+      });
+    },
+    []
+  );
+
+  const setColumnVisibility = useCallback((key: string, visible: boolean) => {
+    setVisibleKeys((current) => ({
+      ...current,
+      [key]: visible
     }));
+  }, []);
 
-    const signature = JSON.stringify({
-      rowsLength: finalRows.length,
-      visibleColumns,
-      columnOrder,
-      filters,
-      sortState: mappedSorts,
-      firstRow: finalRows[0] ?? null,
-      lastRow: finalRows[finalRows.length - 1] ?? null
+  const showAllColumns = useCallback(() => {
+    setVisibleKeys((current) => {
+      const next = { ...current };
+
+      normalizedColumns.forEach((column) => {
+        next[column.key] = true;
+      });
+
+      return next;
     });
+  }, [normalizedColumns]);
 
-    if (signature === lastEmitSignatureRef.current) {
-      return;
-    }
+  const hideOptionalColumns = useCallback(() => {
+    setVisibleKeys((current) => {
+      const next = { ...current };
 
-    lastEmitSignatureRef.current = signature;
+      normalizedColumns.forEach((column, index) => {
+        next[column.key] =
+          index < 2 ||
+          column.fixed === "left" ||
+          column.fixed === "right";
+      });
 
-    onDataChangeRef.current({
-      rows: finalRows,
-      visibleColumns,
-      columnOrder,
-      filters,
-      sortState: mappedSorts
+      return next;
     });
-  }, [finalRows, visibleColumns, columnOrder, filters, sorts]);
+  }, [normalizedColumns]);
 
-    return (
-    <div className="data-table">
+  const clearFilters = useCallback(() => {
+    setFilters({});
+    setFilterCard(null);
+  }, []);
+
+  const clearSort = useCallback(() => {
+    setSort(null);
+  }, []);
+
+  const startRow =
+    filteredRows.length === 0 ? 0 : (safePage - 1) * pageSize + 1;
+
+  const endRow = Math.min(safePage * pageSize, filteredRows.length);
+
+  return (
+    <section className="data-table-shell" data-table-id={tableId}>
       <DataTableHeader
         search={search}
         setSearch={setSearch}
         loading={loading}
+        onOpenColumns={() => setShowColumnsConfig((current) => !current)}
+        showColumnsButton={columns.length > 0}
         pageSize={pageSize}
-        setPageSize={handlePageSizeChange}
-        pageSizeOptions={PAGE_SIZE_OPTIONS}
-        showColumnsButton={!disableColumnConfig}
-        onOpenColumns={() => setOpenColumnModal(true)}
+        setPageSize={setPageSize}
+        pageSizeOptions={safePageSizeOptions}
       />
 
-      <DataTableFilters
-        hasFilters={hasFilters}
-        filterGroups={filterGroups}
-        setFilters={setFilters}
-        setActiveFilterGroup={setActiveFilterGroup}
-        setOpenFiltersModal={setOpenFiltersModal}
+      {showColumnsConfig ? (
+        <div className="data-table-columns-panel">
+          <div className="data-table-columns-panel__header">
+            <div>
+              <p className="data-table-columns-panel__eyebrow">
+                Configuración
+              </p>
+              <h3>Columnas visibles</h3>
+            </div>
+
+            <button
+              type="button"
+              className="data-table-columns-panel__close"
+              onClick={() => setShowColumnsConfig(false)}
+            >
+              Cerrar
+            </button>
+          </div>
+
+          <div className="data-table-columns-panel__actions">
+            <button type="button" onClick={showAllColumns}>
+              Mostrar todas
+            </button>
+
+            <button type="button" onClick={hideOptionalColumns}>
+              Ocultar opcionales
+            </button>
+
+            <button type="button" onClick={clearSort}>
+              Quitar orden
+            </button>
+
+            <button type="button" onClick={clearFilters}>
+              Limpiar filtros
+            </button>
+          </div>
+
+          <div className="data-table-columns-panel__grid">
+            {normalizedColumns.map((column) => (
+              <label
+                key={column.key}
+                className="data-table-columns-panel__item"
+              >
+                <input
+                  type="checkbox"
+                  checked={visibleKeys[column.key] !== false}
+                  onChange={(event) =>
+                    setColumnVisibility(column.key, event.target.checked)
+                  }
+                />
+
+                <span>{column.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {hasFilters ? (
+        <div className="data-table-active-filters">
+          <div className="data-table-active-filters__list">
+            {filterGroups.map((group) => (
+              <button
+                key={group.key}
+                type="button"
+                className="data-table-active-filter"
+                onClick={(event) => {
+                  const rect = event.currentTarget.getBoundingClientRect();
+
+                  openFilterCard(
+                    group.key,
+                    group.label,
+                    rect.left,
+                    rect.bottom + 8
+                  );
+                }}
+              >
+                <span>{group.label}</span>
+                <strong>{group.count}</strong>
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            className="data-table-active-filters__clear"
+            onClick={clearFilters}
+          >
+            Limpiar filtros
+          </button>
+        </div>
+      ) : null}
+
+      {error ? (
+        <div className="data-table-error">
+          {error}
+        </div>
+      ) : null}
+
+      <DataTableTable
+        rows={paginatedRows}
+        columns={visibleColumns}
+        loading={loading}
+        emptyMessage={emptyMessage}
+        sort={sort}
+        onSort={toggleSort}
+        onOpenFilter={openFilterCard}
+        onRowDoubleClick={onRowDoubleClick}
+        rowKey={rowKey}
+        toCssSize={toCssSize}
       />
 
-      <div className="data-table__card">
-        <DataTableTable
-          rows={finalRows}
-          visibleDefs={visibleDefs}
-          sorts={sorts}
-          handleSortClick={handleSortClick}
-          setOpenColumn={setOpenColumn}
-          setCardPosition={setCardPosition}
-          onRowClick={onRowClick}
-          onRowDoubleClick={onRowDoubleClick}
-          totals={totals}
-          pageSize={pageSize}
-          onPageSizeChange={handlePageSizeChange}
-          showPageSizeSelector={false}
-          tableMode={tableMode}
-        />
+      <footer className="data-table-footer">
+        <p>
+          Mostrando <strong>{startRow}</strong> a <strong>{endRow}</strong> de{" "}
+          <strong>{filteredRows.length}</strong> registros
+        </p>
 
-        {error ? <div className="data-table-error">{error}</div> : null}
-      </div>
+        <div className="data-table-pagination">
+          <button
+            type="button"
+            disabled={safePage <= 1}
+            onClick={() => setPage((current) => Math.max(1, current - 1))}
+            aria-label="Página anterior"
+          >
+            ←
+          </button>
 
-      <ModalChips
-        open={openFiltersModal}
-        group={activeFilterGroup}
-        setFilters={setFilters}
-        setOpen={setOpenFiltersModal}
-      />
+          {Array.from({ length: totalPages }, (_, index) => index + 1).map(
+            (pageNumber) => (
+              <button
+                key={pageNumber}
+                type="button"
+                className={
+                  pageNumber === safePage
+                    ? "data-table-pagination__page data-table-pagination__page--active"
+                    : "data-table-pagination__page"
+                }
+                onClick={() => setPage(pageNumber)}
+                aria-current={pageNumber === safePage ? "page" : undefined}
+              >
+                {pageNumber}
+              </button>
+            )
+          )}
 
-      {openColumn ? (
+          <button
+            type="button"
+            disabled={safePage >= totalPages}
+            onClick={() =>
+              setPage((current) => Math.min(totalPages, current + 1))
+            }
+            aria-label="Página siguiente"
+          >
+            →
+          </button>
+        </div>
+      </footer>
+
+      {filterCard ? (
         <FilterCard
-          title={openColumn.header}
-          values={columnValues[String(openColumn.key)] || []}
-          selected={filters[String(openColumn.key)] || []}
-          openAt={cardPosition}
-          onApply={(values) =>
-            setFilters((previousFilters: Record<string, string[]>) => ({
-              ...previousFilters,
-              [String(openColumn.key)]: values
-            }))
-          }
-          onClear={() =>
-            setFilters((previousFilters: Record<string, string[]>) => {
-              const nextFilters = { ...previousFilters };
-
-              delete nextFilters[String(openColumn.key)];
-
-              return nextFilters;
-            })
-          }
-          onClose={() => setOpenColumn(null)}
+          title={filterCard.label}
+          values={availableFilterValues}
+          selected={selectedFilterValues}
+          openAt={{
+            x: filterCard.x,
+            y: filterCard.y
+          }}
+          onApply={(values: string[]) => {
+            setFilters((current) => ({
+              ...current,
+              [filterCard.key]: values
+            }));
+          }}
+          onClear={() => {
+            setFilters((current) => {
+              const next = { ...current };
+              delete next[filterCard.key];
+              return next;
+            });
+          }}
+          onClose={() => setFilterCard(null)}
         />
       ) : null}
-
-      {!disableColumnConfig ? (
-        <ColumnsModal
-          open={openColumnModal}
-          onClose={() => setOpenColumnModal(false)}
-          columns={columns.map((column) => ({
-            key: String(column.key),
-            header: column.header
-          }))}
-          columnOrder={columnOrder}
-          visibleColumns={visibleColumns}
-          sorts={sorts}
-          uniqueColumns={uniqueColumns}
-          onToggleColumn={(key) => {
-            setVisibleColumns((previousColumns) =>
-              previousColumns.includes(key)
-                ? previousColumns.filter((item) => item !== key)
-                : [...previousColumns, key]
-            );
-          }}
-          onSelectAll={() => setVisibleColumns(columnKeys)}
-          onClearAll={() => setVisibleColumns([])}
-          onReset={() => {
-            setVisibleColumns(columnKeys);
-            setColumnOrder(columnKeys);
-            setSorts([]);
-            setUniqueColumns([]);
-          }}
-          onChangeSorts={(nextSorts) => {
-            setSorts(nextSorts);
-          }}
-          onChangeUniqueColumns={(nextUniqueColumns) => {
-            setUniqueColumns(nextUniqueColumns);
-          }}
-          onClearSorts={() => setSorts([])}
-          onReorderColumns={(nextColumnOrder) => {
-            setColumnOrder(nextColumnOrder);
-          }}
-        />
-      ) : null}
-    </div>
+    </section>
   );
-  
 }

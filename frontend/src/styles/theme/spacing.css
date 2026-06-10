@@ -1,0 +1,31 @@
+/* ======================================================
+   PATH: src/styles/theme/spacing.css
+   Tokens globales de espaciado y controles
+   ====================================================== */
+
+/**
+ * Responsabilidades:
+ * - Definir alturas estándar de controles.
+ * - Definir escala global de espaciado.
+ * - Mantener espaciados consistentes entre componentes.
+ *
+ * No debe:
+ * - Definir layout específico de pantallas.
+ * - Estilizar componentes concretos.
+ * - Definir colores o tipografías.
+ */
+
+:root {
+  --control-height-sm: calc(1.8rem * var(--app-scale));
+  --control-height-md: calc(2.2rem * var(--app-scale));
+  --control-height-lg: calc(2.5rem * var(--app-scale));
+
+  --space-2xs: calc(0.2rem * var(--app-scale));
+  --space-xs: calc(0.3rem * var(--app-scale));
+  --space-sm: calc(0.42rem * var(--app-scale));
+  --space-md: calc(0.65rem * var(--app-scale));
+  --space-lg: calc(0.85rem * var(--app-scale));
+  --space-xl: calc(1.2rem * var(--app-scale));
+  --space-2xl: calc(1.6rem * var(--app-scale));
+  --space-3xl: calc(3rem * var(--app-scale));
+}

@@ -1,5 +1,5 @@
 // ======================================================
-// PATH: src/modules/permisos/pages/PermisosPage.tsx
+// PATH: src/modules/permisos/PermisosPage.tsx
 // Pantalla de administración de permisos
 // ======================================================
 
@@ -11,6 +11,7 @@
  * - Usar permission_key como identificador real del permiso.
  * - Usar el modal global ConfirmActionModal para confirmar acciones sensibles.
  * - Mostrar retroalimentación visual de éxito o error al terminar acciones.
+ * - Usar el componente global Page para estandarizar estructura visual.
  *
  * No debe:
  * - Definir el layout principal de la aplicación.
@@ -18,12 +19,14 @@
  * - Consultar permisos de sesión directamente.
  * - Usar id, porque app_permission no tiene columna id.
  * - Usar window.confirm para confirmaciones del sistema.
+ * - Estilizar internamente el DataTable.
  */
 
 import { useEffect, useMemo, useState } from "react";
 
 import {
   ActionFeedbackModal,
+  Page,
   PageHeader,
   useConfirmAction
 } from "../../shared/ui";
@@ -112,6 +115,13 @@ function replacePermissionByKey(
 }
 
 /**
+ * Obtiene un mensaje legible a partir de un error desconocido.
+ */
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
+
+/**
  * Pantalla principal de administración de permisos.
  */
 export default function PermisosPage() {
@@ -176,13 +186,6 @@ export default function PermisosPage() {
    */
   function closeFeedback(): void {
     setFeedback(CLOSED_FEEDBACK);
-  }
-
-  /**
-   * Obtiene un mensaje legible a partir de un error desconocido.
-   */
-  function getErrorMessage(error: unknown, fallback: string): string {
-    return error instanceof Error ? error.message : fallback;
   }
 
   /**
@@ -320,7 +323,9 @@ export default function PermisosPage() {
   /**
    * Activa o desactiva un permiso usando confirmación global.
    */
-  async function handleToggleStatus(permission: PermissionDto): Promise<void> {
+  async function handleToggleStatus(
+    permission: PermissionDto
+  ): Promise<void> {
     const confirmed = await confirmAction({
       variant: permission.is_active ? "warning" : "success",
       title: permission.is_active
@@ -413,49 +418,53 @@ export default function PermisosPage() {
   }
 
   return (
-    <main className="permissions-page">
-      <PageHeader
-        eyebrow="Administración"
-        section="Permisos"
-        title="Permisos del sistema"
-        description="Consulta, organiza y administra los permisos disponibles para controlar el acceso a módulos, vistas y acciones dentro de NominaCes."
-        action={{
-          label: "Nuevo permiso",
-          icon: "+",
-          onClick: openCreateModal,
-          disabled: saving
-        }}
-       
-        metrics={[
-          {
-            label: "Total",
-            value: totalPermissions,
-            variant: "neutral"
-          },
-          {
-            label: "Activos",
-            value: activePermissions,
-            variant: "success"
-          },
-          {
-            label: "Inactivos",
-            value: inactivePermissions,
-            variant: "danger"
-          },
-          {
-            label: "Módulos",
-            value: moduleCount,
-            variant: "info"
-          }
-        ]}
-      />
-
-      {pageError ? (
-        <div className="permissions-alert" role="alert">
-          {pageError}
-        </div>
-      ) : null}
-
+    <>
+      <Page
+        contentVariant="table"
+        alert={
+          pageError ? (
+            <div className="page-error" role="alert">
+              {pageError}
+            </div>
+          ) : null
+        }
+        header={
+          <PageHeader
+            eyebrow="Administración"
+            section="Permisos"
+            title="Permisos del sistema"
+            description="Consulta, organiza y administra los permisos disponibles para controlar el acceso a módulos, vistas y acciones dentro de NominaCes."
+            action={{
+              label: "Nuevo permiso",
+              icon: "+",
+              onClick: openCreateModal,
+              disabled: saving
+            }}
+            metrics={[
+              {
+                label: "Total",
+                value: totalPermissions,
+                variant: "neutral"
+              },
+              {
+                label: "Activos",
+                value: activePermissions,
+                variant: "success"
+              },
+              {
+                label: "Inactivos",
+                value: inactivePermissions,
+                variant: "danger"
+              },
+              {
+                label: "Módulos",
+                value: moduleCount,
+                variant: "info"
+              }
+            ]}
+          />
+        }
+      >
         <PermissionsTable
           permissions={permissions}
           loading={loadingList}
@@ -463,6 +472,7 @@ export default function PermisosPage() {
           onToggleStatus={handleToggleStatus}
           onDelete={handleDelete}
         />
+      </Page>
 
       <PermissionFormModal
         open={modal.open}
@@ -481,6 +491,6 @@ export default function PermisosPage() {
         message={feedback.message}
         onClose={closeFeedback}
       />
-    </main>
+    </>
   );
 }

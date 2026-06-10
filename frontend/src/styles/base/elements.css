@@ -1,0 +1,83 @@
+/* ======================================================
+   PATH: src/styles/base/elements.css
+   Elementos HTML base
+   ====================================================== */
+
+/**
+ * Responsabilidades:
+ * - Definir estilos mínimos de elementos HTML.
+ * - Mantener controles heredando tipografía global.
+ * - Normalizar títulos, párrafos, imágenes, enlaces y tablas.
+ *
+ * No debe:
+ * - Definir estilos visuales de componentes.
+ * - Definir clases utilitarias.
+ * - Definir reglas específicas de módulos.
+ */
+
+button,
+input,
+select,
+textarea {
+  margin: 0;
+
+  color: inherit;
+  font: inherit;
+}
+
+button {
+  border: 0;
+
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+input,
+select,
+textarea {
+  min-width: 0;
+}
+
+textarea {
+  resize: vertical;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img,
+svg {
+  display: block;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-top: 0;
+
+  font-family: var(--font-family-heading);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-title);
+  letter-spacing: var(--letter-spacing-title);
+}
+
+p {
+  margin-top: 0;
+}
+
+table {
+  border-spacing: 0;
+}

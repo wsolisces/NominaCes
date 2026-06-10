@@ -1,0 +1,23 @@
+/* ======================================================
+   PATH: src/styles/theme/radius.css
+   Tokens globales de radios
+   ====================================================== */
+
+/**
+ * Responsabilidades:
+ * - Definir radios reutilizables para controles, cards y modales.
+ * - Mantener redondeos consistentes en todo el sistema.
+ *
+ * No debe:
+ * - Aplicar estilos visuales directamente.
+ * - Definir colores, sombras o tamaños de fuente.
+ */
+
+:root {
+  --radius-sm: 0.42rem;
+  --radius-md: 0.62rem;
+  --radius-lg: 0.82rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --radius-pill: 999px;
+}

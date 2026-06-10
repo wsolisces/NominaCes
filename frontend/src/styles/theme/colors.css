@@ -1,50 +1,24 @@
 /* ======================================================
    PATH: src/styles/theme/colors.css
-   Paleta oficial del sistema NominaCes
+   Paleta global del sistema NominaCes
    ====================================================== */
 
 /**
  * Responsabilidades:
- * - Centralizar todos los colores utilizados por el sistema.
- * - Mantener negro obligatorio para el sidebar.
- * - Definir colores corporativos, semánticos y de estado.
- * - Proporcionar variables reutilizables para componentes.
- * - Evitar colores escritos directamente fuera de este archivo.
+ * - Definir colores corporativos y semánticos reutilizables.
+ * - Centralizar superficies, textos, bordes y estados visuales.
+ * - Mantener compatibilidad con componentes existentes.
  *
  * No debe:
- * - Contener estilos de componentes.
- * - Contener reglas específicas de páginas.
- * - Definir tamaños, espacios, bordes o tipografías.
+ * - Estilizar componentes concretos.
+ * - Definir tamaños, radios, sombras o espaciados.
+ * - Usar reglas específicas de módulos.
  */
 
 :root {
-  /* ======================================================
-     COLORES BASE
-     ====================================================== */
-
+  --color-transparent: transparent;
   --color-white: #ffffff;
   --color-black: #000000;
-  --color-transparent: transparent;
-
-  /* ======================================================
-     ESCALA NEUTRA CORPORATIVA
-     ====================================================== */
-
-  --color-neutral-25: #fcfcfb;
-  --color-neutral-50: #f7f7f5;
-  --color-neutral-100: #f1f0ed;
-  --color-neutral-200: #e5e0db;
-  --color-neutral-300: #d8d1ca;
-  --color-neutral-400: #b5aaa0;
-  --color-neutral-500: #8b8178;
-  --color-neutral-600: #6b625b;
-  --color-neutral-700: #4b4540;
-  --color-neutral-800: #292623;
-  --color-neutral-900: #171513;
-
-  /* ======================================================
-     ESCALA SLATE / UI FRÍA
-     ====================================================== */
 
   --color-slate-50: #f8fafc;
   --color-slate-100: #f1f5f9;
@@ -58,27 +32,6 @@
   --color-slate-900: #0f172a;
   --color-slate-950: #020617;
 
-  /* ======================================================
-     ESCALA AZUL CORPORATIVA
-     ====================================================== */
-
-  --color-blue-25: #f7fafc;
-  --color-blue-50: #edf3f8;
-  --color-blue-100: #dfeaf4;
-  --color-blue-200: #cfdbe7;
-  --color-blue-300: #a9c3da;
-  --color-blue-400: #78a7d1;
-  --color-blue-500: #5f91bf;
-  --color-blue-600: #3e628a;
-  --color-blue-700: #294f7d;
-  --color-blue-800: #23456f;
-  --color-blue-900: #17345f;
-  --color-blue-950: #1d2635;
-
-  /* ======================================================
-     ESCALA AZUL SISTEMA / COMPONENTES UI
-     ====================================================== */
-
   --color-system-blue-50: #eff6ff;
   --color-system-blue-100: #dbeafe;
   --color-system-blue-200: #bfdbfe;
@@ -89,246 +42,49 @@
   --color-system-blue-700: #1d4ed8;
   --color-system-blue-800: #1e40af;
   --color-system-blue-900: #1e3a8a;
-  --color-system-blue-950: #172554;
 
-  /* ======================================================
-     ESCALA NARANJA CORPORATIVA
-     ====================================================== */
-
-  --color-orange-50: #fff7f0;
-  --color-orange-100: #ffead8;
-  --color-orange-200: #f8cfad;
-  --color-orange-300: #efa870;
-  --color-orange-400: #e4863d;
-  --color-orange-500: #d67129;
-  --color-orange-600: #bd5f1f;
-  --color-orange-700: #994817;
-  --color-orange-800: #773815;
-  --color-orange-900: #612f16;
-
-  /* ======================================================
-     ESCALA VERDE
-     ====================================================== */
-
-  --color-green-50: #f0f7f2;
-  --color-green-100: #e0eee4;
-  --color-green-200: #bfdcc8;
-  --color-green-300: #96c1a3;
-  --color-green-400: #68a17a;
-  --color-green-500: #47875d;
-  --color-green-600: #2f7d46;
-  --color-green-700: #29633b;
-  --color-green-800: #244f32;
-  --color-green-900: #21231e;
-
-  /* ======================================================
-     ESCALA ROJA
-     ====================================================== */
-
-  --color-red-50: #fef2f2;
-  --color-red-100: #fee2e2;
-  --color-red-200: #fecaca;
-  --color-red-500: #ef4444;
-  --color-red-600: #dc2626;
-  --color-red-700: #b91c1c;
-  --color-red-800: #991b1b;
-
-  /* ======================================================
-     IDENTIDAD CORPORATIVA
-     ====================================================== */
-
-  --color-cream: #f1e6da;
-  --color-warm-gray: var(--color-neutral-400);
-  --color-coffee: #4b392a;
-
-  --color-orange: var(--color-orange-500);
-  --color-blue-dark: var(--color-blue-950);
-  --color-green-soft: #8ca082;
-  --color-green-dark: var(--color-green-900);
-
-  /* ======================================================
-     FONDOS Y SUPERFICIES
-     ====================================================== */
-
-  --color-app-bg: var(--color-neutral-50);
-
-  --color-surface: var(--color-white);
-  --color-surface-soft: var(--color-neutral-25);
-  --color-surface-muted: var(--color-neutral-100);
-
-  --color-surface-cold: var(--color-slate-50);
-  --color-surface-cold-hover: var(--color-slate-100);
-  --color-surface-cold-active: var(--color-slate-200);
-
-  --color-surface-blue: var(--color-blue-50);
-  --color-surface-blue-hover: var(--color-blue-100);
-  --color-surface-blue-active: var(--color-blue-200);
-
-  --color-surface-ui-blue: var(--color-system-blue-50);
-  --color-surface-ui-blue-hover: var(--color-system-blue-100);
-  --color-surface-ui-blue-active: var(--color-system-blue-200);
-
-  /* ======================================================
-     BORDES
-     ====================================================== */
-
-  --color-border-soft: var(--color-neutral-100);
-  --color-border: var(--color-neutral-200);
-  --color-border-strong: var(--color-neutral-300);
-
-  --color-border-cold-soft: var(--color-slate-100);
-  --color-border-cold: var(--color-slate-200);
-  --color-border-cold-strong: var(--color-slate-300);
-
-  --color-border-blue-soft: var(--color-blue-100);
-  --color-border-blue: var(--color-blue-200);
-  --color-border-blue-strong: var(--color-blue-400);
-
-  --color-border-ui-blue-soft: var(--color-system-blue-100);
-  --color-border-ui-blue: var(--color-system-blue-200);
-  --color-border-ui-blue-strong: var(--color-system-blue-400);
-
-  /* ======================================================
-     TEXTO
-     ====================================================== */
-
-  --color-text-primary: var(--color-slate-900);
-  --color-text-secondary: var(--color-slate-600);
-  --color-text-muted: var(--color-slate-500);
-  --color-text-disabled: var(--color-slate-400);
-  --color-text-inverse: var(--color-white);
-
-  --color-text-neutral: var(--color-neutral-700);
-  --color-text-neutral-strong: var(--color-neutral-900);
-
-  --color-text-blue: var(--color-system-blue-700);
-  --color-text-blue-strong: var(--color-system-blue-900);
-
-  /* ======================================================
-     ACCIONES PRINCIPALES
-     ====================================================== */
-
-  --color-primary: var(--color-system-blue-900);
-  --color-primary-hover: var(--color-system-blue-950);
-  --color-primary-active: var(--color-system-blue-800);
-
-  --color-primary-soft: var(--color-system-blue-50);
-  --color-primary-soft-hover: var(--color-system-blue-100);
-
-  --color-primary-border: var(--color-system-blue-300);
+  --color-primary: var(--color-system-blue-700);
+  --color-primary-hover: var(--color-system-blue-800);
+  --color-primary-active: var(--color-system-blue-900);
   --color-primary-contrast: var(--color-white);
+  --color-primary-soft: #eef4ff;
+  --color-primary-border: #c9d9ff;
 
-  /* ======================================================
-     ACENTOS
-     ====================================================== */
+  --color-blue-dark: var(--color-slate-950);
+  --color-accent-border: var(--color-system-blue-500);
 
-  --color-accent: var(--color-system-blue-700);
-  --color-accent-hover: var(--color-system-blue-800);
-  --color-accent-active: var(--color-system-blue-900);
+  --color-success: #0f7a3e;
+  --color-success-soft: #e8f7ee;
+  --color-success-border: #bce8cb;
 
-  --color-accent-soft: var(--color-system-blue-50);
-  --color-accent-soft-hover: var(--color-system-blue-100);
-  --color-accent-border: var(--color-system-blue-300);
+  --color-danger: #dc2626;
+  --color-danger-soft: #fff1f1;
+  --color-danger-border: #fecaca;
 
-  /* Naranja disponible únicamente para detalles corporativos. */
-  --color-corporate-accent: var(--color-orange-500);
-  --color-corporate-accent-hover: var(--color-orange-600);
-  --color-corporate-accent-soft: var(--color-orange-50);
+  --color-warning: #b45309;
+  --color-warning-soft: #fff7ed;
+  --color-warning-border: #fed7aa;
 
-  /* ======================================================
-     ALIASES PARA COMPONENTES UI
-     ====================================================== */
-
-  --color-ui-title: var(--color-slate-900);
-  --color-ui-subtitle: var(--color-slate-700);
-  --color-ui-text: var(--color-slate-600);
+  --color-ui-title: var(--color-slate-950);
+  --color-ui-text: var(--color-slate-700);
+  --color-ui-subtitle: var(--color-slate-600);
   --color-ui-muted: var(--color-slate-500);
-  --color-ui-disabled: var(--color-slate-400);
-
-  --color-ui-border-soft: var(--color-slate-200);
-  --color-ui-border: var(--color-slate-300);
-  --color-ui-border-strong: var(--color-slate-400);
-
-  --color-ui-blue: var(--color-system-blue-700);
-  --color-ui-blue-hover: var(--color-system-blue-950);
-  --color-ui-blue-soft: var(--color-system-blue-50);
-  --color-ui-blue-border: var(--color-system-blue-200);
 
   --color-ui-surface: var(--color-white);
-  --color-ui-surface-soft: var(--color-slate-50);
-  --color-ui-surface-muted: var(--color-slate-100);
+  --color-ui-surface-soft: #f8fafc;
+  --color-ui-surface-muted: #f1f5f9;
+  --color-ui-surface-hover: #fbfdff;
 
-  /* ======================================================
-     SIDEBAR
-     ====================================================== */
+  --color-ui-border: #dbe3ef;
+  --color-ui-border-soft: #e5ebf3;
 
-  --color-sidebar-bg: var(--color-black);
-  --color-sidebar-surface: #0d0d0d;
-  --color-sidebar-hover: #1a1a1a;
-  --color-sidebar-focus: #2a2a2a;
-  --color-sidebar-active: var(--color-green-dark);
+  --color-app-bg: #f6f8fc;
 
-  --color-sidebar-border: rgba(255, 255, 255, 0.1);
-  --color-sidebar-text: rgba(255, 255, 255, 0.88);
-  --color-sidebar-muted: rgba(255, 255, 255, 0.58);
+  --shadow-ui-soft: 0 0.55rem 1.25rem rgba(15, 23, 42, 0.07);
+  --shadow-primary-soft: 0 0.65rem 1.35rem rgba(37, 99, 235, 0.22);
+  --shadow-primary-hover: 0 0.85rem 1.65rem rgba(37, 99, 235, 0.28);
 
-  --color-sidebar-accent: var(--color-blue-400);
-
-  /* ======================================================
-     ESTADO: ÉXITO
-     ====================================================== */
-
-  --color-success: var(--color-green-600);
-  --color-success-hover: var(--color-green-700);
-  --color-success-soft: var(--color-green-50);
-  --color-success-border: var(--color-green-200);
-
-  /* ======================================================
-     ESTADO: ADVERTENCIA
-     ====================================================== */
-
-  --color-warning: var(--color-orange-500);
-  --color-warning-hover: var(--color-orange-600);
-  --color-warning-soft: var(--color-orange-50);
-  --color-warning-border: var(--color-orange-200);
-
-  /* ======================================================
-     ESTADO: ERROR
-     ====================================================== */
-
-  --color-danger: var(--color-red-600);
-  --color-danger-hover: var(--color-red-700);
-  --color-danger-soft: var(--color-red-50);
-  --color-danger-border: var(--color-red-200);
-
-  /* ======================================================
-     ESTADO: INFORMACIÓN
-     ====================================================== */
-
-  --color-info: var(--color-system-blue-700);
-  --color-info-hover: var(--color-system-blue-800);
-  --color-info-soft: var(--color-system-blue-50);
-  --color-info-border: var(--color-system-blue-200);
-
-  /* ======================================================
-     TRANSPARENCIAS, SOMBRAS Y FOCUS
-     ====================================================== */
-
-  --color-overlay-soft: rgba(15, 23, 42, 0.18);
-  --color-overlay: rgba(15, 23, 42, 0.38);
-  --color-overlay-strong: rgba(15, 23, 42, 0.55);
-
-  --color-focus-soft: rgba(37, 99, 235, 0.14);
-  --color-focus: rgba(37, 99, 235, 0.32);
-  --color-focus-strong: rgba(29, 78, 216, 0.48);
-
-  --shadow-primary-soft: 0 8px 18px rgba(30, 58, 138, 0.18);
-  --shadow-primary-hover: 0 12px 22px rgba(30, 58, 138, 0.24);
-  --shadow-primary-active: 0 7px 14px rgba(30, 58, 138, 0.18);
-
-  --shadow-ui-soft: 0 10px 24px rgba(15, 23, 42, 0.08);
-  --shadow-ui-medium: 0 16px 34px rgba(15, 23, 42, 0.12);
-  --shadow-ui-strong: 0 22px 50px rgba(15, 23, 42, 0.16);
-
-  --focus-ring: 0 0 0 3px var(--color-focus-soft);
+  --focus-ring:
+    0 0 0 0.18rem rgba(37, 99, 235, 0.14),
+    0 0.35rem 1rem rgba(15, 23, 42, 0.08);
 }

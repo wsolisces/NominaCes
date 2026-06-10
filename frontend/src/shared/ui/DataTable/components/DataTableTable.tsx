@@ -5,304 +5,119 @@
 
 /**
  * Responsabilidades:
- * - Renderizar encabezados, filas, totales y paginación.
+ * - Renderizar encabezados, filas y celdas del DataTable.
  * - Mantener compatibilidad con filas y columnas genéricas.
- * - Permitir abrir filtros por columna.
- * - Permitir ordenar mediante click derecho.
- * - Soportar modos visuales scroll y fit.
+ * - Abrir filtros por columna con un click.
+ * - Ordenar columnas con doble click.
  * - Soportar columnas fijas a izquierda o derecha.
- * - Soportar columnas compactas reutilizables.
- * - Delegar la paginación visual al componente PaginacionTable.
+ * - Mostrar estados de carga y vacío.
  *
  * No debe:
  * - Filtrar datos.
  * - Ordenar datos directamente.
+ * - Paginar registros.
  * - Persistir configuración.
  * - Consultar APIs.
- * - Renderizar selector de registros por página.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useRef } from "react";
 
-import type {
-  CSSProperties,
-  MouseEvent,
-  ReactNode
-} from "react";
+import type { ReactNode } from "react";
 
-import PaginacionTable from "./PaginacionTable";
+import type { ColumnDef } from "../DataTable";
 
-/**
- * Modos visuales permitidos para la tabla.
- */
-type TableMode = "scroll" | "fit";
-
-/**
- * Posiciones sticky permitidas por columna.
- */
-type StickyPosition = "left" | "right";
-
-/**
- * Definición interna compatible con columnas genéricas.
- */
-type DataTableColumn<T extends Record<string, unknown>> = {
-  key: keyof T | string;
-  header: string;
-  width?: number | string;
-  align?: "left" | "center" | "right";
-  cell?: (row: T, rowIndex: number) => ReactNode;
-  disableSort?: boolean;
-  isTotal?: boolean;
-  wrap?: boolean;
-  fitWidth?: number | string;
-  sticky?: StickyPosition;
-  stickyOffset?: number;
-  compact?: boolean;
-};
-
-/**
- * Definición interna de un ordenamiento activo.
- */
-type DataTableSort = {
+type SortState = {
   key: string;
-  dir: "asc" | "desc";
+  direction: "asc" | "desc";
+} | null;
+
+type NormalizedColumn<T extends Record<string, unknown>> = ColumnDef<T> & {
+  key: string;
+  sortable: boolean;
+  filterable: boolean;
+  visible: boolean;
 };
 
-/**
- * Props de la tabla visual interna.
- */
-type DataTableTableProps<T extends Record<string, unknown>> = {
+export type DataTableTableProps<T extends Record<string, unknown>> = {
   rows: T[];
-  visibleDefs: DataTableColumn<T>[];
-  sorts: DataTableSort[];
-  handleSortClick: (key: string, event: MouseEvent) => void;
-  setOpenColumn: (column: DataTableColumn<T>) => void;
-  setCardPosition: (position: { x: number; y: number }) => void;
-  onRowClick?: (row: T, rowIndex: number) => void;
-  onRowDoubleClick?: (row: T, rowIndex: number) => void;
-  totals?: Record<string, number>;
-  pageSize?: number;
-  onPageSizeChange?: (value: number) => void;
-  showPageSizeSelector?: boolean;
-  tableMode?: TableMode;
+  columns: NormalizedColumn<T>[];
+  loading: boolean;
+  emptyMessage: string;
+  sort: SortState;
+  onSort: (key: string) => void;
+  onOpenFilter: (
+    key: string,
+    label: string,
+    x: number,
+    y: number
+  ) => void;
+  onRowDoubleClick?: (row: T) => void;
+  rowKey?: (row: T, index: number) => string;
+  toCssSize: (value?: number | string) => string | undefined;
 };
 
 /**
- * Convierte un ancho numérico a pixeles.
+ * Lee el contenido visible de una celda.
  */
-function getColumnWidth(width?: number | string): string | undefined {
-  if (width === undefined || width === null) {
-    return undefined;
-  }
-
-  return typeof width === "number" ? `${width}px` : width;
-}
-
-/**
- * Calcula el ancho compacto como el doble del encabezado.
- */
-function getCompactHeaderWidth<T extends Record<string, unknown>>(
-  column: DataTableColumn<T>
-): string {
-  const headerLength = String(column.header || "").trim().length;
-  const safeLength = Math.max(headerLength, 4);
-
-  return `${safeLength * 2}ch`;
-}
-
-/**
- * Devuelve texto utilizable como tooltip.
- */
-function getTextTitle(value: unknown): string | undefined {
-  if (value === null || value === undefined) {
-    return undefined;
-  }
-
-  if (typeof value === "string" || typeof value === "number") {
-    return String(value);
-  }
-
-  return undefined;
-}
-
-/**
- * Obtiene un valor de fila utilizando una clave normalizada.
- */
-function getRowValue<T extends Record<string, unknown>>(
+function renderCellValue<T extends Record<string, unknown>>(
   row: T,
-  key: keyof T | string
-): unknown {
-  return row[String(key)];
+  column: NormalizedColumn<T>
+): ReactNode {
+  if (column.render) {
+    return column.render(row);
+  }
+
+  const value = row[column.key];
+
+  if (value === null || value === undefined || value === "") {
+    return "—";
+  }
+
+  return String(value);
 }
 
 /**
- * Genera una clave estable para una fila.
+ * Obtiene la clase de alineación de una columna.
  */
-function getRowKey<T extends Record<string, unknown>>(
-  row: T,
-  rowIndex: number
+function getAlignClass(align?: "left" | "center" | "right"): string {
+  if (align === "center") {
+    return "data-table-cell--center";
+  }
+
+  if (align === "right") {
+    return "data-table-cell--right";
+  }
+
+  return "data-table-cell--left";
+}
+
+/**
+ * Obtiene la clase de columna fija.
+ */
+function getFixedClass(fixed?: "left" | "right"): string {
+  if (fixed === "left") {
+    return "data-table-cell--fixed-left";
+  }
+
+  if (fixed === "right") {
+    return "data-table-cell--fixed-right";
+  }
+
+  return "";
+}
+
+/**
+ * Obtiene el indicador visual de ordenamiento.
+ */
+function getSortSymbol(
+  isSorted: boolean,
+  direction?: "asc" | "desc"
 ): string {
-  const rowKey = getRowValue(row, "row_key");
-
-  if (rowKey !== undefined && rowKey !== null) {
-    return String(rowKey);
+  if (!isSorted) {
+    return "↕";
   }
 
-  const permissionKey = getRowValue(row, "permission_key");
-
-  if (permissionKey !== undefined && permissionKey !== null) {
-    return `permission-${String(permissionKey)}-${rowIndex}`;
-  }
-
-  const id = getRowValue(row, "id");
-
-  if (id !== undefined && id !== null) {
-    return `id-${String(id)}-${rowIndex}`;
-  }
-
-  const employeeId = getRowValue(row, "employee_id");
-
-  if (employeeId !== undefined && employeeId !== null) {
-    const parts = [
-      employeeId,
-      getRowValue(row, "payroll_type_name"),
-      getRowValue(row, "end_period"),
-      getRowValue(row, "rule_id"),
-      rowIndex
-    ];
-
-    return `employee-${parts
-      .filter((value) => value !== undefined && value !== null)
-      .map(String)
-      .join("-")}`;
-  }
-
-  const groupKey = getRowValue(row, "group_key");
-
-  if (groupKey !== undefined && groupKey !== null) {
-    return `group-${String(groupKey)}-${rowIndex}`;
-  }
-
-  return `row-${rowIndex}`;
-}
-
-/**
- * Calcula el ancho porcentual de una columna para modo fit.
- */
-function getFitColumnWidth<T extends Record<string, unknown>>(
-  column: DataTableColumn<T>,
-  columnCount: number
-): string {
-  if (column.fitWidth !== undefined) {
-    return getColumnWidth(column.fitWidth) ?? "auto";
-  }
-
-  if (typeof column.width === "string" && column.width.includes("%")) {
-    return column.width;
-  }
-
-  return `${100 / Math.max(columnCount, 1)}%`;
-}
-
-/**
- * Calcula el desplazamiento sticky.
- */
-function getStickyOffset<T extends Record<string, unknown>>(
-  column: DataTableColumn<T>
-): number {
-  if (typeof column.stickyOffset === "number") {
-    return column.stickyOffset;
-  }
-
-  return 0;
-}
-
-/**
- * Genera clases sticky para th y td.
- */
-function getStickyClass<T extends Record<string, unknown>>(
-  column: DataTableColumn<T>
-): string {
-  if (!column.sticky) {
-    return "";
-  }
-
-  return column.sticky === "left"
-    ? "data-table-table__cell--sticky-left"
-    : "data-table-table__cell--sticky-right";
-}
-
-/**
- * Genera los estilos mínimos necesarios para una celda.
- */
-function getCellStyle<T extends Record<string, unknown>>(
-  column: DataTableColumn<T>,
-  tableMode: TableMode
-): CSSProperties {
-  const width = column.compact
-    ? getCompactHeaderWidth(column)
-    : getColumnWidth(column.width);
-
-  const defaultMinWidth = column.compact ? width : "78px";
-  const defaultMaxWidth = column.compact ? width : "220px";
-
-  const baseStyle: CSSProperties =
-    tableMode === "scroll"
-      ? {
-          width: width ?? "auto",
-          minWidth: width ?? defaultMinWidth,
-          maxWidth: width ?? defaultMaxWidth,
-          textAlign: column.align ?? "left"
-        }
-      : {
-          width: "auto",
-          minWidth: column.compact ? width : 0,
-          maxWidth: column.compact ? width : "none",
-          textAlign: column.align ?? "left"
-        };
-
-  if (!column.sticky) {
-    return baseStyle;
-  }
-
-  const offset = getStickyOffset(column);
-
-  return {
-    ...baseStyle,
-    position: "sticky",
-    zIndex: 3,
-    left: column.sticky === "left" ? offset : undefined,
-    right: column.sticky === "right" ? offset : undefined
-  };
-}
-
-/**
- * Genera las clases de contenido de una celda.
- */
-function getContentClass<T extends Record<string, unknown>>(
-  column: DataTableColumn<T>,
-  tableMode: TableMode
-): string {
-  const alignClass =
-    `data-table-table__content--${column.align ?? "left"}`;
-
-  const wrapClass =
-    column.compact || tableMode === "fit" || column.wrap
-      ? "data-table-table__content--wrap"
-      : "data-table-table__content--truncate";
-
-  const compactClass = column.compact
-    ? "data-table-table__content--compact"
-    : "";
-
-  return [
-    "data-table-table__content",
-    alignClass,
-    wrapClass,
-    compactClass
-  ]
-    .filter(Boolean)
-    .join(" ");
+  return direction === "asc" ? "↑" : "↓";
 }
 
 /**
@@ -310,155 +125,122 @@ function getContentClass<T extends Record<string, unknown>>(
  */
 export default function DataTableTable<T extends Record<string, unknown>>({
   rows,
-  visibleDefs,
-  sorts,
-  handleSortClick,
-  setOpenColumn,
-  setCardPosition,
-  onRowClick,
+  columns,
+  loading,
+  emptyMessage,
+  sort,
+  onSort,
+  onOpenFilter,
   onRowDoubleClick,
-  totals,
-  pageSize: controlledPageSize,
-  tableMode = "scroll"
+  rowKey,
+  toCssSize
 }: DataTableTableProps<T>) {
+  const clickTimerRef = useRef<number | null>(null);
+
   const safeRows = Array.isArray(rows) ? rows : [];
-  const safeVisibleDefs = Array.isArray(visibleDefs) ? visibleDefs : [];
-
-  const hasTotals = safeVisibleDefs.some((column) => column.isTotal);
-
-  const internalPageSize = 10;
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const normalizedControlledPageSize = Number(controlledPageSize);
-
-  const pageSize =
-    Number.isFinite(normalizedControlledPageSize) &&
-    normalizedControlledPageSize > 0
-      ? normalizedControlledPageSize
-      : internalPageSize;
-
-  const totalRows = safeRows.length;
-  const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
-  const safePage = Math.min(Math.max(currentPage, 1), totalPages);
-
-  const startIndex = totalRows === 0 ? 0 : (safePage - 1) * pageSize;
-  const endIndex = Math.min(startIndex + pageSize, totalRows);
-
-  const pageRows = useMemo(() => {
-    return safeRows.slice(startIndex, endIndex);
-  }, [safeRows, startIndex, endIndex]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [safeRows, pageSize]);
-
-  useEffect(() => {
-    setCurrentPage((previous) => Math.min(Math.max(previous, 1), totalPages));
-  }, [totalPages]);
+  const safeColumns = Array.isArray(columns) ? columns : [];
+  const columnCount = Math.max(safeColumns.length, 1);
 
   /**
-   * Cambia a la página anterior.
+   * Abre el filtro con un click simple.
    */
-  function goToPreviousPage(): void {
-    setCurrentPage((previous) => Math.max(1, previous - 1));
+  function handleHeaderClick(
+    column: NormalizedColumn<T>,
+    rect: DOMRect
+  ): void {
+    if (!column.filterable) {
+      return;
+    }
+
+    if (clickTimerRef.current !== null) {
+      window.clearTimeout(clickTimerRef.current);
+    }
+
+    clickTimerRef.current = window.setTimeout(() => {
+      onOpenFilter(
+        column.key,
+        column.label,
+        rect.left,
+        rect.bottom + 8
+      );
+
+      clickTimerRef.current = null;
+    }, 180);
   }
 
   /**
-   * Cambia a la página siguiente.
+   * Ordena con doble click y evita abrir el filtro.
    */
-  function goToNextPage(): void {
-    setCurrentPage((previous) => Math.min(totalPages, previous + 1));
-  }
+  function handleHeaderDoubleClick(column: NormalizedColumn<T>): void {
+    if (clickTimerRef.current !== null) {
+      window.clearTimeout(clickTimerRef.current);
+      clickTimerRef.current = null;
+    }
 
-  const rowsAreClickable = Boolean(onRowClick || onRowDoubleClick);
+    if (column.sortable) {
+      onSort(column.key);
+    }
+  }
 
   return (
-    <div className="data-table-table">
-      <div
-        className={[
-          "data-table-table__scroll",
-          tableMode === "fit" ? "data-table-table__scroll--fit" : ""
-        ]
-          .filter(Boolean)
-          .join(" ")}
-      >
-        <table
-          className={[
-            "data-table-table__table",
-            tableMode === "fit"
-              ? "data-table-table__table--fit"
-              : "data-table-table__table--scroll"
-          ].join(" ")}
-        >
-          {tableMode === "fit" ? (
-            <colgroup>
-              {safeVisibleDefs.map((column) => (
-                <col
-                  key={`column-${String(column.key)}`}
-                  style={{
-                    width: getFitColumnWidth(column, safeVisibleDefs.length)
-                  }}
-                />
-              ))}
-            </colgroup>
-          ) : null}
-
-          <thead className="data-table-table__head">
+    <div className="data-table-card">
+      <div className="data-table-scroll">
+        <table className="data-table">
+          <thead>
             <tr>
-              {safeVisibleDefs.map((column) => {
-                const key = String(column.key);
-                const activeSort = sorts.find((sort) => sort.key === key);
-                const sortPriority =
-                  sorts.findIndex((sort) => sort.key === key) + 1;
+              {safeColumns.map((column) => {
+                const isSorted = sort?.key === column.key;
 
                 return (
                   <th
-                    key={key}
+                    key={column.key}
                     className={[
-                      "data-table-table__th",
-                      column.compact ? "data-table-table__th--compact" : "",
-                      getStickyClass(column)
+                      getAlignClass(column.align),
+                      getFixedClass(column.fixed)
                     ]
                       .filter(Boolean)
                       .join(" ")}
                     style={{
-                      ...getCellStyle(column, tableMode),
-                      zIndex: column.sticky ? 8 : undefined
+                      width: toCssSize(column.width),
+                      minWidth: toCssSize(column.minWidth ?? column.width)
                     }}
-                    title={`${column.header} | Click: filtrar | Click derecho: ordenar`}
+                    title="1 click: filtrar | 2 clicks: ordenar"
                     onClick={(event) => {
-                      const rectangle =
+                      const rect =
                         event.currentTarget.getBoundingClientRect();
 
-                      setCardPosition({
-                        x: rectangle.left,
-                        y: rectangle.bottom + 4
-                      });
-
-                      setOpenColumn(column);
+                      handleHeaderClick(column, rect);
                     }}
-                    onContextMenu={(event) => {
-                      event.preventDefault();
-
-                      if (!column.disableSort) {
-                        handleSortClick(key, event);
-                      }
-                    }}
+                    onDoubleClick={() => handleHeaderDoubleClick(column)}
                   >
-                    <div
-                      className={[
-                        "data-table-table__th-inner",
-                        `data-table-table__th-inner--${column.align ?? "left"}`
-                      ].join(" ")}
-                    >
-                      <span className="data-table-table__content data-table-table__content--truncate">
-                        {column.header}
+                    <div className="data-table-th-content">
+                      <span className="data-table-th-label">
+                        <span>{column.label}</span>
+
+                        {column.sortable ? (
+                          <span
+                            className={
+                              isSorted
+                                ? "data-table-sort-indicator data-table-sort-indicator--active"
+                                : "data-table-sort-indicator"
+                            }
+                          >
+                            {getSortSymbol(isSorted, sort?.direction)}
+                          </span>
+                        ) : null}
                       </span>
 
-                      {activeSort ? (
-                        <span className="data-table-table__sort-badge">
-                          {activeSort.dir === "asc" ? "▲" : "▼"}{" "}
-                          {sortPriority}
+                      {column.filterable ? (
+                        <span className="data-table-filter-button">
+                          <svg
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                            focusable="false"
+                          >
+                            <path d="M4 6h16" />
+                            <path d="M7 12h10" />
+                            <path d="M10 18h4" />
+                          </svg>
                         </span>
                       ) : null}
                     </div>
@@ -468,118 +250,58 @@ export default function DataTableTable<T extends Record<string, unknown>>({
             </tr>
           </thead>
 
-          <tbody className="data-table-table__body">
-            {pageRows.length === 0 ? (
+          <tbody>
+            {loading ? (
               <tr>
-                <td
-                  colSpan={safeVisibleDefs.length || 1}
-                  className="data-table-table__empty"
-                >
-                  Sin datos
+                <td colSpan={columnCount}>
+                  <div className="data-table-state">
+                    Cargando registros...
+                  </div>
                 </td>
               </tr>
-            ) : (
-              pageRows.map((row, rowIndex) => {
-                const realIndex = startIndex + rowIndex;
-                const rowKey = getRowKey(row, realIndex);
+            ) : null}
 
-                return (
-                  <tr
-                    key={rowKey}
-                    className={[
-                      "data-table-table__tr",
-                      rowsAreClickable ? "data-table-table__tr--clickable" : ""
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
-                    onClick={() => onRowClick?.(row, realIndex)}
-                    onDoubleClick={() => onRowDoubleClick?.(row, realIndex)}
-                  >
-                    {safeVisibleDefs.map((column) => {
-                      const key = String(column.key);
-
-                      const value = column.cell
-                        ? column.cell(row, realIndex)
-                        : getRowValue(row, key);
-
-                      return (
-                        <td
-                          key={`${rowKey}-${key}`}
-                          className={[
-                            "data-table-table__td",
-                            column.compact
-                              ? "data-table-table__td--compact"
-                              : "",
-                            getStickyClass(column)
-                          ]
-                            .filter(Boolean)
-                            .join(" ")}
-                          style={getCellStyle(column, tableMode)}
-                        >
-                          <div
-                            className={getContentClass(column, tableMode)}
-                            title={getTextTitle(value)}
-                          >
-                            {value as ReactNode}
-                          </div>
-                        </td>
-                      );
-                    })}
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-
-          {hasTotals ? (
-            <tfoot className="data-table-table__foot">
+            {!loading && safeRows.length === 0 ? (
               <tr>
-                {safeVisibleDefs.map((column) => {
-                  const key = String(column.key);
-
-                  return (
-                    <td
-                      key={`total-${key}`}
-                      className={[
-                        "data-table-table__td",
-                        column.compact ? "data-table-table__td--compact" : "",
-                        getStickyClass(column)
-                      ]
-                        .filter(Boolean)
-                        .join(" ")}
-                      style={getCellStyle(column, tableMode)}
-                    >
-                      <div className={getContentClass(column, tableMode)}>
-                        {column.isTotal
-                          ? Number(totals?.[key] ?? 0).toLocaleString(
-                              "es-MX",
-                              {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                              }
-                            )
-                          : ""}
-                      </div>
-                    </td>
-                  );
-                })}
+                <td colSpan={columnCount}>
+                  <div className="data-table-state">
+                    {emptyMessage}
+                  </div>
+                </td>
               </tr>
-            </tfoot>
-          ) : null}
+            ) : null}
+
+            {!loading
+              ? safeRows.map((row, rowIndex) => (
+                  <tr
+                    key={rowKey ? rowKey(row, rowIndex) : `row-${rowIndex}`}
+                    onDoubleClick={() => onRowDoubleClick?.(row)}
+                  >
+                    {safeColumns.map((column) => (
+                      <td
+                        key={`${rowIndex}-${column.key}`}
+                        className={[
+                          getAlignClass(column.align),
+                          getFixedClass(column.fixed)
+                        ]
+                          .filter(Boolean)
+                          .join(" ")}
+                        style={{
+                          width: toCssSize(column.width),
+                          minWidth: toCssSize(
+                            column.minWidth ?? column.width
+                          )
+                        }}
+                      >
+                        {renderCellValue(row, column)}
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              : null}
+          </tbody>
         </table>
       </div>
-
-      <PaginacionTable
-        currentPage={safePage}
-        totalPages={totalPages}
-        totalRows={totalRows}
-        startIndex={startIndex}
-        endIndex={endIndex}
-        onPrevious={goToPreviousPage}
-        onNext={goToNextPage}
-        onPageChange={setCurrentPage}
-        label="permisos"
-      />
     </div>
   );
 }
